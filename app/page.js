@@ -191,6 +191,35 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <section className="confirmation-section">
+          <div className="confirmation-shell">
+            <div className="confirmation-content">
+              <div className="confirmation-icon" aria-hidden="true">
+                <span className="confirmation-icon-ball" />
+              </div>
+
+              <div className="confirmation-message">
+                <p className="eyebrow">Registro completado</p>
+                <h2 className="section-title">Charizard se ha anadido correctamente a tu equipo.</h2>
+                <p className="section-text">
+                  Este bloque adapta el componente de confirmacion del curso para
+                  mostrar una accion completada dentro de la experiencia de la
+                  Pokedex.
+                </p>
+              </div>
+            </div>
+
+            <div className="confirmation-actions">
+              <button type="button" className="confirmation-primary">
+                Ver ficha
+              </button>
+              <button type="button" className="confirmation-secondary">
+                Volver a la lista
+              </button>
+            </div>
+          </div>
+        </section>
       </main>
     </>
   )

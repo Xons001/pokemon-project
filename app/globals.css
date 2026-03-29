@@ -533,6 +533,120 @@ a {
   border-radius: 999px;
 }
 
+.confirmation-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1d4ed8, #10243f);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(24, 33, 47, 0.16);
+}
+
+.confirmation-shell {
+  padding: 1.4rem 1.5rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+}
+
+.confirmation-content {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.confirmation-icon {
+  flex: 0 0 74px;
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff4c2, #ffd54f);
+}
+
+.confirmation-icon-ball {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 4px solid #111827;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #ef5350 0 50%, #ffffff 50% 100%);
+}
+
+.confirmation-icon-ball::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #111827;
+  transform: translateY(-50%);
+}
+
+.confirmation-icon-ball::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 4px solid #111827;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+
+.confirmation-message .section-title {
+  max-width: 16ch;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e3e9f2;
+}
+
+.confirmation-primary,
+.confirmation-secondary {
+  min-width: 150px;
+  padding: 0.95rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.confirmation-primary {
+  color: #111827;
+  background: var(--accent);
+  border: 0;
+}
+
+.confirmation-primary:hover {
+  transform: translateY(-1px);
+  background: #ffbf00;
+}
+
+.confirmation-secondary {
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid #cfd8e6;
+}
+
+.confirmation-secondary:hover {
+  transform: translateY(-1px);
+  background: #f4f7fb;
+}
+
 @media (max-width: 720px) {
   .site-header {
     flex-direction: column;
@@ -576,5 +690,14 @@ a {
 
   .search-actions {
     justify-content: flex-end;
+  }
+
+  .confirmation-content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .confirmation-actions {
+    flex-direction: column;
   }
 }
