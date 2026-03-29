@@ -19,7 +19,8 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
               Ataques y objetos de {pokemon.name}
             </h2>
             <p className={sharedStyles.sectionText}>
-              Consulta los movimientos que aprende por nivel y los objetos registrados en PokeAPI para el Pokemon activo.
+              Consulta los movimientos que aprende por nivel, los objetos asociados y salta a la pagina de equipos para
+              usarlo como futuro lider.
             </p>
           </div>
         </div>
@@ -76,7 +77,7 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
 
         <div className={styles.confirmationActions}>
           <button type="button" className={styles.confirmationPrimary} onClick={onViewCard}>
-            Ver ficha
+            Ir a equipos
           </button>
           <button type="button" className={styles.confirmationSecondary} onClick={onBackToList}>
             Volver a la lista

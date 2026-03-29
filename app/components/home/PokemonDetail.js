@@ -99,7 +99,7 @@ export default function PokemonDetail({ pokemon, onViewCard, onFocusSearch }) {
 
         <div className={styles.hubActions}>
           <button type="button" className={primaryButtonClassName} onClick={onViewCard}>
-            Ver ficha
+            Ir a equipos
           </button>
           <button type="button" className={secondaryButtonClassName} onClick={onFocusSearch}>
             Buscar otro

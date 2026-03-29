@@ -1,0 +1,304 @@
+.workspace {
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.nameInput {
+  min-width: min(100%, 320px);
+  padding: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: #18212f;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.clearButton {
+  min-width: 140px;
+  padding: 0.9rem 1.15rem;
+  font-weight: 700;
+  color: #7f1d1d;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.notice {
+  margin: 1rem 0 0;
+  padding: 0.9rem 1rem;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+  margin-top: 1.2rem;
+}
+
+.slotCard {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.slotCardActive {
+  border-color: var(--team-accent, #3d5a80);
+  box-shadow:
+    0 16px 30px rgba(24, 33, 47, 0.1),
+    0 0 0 3px color-mix(in srgb, var(--team-accent, #3d5a80) 15%, transparent);
+}
+
+.slotEmpty {
+  align-content: center;
+  min-height: 210px;
+  text-align: left;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fbfdff, #f3f7fc);
+}
+
+.slotEmpty strong,
+.slotEmpty p {
+  margin: 0;
+}
+
+.slotEmpty p {
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.slotSelectArea {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.slotIndex,
+.slotDex {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6d7f96;
+}
+
+.slotDex {
+  justify-self: start;
+  padding: 0.28rem 0.55rem;
+  background: color-mix(in srgb, var(--team-accent, #3d5a80) 12%, white);
+  border-radius: 999px;
+}
+
+.slotVisual {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff, #edf2fb);
+}
+
+.slotCopy {
+  min-width: 0;
+}
+
+.slotCopy strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.slotCopy p {
+  margin: 0.3rem 0 0;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.slotActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.slotSecondaryAction {
+  padding: 0.7rem 0.95rem;
+  font-weight: 700;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.slotLeaderActive {
+  color: #111827;
+  background: var(--accent);
+  border-color: #f7d56b;
+}
+
+.searchSection {
+  margin-top: 1.25rem;
+  padding: 1.15rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.75), transparent 28%),
+    #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 24px;
+}
+
+.searchHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.searchHeader h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.catalogBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 999px;
+}
+
+.searchBar {
+  display: block;
+  margin-top: 1rem;
+}
+
+.searchBar input {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid #d6deeb;
+  border-radius: 18px;
+  outline: 0;
+}
+
+.helperText {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+}
+
+.searchResults {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.resultCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.85rem;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.resultCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(24, 33, 47, 0.1);
+}
+
+.resultThumb {
+  display: grid;
+  flex: 0 0 72px;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #edf2fb);
+}
+
+.resultCopy {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.resultCopy strong {
+  font-size: 1rem;
+}
+
+.resultCopy small {
+  color: var(--muted);
+}
+
+.emptyResults {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 1rem;
+  color: var(--muted);
+  background: #ffffff;
+  border: 1px dashed #dce6f4;
+  border-radius: 18px;
+}
+
+@media (max-width: 900px) {
+  .slotGrid,
+  .searchResults {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .header,
+  .searchHeader {
+    flex-direction: column;
+  }
+
+  .nameInput {
+    min-width: 0;
+    width: 100%;
+  }
+}

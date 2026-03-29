@@ -1,5 +1,10 @@
 export const PAGE_SIZE = 16
 export const INITIAL_SELECTED_SLUG = 'charizard'
+export const INITIAL_SELECTED_ENTRY = {
+  id: 6,
+  slug: INITIAL_SELECTED_SLUG,
+  label: 'Charizard',
+}
 
 export const navItems = [
   { label: 'Inicio', href: '#inicio' },
@@ -136,6 +141,7 @@ export function createPlaceholderPokemon(entry) {
     thumb: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.id}.png`,
     type: 'Cargando',
     types: [],
+    typeKeys: [],
     hp: '--',
     attack: '--',
     defense: '--',
@@ -214,6 +220,7 @@ export function createPokemonDetails(data) {
   const specialDefense = getStat(data.stats, 'special-defense')
   const speed = getStat(data.stats, 'speed')
   const types = data.types.map((entry) => translateType(entry.type.name))
+  const typeKeys = data.types.map((entry) => entry.type.name)
   const primaryType = data.types[0]?.type.name ?? 'normal'
   const role = buildRole(attack, defense, speed)
   const name = formatName(data.name)
@@ -234,6 +241,7 @@ export function createPokemonDetails(data) {
     thumb: data.sprites.front_default ?? artwork,
     type: types[0] ?? 'Normal',
     types,
+    typeKeys,
     hp,
     attack,
     defense,

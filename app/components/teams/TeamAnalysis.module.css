@@ -1,0 +1,185 @@
+.analysis {
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.header,
+.blockHeading,
+.metricTop,
+.rankMeta,
+.rankCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.header h3,
+.blockHeading h4 {
+  margin: 0;
+}
+
+.header h3 {
+  font-size: 1.55rem;
+}
+
+.statusBadge,
+.blockHeading span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: #eff4ff;
+  border: 1px solid #d8dfeb;
+  border-radius: 999px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 20px;
+}
+
+.summaryCard span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.summaryCard strong {
+  font-size: 1.05rem;
+}
+
+.block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e6edf8;
+}
+
+.metricList,
+.templateRanking {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.metricCard,
+.rankCard {
+  padding: 0.95rem 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+}
+
+.metricCard p,
+.rankCard p,
+.emptyMessage {
+  grid-column: 1 / -1;
+  margin: 0.45rem 0 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.metricTop span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #324962;
+}
+
+.metricBarTrack {
+  height: 10px;
+  margin-top: 0.9rem;
+  background: #e8effa;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.metricBarFillRisk,
+.metricBarFillSafe {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.metricBarFillRisk {
+  background: linear-gradient(90deg, #ef5350, #f59e0b);
+}
+
+.metricBarFillSafe {
+  background: linear-gradient(90deg, #22c55e, #0ea5e9);
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.typeTile {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.9rem;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 16px;
+}
+
+.typeTile strong {
+  margin-bottom: 0.2rem;
+}
+
+.typeTile span,
+.rankMeta span {
+  color: var(--muted);
+}
+
+.rankCardBest {
+  border-color: #f6d365;
+  background: linear-gradient(180deg, #fff9dd, #fffef6);
+}
+
+.rankMeta {
+  align-items: center;
+  min-width: 100px;
+}
+
+@media (max-width: 720px) {
+  .summaryGrid,
+  .typeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header,
+  .blockHeading,
+  .rankCard {
+    flex-direction: column;
+  }
+}
