@@ -9,6 +9,16 @@ La app permite:
 - Seleccionar un Pokemon y ver su ficha principal actualizada al instante.
 - Mostrar datos sacados del endpoint `pokemon/{id}` como `hp`, `attack`, `defense`, `special-attack`, `special-defense`, `speed`, `types`, `height`, `weight` y `abilities`.
 
+## Funcionalidades actuales
+
+- Carga del catalogo completo de Pokemon desde PokeAPI.
+- Paginacion para recorrer el listado sin cargar toda la interfaz de golpe.
+- Busqueda por nombre, numero de Pokedex, tipo o habilidad ya cargada en cache.
+- Seleccion interactiva de Pokemon desde la galeria superior.
+- Ficha principal que actualiza imagen, tipos, rol y stats al cambiar de Pokemon.
+- Tarjeta destacada y bloque promocional reutilizando el Pokemon activo.
+- Arquitectura separada por componentes, hook de datos y utilidades compartidas.
+
 ## Tecnologias
 
 - Next.js 13
@@ -18,55 +28,33 @@ La app permite:
 
 ## Como arrancarlo
 
-1. Entra en la carpeta del proyecto:
-
-```bash
-cd C:\RepositoriosJavascript\pokemon-project
-```
-
-2. Instala dependencias:
+Puesta en marcha rapida:
 
 ```bash
 npm install
-```
-
-3. Arranca el servidor de desarrollo:
-
-```bash
 npm run dev
 ```
 
-4. Abre el navegador en:
+Cuando termine, abre:
 
 ```text
 http://localhost:3000
 ```
 
+Resumen:
+
+- `npm install` instala las dependencias del proyecto.
+- `npm run dev` levanta el servidor de desarrollo.
+- La app se recarga automaticamente cuando guardas cambios.
+
 ## Scripts disponibles
 
-```bash
-npm run dev
-```
-
-Levanta el proyecto en modo desarrollo.
-
-```bash
-npm run lint
-```
-
-Lanza ESLint para revisar el codigo.
-
-```bash
-npm run build
-```
-
-Genera la build de produccion.
-
-```bash
-npm run start
-```
-
-Arranca la build de produccion.
+| Script | Que hace |
+| --- | --- |
+| `npm run dev` | Arranca la aplicacion en modo desarrollo en `localhost:3000`. |
+| `npm run lint` | Revisa el codigo con ESLint. |
+| `npm run build` | Genera la build de produccion. |
+| `npm run start` | Levanta la build de produccion ya compilada. |
 
 ## Nota para Windows
 
@@ -131,12 +119,19 @@ app/
 
 Este proyecto usa [PokeAPI](https://pokeapi.co/).
 
-Endpoint principal usado para la ficha:
+Endpoints principales usados:
 
 ```text
+https://pokeapi.co/api/v2/pokemon?limit={count}&offset=0
 https://pokeapi.co/api/v2/pokemon/{id}
 ```
 
+Uso actual:
+
+- El catalogo completo se usa para construir la galeria y la paginacion.
+- El endpoint `pokemon/{id}` se usa para obtener los datos del Pokemon activo.
+- De ese endpoint se leen directamente los stats base, tipos, altura, peso, habilidades e imagenes.
+
 ## Estado actual
 
-Ahora mismo el proyecto ya permite navegar por el catalogo y visualizar datos reales de Pokemon en una interfaz propia construida con React.
+Ahora mismo el proyecto ya permite recorrer el catalogo completo, seleccionar Pokemon y visualizar datos reales en una interfaz propia construida con React y Next.js.

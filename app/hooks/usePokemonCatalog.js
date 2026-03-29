@@ -86,7 +86,9 @@ export function usePokemonCatalog() {
   const totalPages = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE))
   const safeCurrentPage = Math.min(currentPage, totalPages)
   const pageStart = (safeCurrentPage - 1) * PAGE_SIZE
-  const currentPageEntries = filteredEntries.slice(pageStart, pageStart + PAGE_SIZE)
+  const currentPageEntries = useMemo(() => {
+    return filteredEntries.slice(pageStart, pageStart + PAGE_SIZE)
+  }, [filteredEntries, pageStart])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -133,8 +135,6 @@ export function usePokemonCatalog() {
           return createPokemonDetails(data)
         })
       )
-
-      if (cancelled) return
 
       setPokemonCache((previous) => {
         const next = { ...previous }
