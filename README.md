@@ -1,29 +1,38 @@
 # Pokemon Project
 
-Aplicacion web construida con Next.js y React que consume [PokeAPI](https://pokeapi.co/) para mostrar una Pokedex interactiva.
+Aplicacion web construida con Next.js y React que consume [PokeAPI](https://pokeapi.co/) para ofrecer dos experiencias dentro del mismo proyecto:
 
-La app permite:
+- una **Pokedex interactiva** para explorar Pokemon
+- una **pagina de equipos** para montar un equipo de 6 miembros y analizar su compatibilidad por tipos
 
-- Buscar Pokemon por nombre, numero o tipo.
-- Navegar por el catalogo completo con paginacion.
-- Seleccionar un Pokemon y ver su ficha principal actualizada al instante.
-- Mostrar datos sacados del endpoint `pokemon/{id}` como `hp`, `attack`, `defense`, `special-attack`, `special-defense`, `speed`, `types`, `height`, `weight` y `abilities`.
+## Que hace la app
 
-## Funcionalidades actuales
+### `/pokedex`
 
-- Carga del catalogo completo de Pokemon desde PokeAPI.
-- Paginacion para recorrer el listado sin cargar toda la interfaz de golpe.
-- Busqueda por nombre, numero de Pokedex, tipo o habilidad ya cargada en cache.
-- Seleccion interactiva de Pokemon desde la galeria superior.
-- Ficha principal que actualiza imagen, tipos, rol y stats al cambiar de Pokemon.
-- Tarjeta destacada y bloque promocional reutilizando el Pokemon activo.
-- Arquitectura separada por componentes, hook de datos y utilidades compartidas.
+- Busca Pokemon por nombre, numero o tipo.
+- Navega por el catalogo completo con paginacion.
+- Selecciona un Pokemon y actualiza su ficha principal al instante.
+- Muestra stats, tipos, altura, peso, bonus, movimientos por nivel y objetos posibles.
+
+### `/equipos`
+
+- Guarda un unico equipo de 6 Pokemon en `localStorage`.
+- Permite construir el equipo seleccionando huecos y anadiendo Pokemon desde un buscador.
+- Calcula la compatibilidad del equipo usando la tabla real de tipos de Pokemon.
+- Muestra una matriz de efectividades para ver rapidamente que tipos son amenaza y cuales estan mejor cubiertos.
+
+## Rutas principales
+
+- `/` redirige automaticamente a `/pokedex`
+- `/pokedex` muestra la Pokedex interactiva
+- `/equipos` muestra el constructor y analisis del equipo
+- `/pokedex/equipos` redirige a `/equipos` para mantener compatibilidad con la ruta antigua
 
 ## Tecnologias
 
 - Next.js 13
 - React 18
-- CSS global
+- CSS Modules + estilos globales base
 - PokeAPI
 
 ## Como arrancarlo
@@ -38,14 +47,14 @@ npm run dev
 Cuando termine, abre:
 
 ```text
-http://localhost:3000
+http://localhost:3000/pokedex
 ```
 
 Resumen:
 
 - `npm install` instala las dependencias del proyecto.
 - `npm run dev` levanta el servidor de desarrollo.
-- La app se recarga automaticamente cuando guardas cambios.
+- la app se recarga automaticamente cuando guardas cambios.
 
 ## Scripts disponibles
 
@@ -55,6 +64,88 @@ Resumen:
 | `npm run lint` | Revisa el codigo con ESLint. |
 | `npm run build` | Genera la build de produccion. |
 | `npm run start` | Levanta la build de produccion ya compilada. |
+
+## Funcionalidades actuales
+
+- Carga del catalogo completo de Pokemon desde PokeAPI.
+- Paginacion para recorrer la Pokedex sin renderizar todo el catalogo a la vez.
+- Busqueda por nombre, numero de Pokedex, tipo o datos ya presentes en cache.
+- Ficha principal del Pokemon activo con stats reales y contenido enriquecido.
+- Seccion de movimientos por nivel y objetos posibles para el Pokemon seleccionado.
+- Constructor de un equipo unico de 6 slots persistido en el navegador.
+- Matriz de compatibilidad por tipos para revisar debilidades, resistencias e inmunidades del equipo.
+- Arquitectura separada por componentes, hooks y utilidades compartidas.
+
+## Como esta organizada la app
+
+```text
+app/
+  components/
+    home/
+      ConfirmationSection.js
+      GalleryToolbar.js
+      HomePage.js
+      PokedexHub.js
+      PokemonCardSection.js
+      PokemonDetail.js
+      PokemonGallery.js
+      SearchPanel.js
+      SiteHeader.js
+    teams/
+      TeamAnalysis.js
+      TeamBuilderPage.js
+      TeamWorkspace.js
+    icons/
+      MicIcon.js
+      SearchIcon.js
+  hooks/
+    usePokemonCatalog.js
+    useTeamBuilder.js
+  lib/
+    pokemon.js
+    team-builder.js
+  equipos/
+    page.js
+  pokedex/
+    page.js
+    equipos/
+      page.js
+  globals.css
+  layout.js
+  page.js
+```
+
+## Organizacion del codigo
+
+- `app/page.js`: redirige a `/pokedex`.
+- `app/pokedex/page.js`: entrada de la Pokedex.
+- `app/equipos/page.js`: entrada de la pagina de equipos.
+- `app/hooks/usePokemonCatalog.js`: carga, cache, busqueda y paginacion de la Pokedex.
+- `app/hooks/useTeamBuilder.js`: estado del equipo, persistencia local y analisis de compatibilidad.
+- `app/lib/pokemon.js`: helpers, constantes y transformacion de datos de PokeAPI.
+- `app/lib/team-builder.js`: utilidades para construir y analizar el equipo por tipos.
+- `app/components/home/*`: componentes visuales de la Pokedex.
+- `app/components/teams/*`: componentes del constructor y la tabla de compatibilidad.
+- `app/globals.css`: estilos base globales.
+
+## API utilizada
+
+Este proyecto usa [PokeAPI](https://pokeapi.co/).
+
+Endpoints principales usados:
+
+```text
+https://pokeapi.co/api/v2/pokemon?limit={count}&offset=0
+https://pokeapi.co/api/v2/pokemon/{id}
+https://pokeapi.co/api/v2/type?limit=100
+https://pokeapi.co/api/v2/type/{id}
+```
+
+Uso actual:
+
+- el catalogo completo se usa para la galeria, la paginacion y el buscador
+- `pokemon/{id}` se usa para obtener stats, tipos, altura, peso, habilidades, movimientos e imagenes
+- los endpoints de `type` se usan para construir la matriz de compatibilidad del equipo
 
 ## Nota para Windows
 
@@ -69,69 +160,6 @@ En ese caso:
 npm run build
 ```
 
-## De que va la app
-
-La pagina principal funciona como una Pokedex visual:
-
-- Arriba hay un buscador con sugerencias rapidas.
-- Debajo aparece una galeria paginada con Pokemon.
-- Al seleccionar uno, la ficha principal cambia con sus datos reales.
-- La misma seleccion se reutiliza tambien en la tarjeta destacada y en la seccion promocional inferior.
-
-La idea del proyecto es mezclar una interfaz mas visual de portfolio con datos reales sacados de API.
-
-## Estructura principal
-
-```text
-app/
-  components/
-    home/
-      ConfirmationSection.js
-      GalleryToolbar.js
-      PokedexHub.js
-      PokemonCardSection.js
-      PokemonDetail.js
-      PokemonGallery.js
-      PromoSection.js
-      SearchPanel.js
-      SiteHeader.js
-    icons/
-      MicIcon.js
-      SearchIcon.js
-  hooks/
-    usePokemonCatalog.js
-  lib/
-    pokemon.js
-  globals.css
-  layout.js
-  page.js
-```
-
-## Organizacion del codigo
-
-- `app/page.js`: pagina maestra que compone la home.
-- `app/hooks/usePokemonCatalog.js`: hook con la logica de carga, busqueda, cache y paginacion.
-- `app/lib/pokemon.js`: constantes, helpers y transformacion de datos de PokeAPI.
-- `app/components/home/*`: componentes visuales de la home.
-- `app/globals.css`: estilos globales del proyecto.
-
-## API utilizada
-
-Este proyecto usa [PokeAPI](https://pokeapi.co/).
-
-Endpoints principales usados:
-
-```text
-https://pokeapi.co/api/v2/pokemon?limit={count}&offset=0
-https://pokeapi.co/api/v2/pokemon/{id}
-```
-
-Uso actual:
-
-- El catalogo completo se usa para construir la galeria y la paginacion.
-- El endpoint `pokemon/{id}` se usa para obtener los datos del Pokemon activo.
-- De ese endpoint se leen directamente los stats base, tipos, altura, peso, habilidades e imagenes.
-
 ## Estado actual
 
-Ahora mismo el proyecto ya permite recorrer el catalogo completo, seleccionar Pokemon y visualizar datos reales en una interfaz propia construida con React y Next.js.
+El proyecto ya funciona como una Pokedex interactiva con datos reales y como una herramienta visual para analizar la quimica de un equipo Pokemon dentro del mismo repositorio.
