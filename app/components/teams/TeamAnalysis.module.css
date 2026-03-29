@@ -1,4 +1,5 @@
 .analysis {
+  min-width: 0;
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
@@ -51,7 +52,7 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.8rem;
   margin-top: 1rem;
 }
@@ -173,15 +174,18 @@
 
 .tableWrap {
   margin-top: 0.9rem;
-  overflow: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable both-edges;
   border: 1px solid #dce6f4;
   border-radius: 22px;
   background: #ffffff;
 }
 
 .matrixTable {
-  width: 100%;
-  min-width: 980px;
+  width: max-content;
+  min-width: 1440px;
   border-collapse: separate;
   border-spacing: 0;
   background: #ffffff;
@@ -189,15 +193,10 @@
 
 .matrixTable th,
 .matrixTable td {
-  padding: 0.8rem 0.65rem;
+  padding: 0.72rem 0.38rem;
   text-align: center;
   border-right: 1px solid #eef3fb;
   border-bottom: 1px solid #eef3fb;
-}
-
-.matrixTable tr:last-child th,
-.matrixTable tr:last-child td {
-  border-bottom: 0;
 }
 
 .matrixTable th:last-child,
@@ -208,90 +207,90 @@
 .matrixTable thead th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
   background: #f8fbff;
 }
 
-.typeHeader,
-.typeRowHeader {
-  min-width: 110px;
+.pokemonHeader,
+.pokemonRowHeader,
+.teamFooterLabel {
+  min-width: 164px;
   text-align: left;
   position: sticky;
   left: 0;
-  z-index: 2;
-}
-
-.typeRowHeader {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #18212f;
+  z-index: 3;
   background: #fbfdff;
 }
 
-.typeRowBadge {
+.pokemonHeader,
+.teamFooterLabel {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #18212f;
+}
+
+.pokemonRowCard {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pokemonRowCard strong {
+  font-size: 0.98rem;
+}
+
+.typeHeader {
+  min-width: 66px;
+}
+
+.typeHeaderBadge,
+.typeChip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 88px;
-  padding: 0.52rem 0.72rem;
-  font-size: 0.78rem;
-  font-weight: 800;
   color: #ffffff;
   background: var(--type-accent, #64748b);
-  border-radius: 14px;
 }
 
-.slotHeader {
-  min-width: 136px;
-}
-
-.slotHeader span {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #6d7f96;
-}
-
-.slotHeader strong {
-  display: block;
-  margin-top: 0.2rem;
-  font-size: 0.95rem;
+.typeHeaderBadge {
+  min-width: 54px;
+  padding: 0.42rem 0.22rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 12px;
 }
 
 .typeChipGroup {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 0.35rem;
-  margin-top: 0.5rem;
 }
 
 .typeChip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   padding: 0.22rem 0.5rem;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #ffffff;
-  background: var(--type-accent, #64748b);
   border-radius: 999px;
 }
 
-.pendingType {
-  display: block;
-  margin-top: 0.45rem;
-  color: #94a3b8;
-}
-
 .summaryHeader {
-  min-width: 188px;
+  min-width: 150px;
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: #f8fbff;
 }
 
-.matrixCell {
+.matrixCell,
+.footerCell {
   background: #ffffff;
+}
+
+.matchupBadge {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
 .cellRiskHeavy {
@@ -336,17 +335,29 @@
   border-color: #e2e8f0;
 }
 
-.matchupBadge {
-  min-width: 56px;
-  min-height: 56px;
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  line-height: 1;
+.overviewCell,
+.footerCell {
+  text-align: left;
+  background: #fbfdff;
+}
+
+.overviewCell,
+.footerCell {
+  position: sticky;
+  right: 0;
+  z-index: 2;
 }
 
 .overviewStack {
   display: grid;
   gap: 0.6rem;
+}
+
+.overviewList {
+  display: grid;
+  gap: 0.24rem;
+  font-size: 0.8rem;
+  color: #324962;
 }
 
 .verdictBadge {
@@ -395,16 +406,20 @@
   border-color: #0f172a;
 }
 
-.overviewCell {
-  text-align: left;
-  background: #fbfdff;
+.matrixTable tfoot th,
+.matrixTable tfoot td {
+  position: sticky;
+  bottom: 0;
+  background: #f8fbff;
+  z-index: 2;
 }
 
-.overviewList {
-  display: grid;
-  gap: 0.24rem;
-  font-size: 0.82rem;
-  color: #324962;
+.matrixTable tfoot .teamFooterLabel {
+  z-index: 4;
+}
+
+.matrixTable tfoot .footerCell {
+  z-index: 3;
 }
 
 @media (max-width: 960px) {

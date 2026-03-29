@@ -1,6 +1,5 @@
 'use client'
 
-import PokemonCardSection from '../home/PokemonCardSection'
 import SiteHeader from '../home/SiteHeader'
 import { useTeamBuilder } from '../../hooks/useTeamBuilder'
 import pageStyles from '../../page.module.css'
@@ -10,7 +9,6 @@ import styles from './TeamBuilderPage.module.css'
 
 export default function TeamBuilderPage() {
   const teamBuilder = useTeamBuilder()
-  const leaderPokemon = teamBuilder.leaderPokemon
 
   return (
     <>
@@ -21,8 +19,8 @@ export default function TeamBuilderPage() {
           <div className={styles.heroCopy}>
             <h2>Pokemon Teams Lab</h2>
             <p className={styles.lead}>
-              Construye un unico equipo de seis Pokemon, define un lider y revisa en una sola tabla que tipos rivales
-              lo presionan mas y cuales quedan mejor cubiertos.
+              Monta un unico equipo de seis Pokemon y revisa con claridad que tipos rivales lo castigan mas y cuales
+              tiene mejor cubiertos.
             </p>
           </div>
 
@@ -37,7 +35,7 @@ export default function TeamBuilderPage() {
             </div>
             <div className={styles.statCard}>
               <span>Tabla</span>
-              <strong>x4 / x2 / x1/2</strong>
+              <strong>Tipos arriba</strong>
             </div>
           </div>
         </section>
@@ -54,7 +52,6 @@ export default function TeamBuilderPage() {
             onRemovePokemon={teamBuilder.removePokemonFromTeam}
             onRenameTeam={teamBuilder.renameTeam}
             onSelectSlot={teamBuilder.selectSlot}
-            onSetLeaderSlot={teamBuilder.setLeaderSlot}
             searchQuery={teamBuilder.searchQuery}
             searchResults={teamBuilder.searchResults}
             selectedSlotIndex={teamBuilder.selectedSlotIndex}
@@ -63,7 +60,6 @@ export default function TeamBuilderPage() {
           />
 
           <TeamAnalysis
-            activeTeam={teamBuilder.activeTeam}
             isTypeChartLoading={teamBuilder.isTypeChartLoading}
             teamMembers={teamBuilder.teamMembers}
             teamSummary={teamBuilder.teamSummary}
@@ -71,8 +67,6 @@ export default function TeamBuilderPage() {
             typeChartReady={teamBuilder.typeChartReady}
           />
         </section>
-
-        {leaderPokemon ? <PokemonCardSection pokemon={leaderPokemon} eyebrow="Lider del equipo" /> : null}
 
         {teamBuilder.loadError ? <p className={styles.errorBanner}>{teamBuilder.loadError}</p> : null}
       </main>
