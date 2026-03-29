@@ -1,0 +1,621 @@
+.pokedexHub {
+  padding: 1.6rem;
+  border: 1px solid var(--border);
+  border-radius: 32px;
+  box-shadow: 0 20px 48px rgba(24, 33, 47, 0.09);
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.72), transparent 28%),
+    rgba(255, 255, 255, 0.9);
+}
+
+.pokedexHubWater {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(109, 191, 255, 0.18), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubGrass {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(113, 230, 151, 0.18), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubFire {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(255, 176, 120, 0.2), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubGhost {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(155, 113, 255, 0.18), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubElectric {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(255, 221, 87, 0.2), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubEarth {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(205, 155, 101, 0.22), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubPsychic {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(255, 133, 188, 0.2), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubIce {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(132, 226, 255, 0.2), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubDark {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(123, 132, 161, 0.2), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubDragon {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(126, 142, 255, 0.22), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubSteel {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(158, 174, 196, 0.22), rgba(255, 255, 255, 0.94));
+}
+
+.pokedexHubNeutral {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.82), transparent 30%),
+    linear-gradient(180deg, rgba(201, 204, 214, 0.18), rgba(255, 255, 255, 0.94));
+}
+
+.hubHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hubHeading h2 {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.7rem);
+  line-height: 1.02;
+}
+
+.hubBadge {
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #314158;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(216, 223, 235, 0.9);
+}
+
+.hubSearch {
+  scroll-margin-top: 108px;
+  margin-top: 1.5rem;
+}
+
+.searchPanel {
+  padding: 1.2rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(61, 90, 128, 0.14), transparent 35%),
+    rgba(248, 251, 255, 0.86);
+  border: 1px solid #dce6f4;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem 0.55rem 1.15rem;
+  background: #ffffff;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.searchBar:focus-within {
+  border-color: #aac0df;
+  box-shadow: 0 12px 25px rgba(61, 90, 128, 0.14);
+}
+
+.searchBar input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  font-size: 1rem;
+  color: var(--text);
+  background: transparent;
+}
+
+.searchBar input::placeholder {
+  color: #7a8aa2;
+}
+
+.searchActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.searchActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  color: #61748f;
+  background: #f4f7fb;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.searchActions button:hover {
+  color: #ffffff;
+  background: #3d5a80;
+  transform: translateY(-1px);
+}
+
+.searchActions svg {
+  width: 20px;
+  height: 20px;
+}
+
+.searchSuggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.searchSuggestions button {
+  padding: 0.7rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #314158;
+  background: #ffffff;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.searchSuggestions button:hover {
+  background: #edf2fb;
+}
+
+.helperText {
+  margin: 0.9rem 0 0;
+  font-size: 0.92rem;
+  color: #5f6c80;
+}
+
+.galleryToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.galleryCount {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #314158;
+}
+
+.galleryPagination {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.pageButton {
+  min-width: 104px;
+  padding: 0.7rem 0.95rem;
+  font-weight: 700;
+  color: #314158;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.pageButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pageIndicator {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #5f6c80;
+}
+
+.galleryStrip {
+  scroll-margin-top: 108px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1.4rem;
+}
+
+.galleryPill {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(216, 223, 235, 0.92);
+  border-radius: 22px;
+  cursor: pointer;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.galleryPill:hover,
+.galleryPillActive {
+  transform: translateY(-4px);
+  border-color: rgba(61, 90, 128, 0.35);
+  box-shadow: 0 14px 30px rgba(24, 33, 47, 0.12);
+}
+
+.galleryPillThumb {
+  display: grid;
+  flex: 0 0 76px;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(237, 242, 251, 0.95));
+}
+
+.galleryPillThumb :global(img) {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(17, 24, 39, 0.15));
+}
+
+.galleryPillCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.galleryPillCopy strong {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.galleryPillCopy small {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.emptyState {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px dashed #bfd0e8;
+}
+
+.emptyState p,
+.emptyState strong {
+  margin: 0;
+}
+
+.hubDetail {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: stretch;
+  margin-top: 1.4rem;
+}
+
+.hubVisual,
+.hubInfo {
+  min-height: 100%;
+  border-radius: 28px;
+}
+
+.hubVisual {
+  display: flex;
+  flex-direction: column;
+  padding: 1.3rem;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.16);
+}
+
+.hubVisualWater {
+  background: linear-gradient(155deg, #4f7cff, #17315d);
+}
+
+.hubVisualGrass {
+  background: linear-gradient(155deg, #3ab76a, #214b4f);
+}
+
+.hubVisualFire {
+  background: linear-gradient(155deg, #ef5350, #1d3557);
+}
+
+.hubVisualGhost {
+  background: linear-gradient(155deg, #7b61ff, #2b2d42);
+}
+
+.hubVisualElectric {
+  background: linear-gradient(155deg, #f7d047, #966200);
+}
+
+.hubVisualEarth {
+  background: linear-gradient(155deg, #b57f4b, #5a3b20);
+}
+
+.hubVisualPsychic {
+  background: linear-gradient(155deg, #ff6cab, #7a2f5f);
+}
+
+.hubVisualIce {
+  background: linear-gradient(155deg, #83e8ff, #1c5878);
+}
+
+.hubVisualDark {
+  background: linear-gradient(155deg, #556178, #1f2430);
+}
+
+.hubVisualDragon {
+  background: linear-gradient(155deg, #6f86ff, #272e6a);
+}
+
+.hubVisualSteel {
+  background: linear-gradient(155deg, #9aa9c4, #435068);
+}
+
+.hubVisualNeutral {
+  background: linear-gradient(155deg, #8d96a9, #4a5160);
+}
+
+.hubVisualTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.featuredChip,
+.featuredId {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.featuredChip {
+  color: #111827;
+  background: var(--accent);
+}
+
+.featuredId {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hubVisualImageWrap {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 320px;
+  margin: 0.8rem 0 1rem;
+}
+
+.hubVisualImageWrap::before,
+.hubVisualImageWrap::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.hubVisualImageWrap::before {
+  width: 260px;
+  height: 260px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.hubVisualImageWrap::after {
+  width: 190px;
+  height: 190px;
+  border: 2px dashed rgba(255, 255, 255, 0.26);
+}
+
+.hubVisualImage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 300px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 20px rgba(8, 15, 26, 0.35));
+}
+
+.hubTypeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.hubTypeList span {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hubInfo {
+  padding: 1.6rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(216, 223, 235, 0.92);
+}
+
+.hubInfo h3 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 3.7rem);
+  line-height: 1;
+}
+
+.hubRole {
+  margin: 0.65rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #324962;
+}
+
+.hubDescription {
+  max-width: 56ch;
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+.hubMeta {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+}
+
+.hubMeta div,
+.detailBox {
+  padding: 1rem;
+  border-radius: 20px;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+}
+
+.hubMeta span,
+.detailBox span {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.hubMeta strong,
+.detailBox strong {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.hubDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.hubActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
+}
+
+.hubButton {
+  min-width: 160px;
+}
+
+@media (max-width: 900px) {
+  .hubDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .galleryStrip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .hubMeta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .hubHeading {
+    flex-direction: column;
+  }
+
+  .galleryToolbar,
+  .galleryPagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hubHeading h2 {
+    max-width: none;
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .searchBar {
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 24px;
+  }
+
+  .searchActions {
+    justify-content: flex-end;
+  }
+
+  .galleryStrip,
+  .hubMeta,
+  .hubDetailsGrid {
+    grid-template-columns: 1fr;
+  }
+}

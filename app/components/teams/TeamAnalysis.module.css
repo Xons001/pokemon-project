@@ -1,0 +1,443 @@
+.analysis {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.header,
+.blockHeading,
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.header h3,
+.blockHeading h4,
+.panelHeading h5 {
+  margin: 0;
+}
+
+.header h3 {
+  font-size: 1.55rem;
+}
+
+.statusBadge,
+.blockHeading span,
+.panelHeading span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  background: #eff4ff;
+  border: 1px solid #d8dfeb;
+  border-radius: 999px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 20px;
+}
+
+.summaryCard span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.summaryCard strong {
+  font-size: 1.05rem;
+}
+
+.block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e6edf8;
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.highlightPanel {
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 20px;
+}
+
+.chipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.statChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.chipRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.chipSafe {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.emptyMessage {
+  margin: 0.75rem 0 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+
+.legendLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.legendList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.legendItem,
+.matchupBadge,
+.verdictBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.legendItem {
+  min-width: 58px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.tableWrap {
+  margin-top: 0.9rem;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable both-edges;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.matrixTable {
+  width: max-content;
+  min-width: 1440px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+}
+
+.matrixTable th,
+.matrixTable td {
+  padding: 0.72rem 0.38rem;
+  text-align: center;
+  border-right: 1px solid #eef3fb;
+  border-bottom: 1px solid #eef3fb;
+}
+
+.matrixTable th:last-child,
+.matrixTable td:last-child {
+  border-right: 0;
+}
+
+.matrixTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fbff;
+}
+
+.pokemonHeader,
+.pokemonRowHeader,
+.teamFooterLabel {
+  min-width: 164px;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #fbfdff;
+}
+
+.pokemonHeader,
+.teamFooterLabel {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #18212f;
+}
+
+.pokemonRowCard {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pokemonRowCard strong {
+  font-size: 0.98rem;
+}
+
+.typeHeader {
+  min-width: 66px;
+}
+
+.typeHeaderBadge,
+.typeChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: var(--type-accent, #64748b);
+}
+
+.typeHeaderBadge {
+  min-width: 54px;
+  padding: 0.42rem 0.22rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  border-radius: 12px;
+}
+
+.typeChipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.typeChip {
+  padding: 0.22rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.summaryHeader {
+  min-width: 150px;
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: #f8fbff;
+}
+
+.matrixCell,
+.footerCell {
+  background: #ffffff;
+}
+
+.matchupBadge {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.cellRiskHeavy {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.cellRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.cellNeutral {
+  color: #324962;
+  background: #f8fbff;
+  border-color: #dce6f4;
+}
+
+.cellSafe {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.cellSafeHeavy {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.cellImmune {
+  color: #ffffff;
+  background: #1f2937;
+  border-color: #0f172a;
+}
+
+.cellEmpty {
+  color: #94a3b8;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.overviewCell,
+.footerCell {
+  text-align: left;
+  background: #fbfdff;
+}
+
+.overviewCell,
+.footerCell {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+
+.overviewStack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.overviewList {
+  display: grid;
+  gap: 0.24rem;
+  font-size: 0.8rem;
+  color: #324962;
+}
+
+.verdictBadge {
+  justify-self: flex-start;
+  padding: 0.4rem 0.72rem;
+  font-size: 0.78rem;
+}
+
+.verdictRiskHeavy,
+.legendRiskHeavy {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.verdictRisk,
+.legendRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.verdictNeutral,
+.legendNeutral {
+  color: #324962;
+  background: #f8fbff;
+  border-color: #dce6f4;
+}
+
+.verdictSafe,
+.legendSafe {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.legendSafeHeavy {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.legendImmune {
+  color: #ffffff;
+  background: #1f2937;
+  border-color: #0f172a;
+}
+
+.matrixTable tfoot th,
+.matrixTable tfoot td {
+  position: sticky;
+  bottom: 0;
+  background: #f8fbff;
+  z-index: 2;
+}
+
+.matrixTable tfoot .teamFooterLabel {
+  z-index: 4;
+}
+
+.matrixTable tfoot .footerCell {
+  z-index: 3;
+}
+
+@media (max-width: 960px) {
+  .summaryGrid,
+  .highlightGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .legend {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .header,
+  .blockHeading,
+  .panelHeading {
+    flex-direction: column;
+  }
+}

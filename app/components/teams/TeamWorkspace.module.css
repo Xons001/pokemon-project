@@ -1,0 +1,317 @@
+.workspace {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.9fr);
+  gap: 1.2rem;
+  align-items: stretch;
+}
+
+.teamPanel,
+.searchSection {
+  height: 100%;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.searchSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.header,
+.searchHeader,
+.slotTop,
+.slotActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.nameInput {
+  min-width: min(100%, 280px);
+  padding: 0;
+  font-size: clamp(1.45rem, 2.3vw, 2rem);
+  font-weight: 700;
+  color: #18212f;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.clearButton {
+  min-width: 130px;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  color: #7f1d1d;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.notice {
+  margin: 0.95rem 0 0;
+  padding: 0.85rem 1rem;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.slotCard {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 0.95rem;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.slotCardActive {
+  border-color: var(--team-accent, #3d5a80);
+  box-shadow:
+    0 14px 28px rgba(24, 33, 47, 0.09),
+    0 0 0 3px color-mix(in srgb, var(--team-accent, #3d5a80) 14%, transparent);
+}
+
+.slotEmpty {
+  align-content: center;
+  min-height: 180px;
+  text-align: left;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fbfdff, #f3f7fc);
+}
+
+.slotEmpty strong,
+.slotEmpty p {
+  margin: 0;
+}
+
+.slotEmpty p {
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.slotSelectArea {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.slotIndex,
+.slotDex {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6d7f96;
+}
+
+.slotDex {
+  padding: 0.25rem 0.52rem;
+  background: color-mix(in srgb, var(--team-accent, #3d5a80) 12%, white);
+  border-radius: 999px;
+}
+
+.slotMain {
+  display: grid;
+  justify-items: start;
+  gap: 0.7rem;
+}
+
+.slotVisual {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff, #edf2fb);
+}
+
+.slotCopy {
+  min-width: 0;
+}
+
+.slotCopy strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.slotCopy p {
+  margin: 0.28rem 0 0;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.slotActions {
+  justify-content: flex-end;
+}
+
+.slotSecondaryAction {
+  padding: 0.65rem 0.9rem;
+  font-weight: 700;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.searchHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.catalogBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 999px;
+}
+
+.searchBar {
+  display: block;
+  margin-top: 1rem;
+}
+
+.searchBar input {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid #d6deeb;
+  border-radius: 18px;
+  outline: 0;
+}
+
+.helperText {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+}
+
+.searchResults {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+  flex: 1 1 auto;
+  align-content: start;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.resultCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.8rem;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.resultCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(24, 33, 47, 0.1);
+}
+
+.resultThumb {
+  display: grid;
+  flex: 0 0 64px;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #edf2fb);
+}
+
+.resultCopy {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.resultCopy strong {
+  font-size: 0.96rem;
+}
+
+.resultCopy small {
+  color: var(--muted);
+}
+
+.emptyResults {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 1rem;
+  color: var(--muted);
+  background: #ffffff;
+  border: 1px dashed #dce6f4;
+  border-radius: 18px;
+}
+
+@media (max-width: 1200px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .slotGrid,
+  .searchResults {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .header,
+  .searchHeader {
+    flex-direction: column;
+  }
+
+  .nameInput {
+    min-width: 0;
+    width: 100%;
+  }
+}
