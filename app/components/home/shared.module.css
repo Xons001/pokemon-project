@@ -1,0 +1,44 @@
+.eyebrow {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.sectionTitle {
+  margin: 0;
+  line-height: 1.1;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+}
+
+.sectionText {
+  max-width: 62ch;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+}
+
+.primaryLink {
+  color: #111827;
+  background: var(--accent);
+}
+
+.secondaryLink {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: #ffffff;
+}

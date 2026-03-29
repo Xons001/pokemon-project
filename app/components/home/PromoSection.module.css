@@ -1,0 +1,239 @@
+.promoSection {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 460px);
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 2rem;
+  color: #ffffff;
+  background: radial-gradient(circle at top left, #ff8a65, #ef5350 36%, #1d3557 100%);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 22px 44px rgba(24, 33, 47, 0.2);
+}
+
+.promoSectionWater {
+  background: radial-gradient(circle at top left, #56ccf2, #2f80ed 36%, #1d3557 100%);
+}
+
+.promoSectionGrass {
+  background: radial-gradient(circle at top left, #5fd068, #2d6a4f 36%, #284b63 100%);
+}
+
+.promoSectionFire {
+  background: radial-gradient(circle at top left, #ff8a65, #ef5350 36%, #1d3557 100%);
+}
+
+.promoSectionGhost {
+  background: radial-gradient(circle at top left, #9d4edd, #5a189a 36%, #2b2d42 100%);
+}
+
+.promoSectionElectric {
+  background: radial-gradient(circle at top left, #ffe066, #f4b400 36%, #6f4e00 100%);
+}
+
+.promoSectionEarth {
+  background: radial-gradient(circle at top left, #d2a679, #8c5c2b 36%, #3f2612 100%);
+}
+
+.promoSectionPsychic {
+  background: radial-gradient(circle at top left, #ff8ec7, #f54291 36%, #5e1d49 100%);
+}
+
+.promoSectionIce {
+  background: radial-gradient(circle at top left, #b9f2ff, #59c3ff 36%, #135574 100%);
+}
+
+.promoSectionDark {
+  background: radial-gradient(circle at top left, #8f9bb3, #44506a 36%, #161b26 100%);
+}
+
+.promoSectionDragon {
+  background: radial-gradient(circle at top left, #91a7ff, #4c6ef5 36%, #1b1f5c 100%);
+}
+
+.promoSectionSteel {
+  background: radial-gradient(circle at top left, #c8d0de, #8b98ad 36%, #334155 100%);
+}
+
+.promoSectionNeutral {
+  background: radial-gradient(circle at top left, #d5dae5, #9199aa 36%, #414753 100%);
+}
+
+.promoSection::before {
+  content: '';
+  position: absolute;
+  inset: auto auto -120px -90px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.promoCopy,
+.promoVisual,
+.promoFooter {
+  position: relative;
+  z-index: 1;
+}
+
+.promoKicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.promoCopy h2 {
+  margin: 0;
+  max-width: 11ch;
+  font-size: clamp(2.6rem, 4.4vw, 4.3rem);
+  line-height: 1.02;
+}
+
+.promoCopy > p:not(.promoKicker) {
+  max-width: 52ch;
+  margin: 1.2rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.promoButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.35rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  color: #10243f;
+  background: #ffffff;
+  border-radius: 999px;
+  transition:
+    transform 0.2s ease,
+    letter-spacing 0.2s ease;
+}
+
+.promoButton:hover {
+  transform: translateY(-1px);
+  letter-spacing: 0.02em;
+}
+
+.promoVisual {
+  position: relative;
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+}
+
+.promoOrbit {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border: 2px dashed rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+}
+
+.promoOrbit::before,
+.promoOrbit::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.promoOrbit::before {
+  inset: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.promoOrbit::after {
+  inset: -42px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 60%);
+}
+
+.promoImage {
+  position: relative;
+  width: min(100%, 380px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 30px rgba(14, 22, 39, 0.35));
+  transform: rotate(-8deg);
+}
+
+.promoFooter {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.4rem;
+  padding-top: 1.25rem;
+}
+
+.promoFooter p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.promoSocials {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.promoSocials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.promoSocials a:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+@media (max-width: 900px) {
+  .promoSection {
+    grid-template-columns: 1fr;
+  }
+
+  .promoCopy h2 {
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .promoSection {
+    padding: 1.1rem;
+  }
+
+  .promoVisual {
+    min-height: 280px;
+  }
+
+  .promoOrbit {
+    width: 240px;
+    height: 240px;
+  }
+
+  .promoFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -7,6 +7,7 @@ import PokemonCardSection from './components/home/PokemonCardSection'
 import PromoSection from './components/home/PromoSection'
 import SiteHeader from './components/home/SiteHeader'
 import { usePokemonCatalog } from './hooks/usePokemonCatalog'
+import styles from './page.module.css'
 
 export default function Home() {
   const pokedexRef = useRef(null)
@@ -67,19 +68,17 @@ export default function Home() {
 
   function goToPreviousPage() {
     moveToPage(currentPage - 1)
-    scrollToList()
   }
 
   function goToNextPage() {
     moveToPage(currentPage + 1)
-    scrollToList()
   }
 
   return (
     <>
       <SiteHeader />
 
-      <main className="page-shell">
+      <main className={styles.pageShell}>
         <PokedexHub
           catalogCount={catalogCount}
           currentPage={currentPage}

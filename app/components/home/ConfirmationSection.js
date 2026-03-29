@@ -1,24 +1,29 @@
+import sharedStyles from './shared.module.css'
+import styles from './ConfirmationSection.module.css'
+
 export default function ConfirmationSection({ pokemon, onViewCard, onBackToList }) {
   return (
-    <section className="confirmation-section">
-      <div className="confirmation-shell">
-        <div className="confirmation-content">
-          <div className="confirmation-icon" aria-hidden="true">
-            <span className="confirmation-icon-ball" />
+    <section className={styles.confirmationSection}>
+      <div className={styles.confirmationShell}>
+        <div className={styles.confirmationContent}>
+          <div className={styles.confirmationIcon} aria-hidden="true">
+            <span className={styles.confirmationIconBall} />
           </div>
 
-          <div className="confirmation-message">
-            <p className="eyebrow">Registro completado</p>
-            <h2 className="section-title">{pokemon.name} se ha anadido correctamente a tu equipo.</h2>
-            <p className="section-text">La ficha, la carta y la landing inferior siguen al Pokemon seleccionado.</p>
+          <div className={styles.confirmationMessage}>
+            <p className={sharedStyles.eyebrow}>Registro completado</p>
+            <h2 className={`${sharedStyles.sectionTitle} ${styles.confirmationTitle}`}>
+              {pokemon.name} se ha anadido correctamente a tu equipo.
+            </h2>
+            <p className={sharedStyles.sectionText}>La ficha, la carta y la landing inferior siguen al Pokemon seleccionado.</p>
           </div>
         </div>
 
-        <div className="confirmation-actions">
-          <button type="button" className="confirmation-primary" onClick={onViewCard}>
+        <div className={styles.confirmationActions}>
+          <button type="button" className={styles.confirmationPrimary} onClick={onViewCard}>
             Ver ficha
           </button>
-          <button type="button" className="confirmation-secondary" onClick={onBackToList}>
+          <button type="button" className={styles.confirmationSecondary} onClick={onBackToList}>
             Volver a la lista
           </button>
         </div>

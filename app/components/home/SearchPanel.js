@@ -1,6 +1,7 @@
 import { quickSuggestions } from '../../lib/pokemon'
 import MicIcon from '../icons/MicIcon'
 import SearchIcon from '../icons/SearchIcon'
+import styles from './PokedexHub.module.css'
 
 export default function SearchPanel({
   query,
@@ -14,8 +15,8 @@ export default function SearchPanel({
   searchInputRef,
 }) {
   return (
-    <div className="search-panel hub-search" id="buscar">
-      <label className="search-bar" htmlFor="pokemon-search">
+    <div className={`${styles.searchPanel} ${styles.hubSearch}`} id="buscar">
+      <label className={styles.searchBar} htmlFor="pokemon-search">
         <input
           ref={searchInputRef}
           id="pokemon-search"
@@ -25,7 +26,7 @@ export default function SearchPanel({
           placeholder="Buscar Pokemon por nombre, numero o tipo ya cargado"
         />
 
-        <div className="search-actions">
+        <div className={styles.searchActions}>
           <button type="button" onClick={onRandomSuggestion} aria-label="Sugerencia aleatoria">
             <MicIcon />
           </button>
@@ -35,7 +36,7 @@ export default function SearchPanel({
         </div>
       </label>
 
-      <div className="search-suggestions" aria-label="Sugerencias">
+      <div className={styles.searchSuggestions} aria-label="Sugerencias">
         {quickSuggestions.map((suggestion) => (
           <button key={suggestion} type="button" onClick={() => onSuggestionClick(suggestion)}>
             {suggestion}
@@ -43,10 +44,10 @@ export default function SearchPanel({
         ))}
       </div>
 
-      {loadError ? <p className="helper-text">{loadError}</p> : null}
-      {isCatalogLoading ? <p className="helper-text">Cargando catalogo completo de PokeAPI...</p> : null}
+      {loadError ? <p className={styles.helperText}>{loadError}</p> : null}
+      {isCatalogLoading ? <p className={styles.helperText}>Cargando catalogo completo de PokeAPI...</p> : null}
       {isPageLoading && !isCatalogLoading ? (
-        <p className="helper-text">Cargando stats y tipos desde el endpoint pokemon/{'{id}'}...</p>
+        <p className={styles.helperText}>Cargando stats y tipos desde el endpoint pokemon/{'{id}'}...</p>
       ) : null}
     </div>
   )

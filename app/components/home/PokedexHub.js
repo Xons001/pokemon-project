@@ -2,6 +2,22 @@ import GalleryToolbar from './GalleryToolbar'
 import PokemonDetail from './PokemonDetail'
 import PokemonGallery from './PokemonGallery'
 import SearchPanel from './SearchPanel'
+import styles from './PokedexHub.module.css'
+
+const paletteClassMap = {
+  water: styles.pokedexHubWater,
+  grass: styles.pokedexHubGrass,
+  fire: styles.pokedexHubFire,
+  ghost: styles.pokedexHubGhost,
+  electric: styles.pokedexHubElectric,
+  earth: styles.pokedexHubEarth,
+  psychic: styles.pokedexHubPsychic,
+  ice: styles.pokedexHubIce,
+  dark: styles.pokedexHubDark,
+  dragon: styles.pokedexHubDragon,
+  steel: styles.pokedexHubSteel,
+  neutral: styles.pokedexHubNeutral,
+}
 
 export default function PokedexHub({
   currentPage,
@@ -26,13 +42,17 @@ export default function PokedexHub({
   totalPages,
   catalogCount,
 }) {
+  const sectionClassName = [styles.pokedexHub, paletteClassMap[selectedPokemon.palette] || styles.pokedexHubNeutral]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <section className={`pokedex-hub pokedex-hub-${selectedPokemon.palette}`} id="inicio">
-      <div className="hub-heading">
+    <section className={sectionClassName} id="inicio">
+      <div className={styles.hubHeading}>
         <div>
           <h2>Pokedex interactiva</h2>
         </div>
-        <span className="hub-badge">{catalogCount} Pokemon</span>
+        <span className={styles.hubBadge}>{catalogCount} Pokemon</span>
       </div>
 
       <SearchPanel

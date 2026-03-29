@@ -1,3 +1,5 @@
+import styles from './PokedexHub.module.css'
+
 export default function GalleryToolbar({
   filteredCount,
   query,
@@ -7,22 +9,22 @@ export default function GalleryToolbar({
   onNextPage,
 }) {
   return (
-    <div className="gallery-toolbar">
-      <p className="gallery-count">
+    <div className={styles.galleryToolbar}>
+      <p className={styles.galleryCount}>
         {filteredCount} resultados
         {query ? ` para "${query}"` : ''}
       </p>
 
-      <div className="gallery-pagination">
-        <button type="button" className="page-button" disabled={currentPage === 1} onClick={onPreviousPage}>
+      <div className={styles.galleryPagination}>
+        <button type="button" className={styles.pageButton} disabled={currentPage === 1} onClick={onPreviousPage}>
           Anterior
         </button>
-        <span className="page-indicator">
+        <span className={styles.pageIndicator}>
           Pagina {currentPage} de {totalPages}
         </span>
         <button
           type="button"
-          className="page-button"
+          className={styles.pageButton}
           disabled={currentPage === totalPages}
           onClick={onNextPage}
         >
