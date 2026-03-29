@@ -1,4 +1,4 @@
-export const PAGE_SIZE = 12
+export const PAGE_SIZE = 16
 export const INITIAL_SELECTED_SLUG = 'charizard'
 
 export const navItems = [
