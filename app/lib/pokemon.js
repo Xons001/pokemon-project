@@ -78,6 +78,13 @@ export function formatAbility(value) {
     .join(' ')
 }
 
+export function formatResourceName(value) {
+  return value
+    .split('-')
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(' ')
+}
+
 export function formatDexNumber(id) {
   return `#${String(id).padStart(4, '0')}`
 }
@@ -121,6 +128,7 @@ export function createCatalogEntry(entry) {
 
 export function createPlaceholderPokemon(entry) {
   return {
+    isPlaceholder: true,
     id: formatDexNumber(entry.id),
     slug: entry.slug,
     name: entry.label,
@@ -140,7 +148,62 @@ export function createPlaceholderPokemon(entry) {
     palette: 'neutral',
     height: '--',
     weight: '--',
+    levelMoves: [],
+    heldItems: [],
   }
+}
+
+function extractLevelMoves(moves) {
+  const levelMovesMap = new Map()
+
+  moves.forEach((entry) => {
+    const levelDetails = entry.version_group_details.filter(
+      (detail) => detail.move_learn_method.name === 'level-up'
+    )
+
+    if (!levelDetails.length) {
+      return
+    }
+
+    const earliestLevel = Math.min(...levelDetails.map((detail) => detail.level_learned_at))
+    const previous = levelMovesMap.get(entry.move.name)
+
+    if (!previous || earliestLevel < previous.level) {
+      levelMovesMap.set(entry.move.name, {
+        name: formatResourceName(entry.move.name),
+        level: earliestLevel,
+      })
+    }
+  })
+
+  return Array.from(levelMovesMap.values()).sort((left, right) => {
+    if (left.level === right.level) {
+      return left.name.localeCompare(right.name)
+    }
+
+    return left.level - right.level
+  })
+}
+
+function extractHeldItems(heldItems) {
+  return heldItems
+    .map((entry) => {
+      const rarityValues = entry.version_details
+        .map((detail) => detail.rarity)
+        .filter((rarity) => typeof rarity === 'number')
+
+      return {
+        name: formatResourceName(entry.item.name),
+        rarity: rarityValues.length ? Math.max(...rarityValues) : null,
+      }
+    })
+    .sort((left, right) => {
+      if ((right.rarity ?? 0) === (left.rarity ?? 0)) {
+        return left.name.localeCompare(right.name)
+      }
+
+      return (right.rarity ?? 0) - (left.rarity ?? 0)
+    })
 }
 
 export function createPokemonDetails(data) {
@@ -154,6 +217,8 @@ export function createPokemonDetails(data) {
   const primaryType = data.types[0]?.type.name ?? 'normal'
   const role = buildRole(attack, defense, speed)
   const name = formatName(data.name)
+  const levelMoves = extractLevelMoves(data.moves)
+  const heldItems = extractHeldItems(data.held_items)
   const artwork =
     data.sprites.other?.['official-artwork']?.front_default ??
     data.sprites.other?.home?.front_default ??
@@ -161,6 +226,7 @@ export function createPokemonDetails(data) {
     `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png`
 
   return {
+    isPlaceholder: false,
     id: formatDexNumber(data.id),
     slug: data.name,
     name,
@@ -180,5 +246,7 @@ export function createPokemonDetails(data) {
     palette: getPalette(primaryType),
     height: Number((data.height / 10).toFixed(1)),
     weight: Number((data.weight / 10).toFixed(1)),
+    levelMoves,
+    heldItems,
   }
 }
