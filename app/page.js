@@ -1,4 +1,14 @@
+import Image from 'next/image'
+
 const navItems = ['Inicio', 'Pokedex', 'Tipos']
+
+const stackedPokemon = [
+  { name: 'Blastoise', image: '/pokemon/blastoise.png' },
+  { name: 'Bulbasaur', image: '/pokemon/bulbasaur.png' },
+  { name: 'Charizard', image: '/pokemon/charizard.png' },
+  { name: 'Gengar', image: '/pokemon/gengar.png' },
+  { name: 'Squirtle', image: '/pokemon/squirtle.png' },
+]
 
 export default function Home() {
   return (
@@ -89,6 +99,33 @@ export default function Home() {
                 siguiendo el proyecto paso a paso.
               </p>
             </article>
+          </div>
+        </section>
+
+        <section className="stacked-gallery-section">
+          <div className="stacked-gallery-copy">
+            <p className="eyebrow">Equipo destacado</p>
+            <h2 className="section-title">Criaturas apiladas con interaccion al pasar el cursor.</h2>
+            <p className="section-text">
+              Seguimos construyendo la pagina con una franja visual de Pokemon
+              superpuestos, inspirada en la idea de imagenes apiladas del curso
+              pero integrada en el layout principal.
+            </p>
+          </div>
+
+          <div className="stacked-gallery" aria-label="Galeria apilada de Pokemon">
+            {stackedPokemon.map((pokemon) => (
+              <article key={pokemon.name} className="stacked-item">
+                <span className="stacked-name">{pokemon.name}</span>
+                <Image
+                  src={pokemon.image}
+                  alt={pokemon.name}
+                  width={170}
+                  height={170}
+                  className="stacked-image"
+                />
+              </article>
+            ))}
           </div>
         </section>
       </main>
