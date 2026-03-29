@@ -7,7 +7,7 @@ export default function Home() {
         <a className="site-logo" href="/" aria-label="Pokemon Project home">
           <span className="pokeball-mark" aria-hidden="true" />
           <div>
-            <span className="site-logo-kicker">Punto 0 + 1</span>
+            <span className="site-logo-kicker">Pokemon Universe</span>
             <h1>Pokemon Project</h1>
           </div>
         </a>
@@ -23,49 +23,72 @@ export default function Home() {
 
       <main className="page-shell">
         <section className="hero" id="inicio">
-          <p className="eyebrow">Curso HTML CSS adaptado a Next.js</p>
-          <h2>Arrancamos con la base de flexbox y un menu basico responsive.</h2>
-          <p className="hero-copy">
-            El punto 0 nos sirve para practicar estructura, reset y distribucion
-            con flex. El punto 1 lo convertimos en el encabezado inicial de la
-            app Pokemon.
-          </p>
-        </section>
-
-        <section className="theory-section" id="pokedex">
-          <div className="section-copy">
-            <p className="section-label">Punto 0</p>
-            <h3>Teoria: contenedor flex y dos bloques</h3>
-            <p>
-              Aqui dejamos representada la idea principal del ejercicio de
-              teoria: un contenedor flexible con dos elementos dentro.
+          <div className="hero-copy-block">
+            <p className="eyebrow">Pokedex Frontend</p>
+            <h2>Explora criaturas, tipos y estadisticas en una sola vista.</h2>
+            <p className="hero-copy">
+              Empezamos construyendo la estructura base de la pagina: un header
+              responsive y un cuerpo central dividido en dos bloques para el
+              contenido principal y la parte visual.
             </p>
+
+            <div className="hero-actions">
+              <a className="primary-link" href="#pokedex">
+                Ver Pokedex
+              </a>
+              <a className="secondary-link" href="#tipos">
+                Ver Tipos
+              </a>
+            </div>
+
+            <div className="hero-tags" aria-label="Categorias destacadas">
+              <span>Fuego</span>
+              <span>Agua</span>
+              <span>Planta</span>
+            </div>
           </div>
 
-          <div className="theory-strip" aria-label="Demostracion de flexbox">
-            <article className="theory-card theory-card-red">
-              <span>Caja uno</span>
+          <div className="hero-visual">
+            <article className="featured-card" id="pokedex">
+              <div className="featured-card-top">
+                <span className="featured-chip">Destacado</span>
+                <span className="featured-id">#006</span>
+              </div>
+
+              <div className="featured-orb" aria-hidden="true">
+                <span className="featured-orb-core" />
+              </div>
+
+              <h3>Charizard</h3>
+              <p>
+                Una primera tarjeta visual para ir montando la zona principal
+                del proyecto Pokemon.
+              </p>
+
+              <div className="featured-stats">
+                <div>
+                  <strong>Tipo</strong>
+                  <span>Fuego</span>
+                </div>
+                <div>
+                  <strong>Ataque</strong>
+                  <span>84</span>
+                </div>
+                <div>
+                  <strong>Velocidad</strong>
+                  <span>100</span>
+                </div>
+              </div>
             </article>
-            <article className="theory-card theory-card-yellow">
-              <span>Caja dos</span>
+
+            <article className="info-card" id="tipos">
+              <p className="info-card-label">Base Layout</p>
+              <strong>Header arriba, contenido en dos cajas.</strong>
+              <p>
+                A partir de aqui iremos refinando secciones, tarjetas e imagenes
+                siguiendo el proyecto paso a paso.
+              </p>
             </article>
-          </div>
-        </section>
-
-        <section className="notes-section" id="tipos">
-          <div className="section-copy">
-            <p className="section-label">Punto 1</p>
-            <h3>Menu basico</h3>
-            <p>
-              El header superior ya aplica el mismo planteamiento del curso:
-              logo a la izquierda, navegacion a la derecha y version apilada en
-              pantallas pequenas.
-            </p>
-          </div>
-
-          <div className="notes-card">
-            <p>Proximo paso sugerido</p>
-            <strong>Seguir con el bloque 2 y separar el menu en componentes.</strong>
           </div>
         </section>
       </main>
