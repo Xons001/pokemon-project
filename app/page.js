@@ -21,6 +21,8 @@ const pokemonCardStats = [
   { label: 'Bonus', image: '/pokemon-card/cofre.png' },
 ]
 
+const socialLinks = ['FB', 'X', 'IG']
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -275,6 +277,43 @@ export default function Home() {
               ))}
             </div>
           </article>
+        </section>
+
+        <section className="promo-section">
+          <div className="promo-copy">
+            <p className="promo-kicker">Landing destacada</p>
+            <h2>Tu equipo Pokemon, listo para explorar nuevas regiones.</h2>
+            <p>
+              Este bloque toma la idea del landing page del curso y la lleva a
+              una version Pokemon: mensaje grande, llamada a la accion y una
+              imagen protagonista para cerrar la home con mas fuerza visual.
+            </p>
+            <a href="#buscar" className="promo-button">
+              Comenzar exploracion
+            </a>
+          </div>
+
+          <div className="promo-visual">
+            <div className="promo-orbit" aria-hidden="true" />
+            <Image
+              src="/pokemon/charizard.png"
+              alt="Charizard en vuelo"
+              width={520}
+              height={520}
+              className="promo-image"
+            />
+          </div>
+
+          <footer className="promo-footer">
+            <p>Comparte tu Pokedex</p>
+            <ul className="promo-socials" aria-label="Redes sociales">
+              {socialLinks.map((item) => (
+                <li key={item}>
+                  <a href="/">{item}</a>
+                </li>
+              ))}
+            </ul>
+          </footer>
         </section>
       </main>
     </>

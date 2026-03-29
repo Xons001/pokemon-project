@@ -748,6 +748,168 @@ a {
   object-fit: contain;
 }
 
+.promo-section {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 460px);
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 2rem;
+  color: #ffffff;
+  background: radial-gradient(circle at top left, #ff8a65, #ef5350 36%, #1d3557 100%);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 22px 44px rgba(24, 33, 47, 0.2);
+}
+
+.promo-section::before {
+  content: '';
+  position: absolute;
+  inset: auto auto -120px -90px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.promo-copy,
+.promo-visual,
+.promo-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.promo-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.promo-copy h2 {
+  margin: 0;
+  max-width: 11ch;
+  font-size: clamp(2.6rem, 4.4vw, 4.3rem);
+  line-height: 1.02;
+}
+
+.promo-copy p {
+  max-width: 52ch;
+  margin: 1.2rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.promo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.35rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  color: #10243f;
+  background: #ffffff;
+  border-radius: 999px;
+  transition:
+    transform 0.2s ease,
+    letter-spacing 0.2s ease;
+}
+
+.promo-button:hover {
+  transform: translateY(-1px);
+  letter-spacing: 0.02em;
+}
+
+.promo-visual {
+  position: relative;
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+}
+
+.promo-orbit {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border: 2px dashed rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+}
+
+.promo-orbit::before,
+.promo-orbit::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.promo-orbit::before {
+  inset: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.promo-orbit::after {
+  inset: -42px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 60%);
+}
+
+.promo-image {
+  position: relative;
+  width: min(100%, 380px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 30px rgba(14, 22, 39, 0.35));
+  transform: rotate(-8deg);
+}
+
+.promo-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.4rem;
+  padding-top: 1.25rem;
+}
+
+.promo-footer p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.promo-socials {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.promo-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.promo-socials a:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.16);
+}
+
 @media (max-width: 720px) {
   .site-header {
     flex-direction: column;
@@ -804,5 +966,28 @@ a {
 
   .pokemon-card-section {
     grid-template-columns: 1fr;
+  }
+
+  .promo-section {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+
+  .promo-copy h2 {
+    max-width: none;
+  }
+
+  .promo-visual {
+    min-height: 280px;
+  }
+
+  .promo-orbit {
+    width: 240px;
+    height: 240px;
+  }
+
+  .promo-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
