@@ -4,30 +4,31 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createCatalogEntry, createPokemonDetails, createPlaceholderPokemon } from '../lib/pokemon'
 import {
   ATTACKING_TYPES,
+  LEGACY_TEAM_TEMPLATES_STORAGE_KEY,
   TEAM_STORAGE_KEY,
   buildCatalogSearchResults,
-  createDefaultTeamTemplates,
-  getBalanceLabel,
+  createDefaultTeam,
+  migrateLegacyTemplates,
   normalizeTypeChartEntry,
-  sanitizeTeamTemplates,
+  sanitizeStoredTeam,
   summarizeTeam,
 } from '../lib/team-builder'
 
-const EXCLUDED_TYPES = new Set(['unknown', 'shadow'])
+const EXCLUDED_TYPES = new Set(['unknown', 'shadow', 'stellar'])
 
 export function useTeamBuilder() {
   const [catalog, setCatalog] = useState([])
   const [pokemonCache, setPokemonCache] = useState({})
-  const [templates, setTemplates] = useState(createDefaultTeamTemplates)
-  const [activeTemplateId, setActiveTemplateId] = useState('team-template-1')
+  const [team, setTeam] = useState(createDefaultTeam)
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeChart, setTypeChart] = useState({})
   const [isCatalogLoading, setIsCatalogLoading] = useState(true)
   const [isTypeChartLoading, setIsTypeChartLoading] = useState(true)
   const [isPokemonLoading, setIsPokemonLoading] = useState(false)
+  const [isStorageReady, setIsStorageReady] = useState(false)
   const [loadError, setLoadError] = useState('')
-  const [notice, setNotice] = useState('Las plantillas se guardan automaticamente en este navegador.')
+  const [notice, setNotice] = useState('Este equipo se guarda automaticamente en este navegador.')
 
   const loadingSlugsRef = useRef(new Set())
 
@@ -35,23 +36,27 @@ export function useTeamBuilder() {
     if (typeof window === 'undefined') return
 
     try {
-      const storedTemplates = window.localStorage.getItem(TEAM_STORAGE_KEY)
-      if (!storedTemplates) return
+      const storedTeam = window.localStorage.getItem(TEAM_STORAGE_KEY)
+      if (storedTeam) {
+        setTeam(sanitizeStoredTeam(JSON.parse(storedTeam)))
+        return
+      }
 
-      const parsedTemplates = JSON.parse(storedTemplates)
-      const sanitizedTemplates = sanitizeTeamTemplates(parsedTemplates)
-
-      setTemplates(sanitizedTemplates)
-      setActiveTemplateId(sanitizedTemplates[0]?.id ?? 'team-template-1')
+      const legacyTemplates = window.localStorage.getItem(LEGACY_TEAM_TEMPLATES_STORAGE_KEY)
+      if (legacyTemplates) {
+        setTeam(migrateLegacyTemplates(JSON.parse(legacyTemplates)))
+      }
     } catch {
-      setTemplates(createDefaultTeamTemplates())
+      setTeam(createDefaultTeam())
+    } finally {
+      setIsStorageReady(true)
     }
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    window.localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(templates))
-  }, [templates])
+    if (typeof window === 'undefined' || !isStorageReady) return
+    window.localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(team))
+  }, [isStorageReady, team])
 
   useEffect(() => {
     let isMounted = true
@@ -143,13 +148,7 @@ export function useTeamBuilder() {
     if (!catalog.length) return
 
     let cancelled = false
-    const targetSlugs = Array.from(
-      new Set(
-        templates
-          .flatMap((template) => template.slots)
-          .filter(Boolean)
-      )
-    )
+    const targetSlugs = Array.from(new Set(team.slots.filter(Boolean)))
     const missingSlugs = targetSlugs.filter((slug) => !pokemonCache[slug] && !loadingSlugsRef.current.has(slug))
 
     if (!missingSlugs.length) {
@@ -206,16 +205,10 @@ export function useTeamBuilder() {
     return () => {
       cancelled = true
     }
-  }, [catalog, pokemonCache, templates])
-
-  const activeTemplate = useMemo(() => {
-    return templates.find((template) => template.id === activeTemplateId) ?? templates[0]
-  }, [activeTemplateId, templates])
+  }, [catalog, pokemonCache, team])
 
   const teamMembers = useMemo(() => {
-    if (!activeTemplate) return []
-
-    return activeTemplate.slots.map((slug) => {
+    return team.slots.map((slug) => {
       if (!slug) return null
 
       const cachedPokemon = pokemonCache[slug]
@@ -224,74 +217,29 @@ export function useTeamBuilder() {
       const entry = catalog.find((item) => item.slug === slug)
       return entry ? createPlaceholderPokemon(entry) : null
     })
-  }, [activeTemplate, catalog, pokemonCache])
+  }, [catalog, pokemonCache, team])
 
   const searchResults = useMemo(() => {
     return buildCatalogSearchResults(catalog, pokemonCache, searchQuery)
   }, [catalog, pokemonCache, searchQuery])
 
-  const activeTemplateSummary = useMemo(() => {
+  const teamSummary = useMemo(() => {
     return summarizeTeam(teamMembers, typeChart)
   }, [teamMembers, typeChart])
 
-  const templateSummaries = useMemo(() => {
-    return templates.map((template) => {
-      const templateMembers = template.slots.map((slug) => {
-        if (!slug) return null
-        const cachedPokemon = pokemonCache[slug]
-        if (cachedPokemon) return cachedPokemon
+  const leaderPokemon = useMemo(() => {
+    return teamMembers[team.leaderSlot] ?? teamMembers.find(Boolean) ?? null
+  }, [team, teamMembers])
 
-        const entry = catalog.find((item) => item.slug === slug)
-        return entry ? createPlaceholderPokemon(entry) : null
-      })
-
-      const summary = summarizeTeam(templateMembers, typeChart)
-
-      return {
-        id: template.id,
-        name: template.name,
-        filledSlots: summary.filledSlots,
-        balanceScore: summary.balanceScore,
-        balanceLabel: getBalanceLabel(summary.balanceScore),
-      }
-    })
-  }, [catalog, pokemonCache, templates, typeChart])
-
-  const rankedWeaknesses = useMemo(() => {
-    return activeTemplateSummary.weaknesses.slice(0, 6)
-  }, [activeTemplateSummary])
-
-  const rankedResistances = useMemo(() => {
-    return activeTemplateSummary.resistances.slice(0, 6)
-  }, [activeTemplateSummary])
-
-  const strongestTemplate = useMemo(() => {
-    if (!templateSummaries.length) return null
-
-    return [...templateSummaries].sort((left, right) => right.balanceScore - left.balanceScore)[0]
-  }, [templateSummaries])
-
-  function updateTemplates(updater) {
-    setTemplates((previous) => updater(previous))
+  function updateTeam(updater) {
+    setTeam((previous) => updater(previous))
   }
 
-  function selectTemplate(templateId) {
-    setActiveTemplateId(templateId)
-    setSelectedSlotIndex(0)
-    setNotice('Selecciona un hueco y anade un Pokemon desde el buscador.')
-  }
-
-  function renameActiveTemplate(value) {
-    updateTemplates((previous) =>
-      previous.map((template) =>
-        template.id === activeTemplateId
-          ? {
-              ...template,
-              name: value,
-            }
-          : template
-      )
-    )
+  function renameTeam(value) {
+    updateTeam((previous) => ({
+      ...previous,
+      name: value,
+    }))
   }
 
   function selectSlot(index) {
@@ -299,13 +247,11 @@ export function useTeamBuilder() {
   }
 
   function addPokemonToTeam(slug) {
-    if (!activeTemplate) return
-
-    const currentSlots = activeTemplate.slots
+    const currentSlots = team.slots
     const existingIndex = currentSlots.findIndex((value) => value === slug)
 
     if (existingIndex !== -1 && existingIndex !== selectedSlotIndex) {
-      setNotice('Ese Pokemon ya forma parte de esta plantilla.')
+      setNotice('Ese Pokemon ya forma parte del equipo.')
       setSelectedSlotIndex(existingIndex)
       return
     }
@@ -317,95 +263,68 @@ export function useTeamBuilder() {
 
     const safeTargetIndex = targetIndex === -1 ? 0 : targetIndex
 
-    updateTemplates((previous) =>
-      previous.map((template) => {
-        if (template.id !== activeTemplateId) return template
+    updateTeam((previous) => {
+      const nextSlots = [...previous.slots]
+      nextSlots[safeTargetIndex] = slug
 
-        const nextSlots = [...template.slots]
-        nextSlots[safeTargetIndex] = slug
+      return {
+        ...previous,
+        slots: nextSlots,
+        leaderSlot: nextSlots[previous.leaderSlot] ? previous.leaderSlot : safeTargetIndex,
+      }
+    })
 
-        return {
-          ...template,
-          slots: nextSlots,
-          leaderSlot: nextSlots[template.leaderSlot] ? template.leaderSlot : safeTargetIndex,
-        }
-      })
-    )
-
-    setSelectedSlotIndex(Math.min(safeTargetIndex + 1, activeTemplate.slots.length - 1))
-    setNotice('Pokemon anadido a la plantilla activa.')
+    setSelectedSlotIndex(Math.min(safeTargetIndex + 1, team.slots.length - 1))
+    setNotice('Pokemon anadido al equipo actual.')
   }
 
   function removePokemonFromTeam(index) {
-    updateTemplates((previous) =>
-      previous.map((template) => {
-        if (template.id !== activeTemplateId) return template
+    updateTeam((previous) => {
+      const nextSlots = [...previous.slots]
+      nextSlots[index] = null
 
-        const nextSlots = [...template.slots]
-        nextSlots[index] = null
+      const nextLeaderSlot = nextSlots[previous.leaderSlot]
+        ? previous.leaderSlot
+        : Math.max(
+            0,
+            nextSlots.findIndex(Boolean)
+          )
 
-        const nextLeaderSlot = nextSlots[template.leaderSlot]
-          ? template.leaderSlot
-          : Math.max(
-              0,
-              nextSlots.findIndex(Boolean)
-            )
-
-        return {
-          ...template,
-          slots: nextSlots,
-          leaderSlot: nextLeaderSlot === -1 ? 0 : nextLeaderSlot,
-        }
-      })
-    )
+      return {
+        ...previous,
+        slots: nextSlots,
+        leaderSlot: nextLeaderSlot === -1 ? 0 : nextLeaderSlot,
+      }
+    })
 
     setSelectedSlotIndex(index)
     setNotice('Hueco liberado para otro Pokemon.')
   }
 
-  function clearActiveTemplate() {
-    updateTemplates((previous) =>
-      previous.map((template) =>
-        template.id === activeTemplateId
-          ? {
-              ...template,
-              slots: Array(template.slots.length).fill(null),
-              leaderSlot: 0,
-            }
-          : template
-      )
-    )
-
+  function clearTeam() {
+    updateTeam(() => createDefaultTeam())
     setSelectedSlotIndex(0)
-    setNotice('Plantilla vaciada. Puedes volver a construirla desde cero.')
+    setNotice('Equipo vaciado. Puedes reconstruirlo desde cero.')
   }
 
   function setLeaderSlot(index) {
-    updateTemplates((previous) =>
-      previous.map((template) =>
-        template.id === activeTemplateId
-          ? {
-              ...template,
-              leaderSlot: index,
-            }
-          : template
-      )
-    )
+    updateTeam((previous) => ({
+      ...previous,
+      leaderSlot: index,
+    }))
 
-    setNotice('Pokemon marcado como lider destacado del equipo.')
+    setNotice('Pokemon marcado como lider del equipo.')
   }
 
   return {
-    activeTemplate,
-    activeTemplateSummary,
+    activeTeam: team,
     catalogCount: catalog.length,
     isCatalogLoading,
     isPokemonLoading,
     isTypeChartLoading,
+    leaderPokemon,
     loadError,
     notice,
-    rankedResistances,
-    rankedWeaknesses,
     searchQuery,
     searchResults,
     selectedSlotIndex,
@@ -413,14 +332,12 @@ export function useTeamBuilder() {
     selectSlot,
     addPokemonToTeam,
     removePokemonFromTeam,
-    clearActiveTemplate,
-    renameActiveTemplate,
-    selectTemplate,
+    clearTeam,
+    renameTeam,
     setLeaderSlot,
-    strongestTemplate,
     teamMembers,
-    templateSummaries,
-    typeAnalysis: activeTemplateSummary.typeAnalysis,
-    typeChartReady: Object.keys(typeChart).length === ATTACKING_TYPES.length,
+    teamSummary,
+    typeAnalysis: teamSummary.typeAnalysis,
+    typeChartReady: ATTACKING_TYPES.every((typeName) => Boolean(typeChart[typeName])),
   }
 }

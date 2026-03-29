@@ -8,9 +8,7 @@
 
 .header,
 .blockHeading,
-.metricTop,
-.rankMeta,
-.rankCard {
+.panelHeading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -27,7 +25,8 @@
 }
 
 .header h3,
-.blockHeading h4 {
+.blockHeading h4,
+.panelHeading h5 {
   margin: 0;
 }
 
@@ -36,7 +35,8 @@
 }
 
 .statusBadge,
-.blockHeading span {
+.blockHeading span,
+.panelHeading span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -83,103 +83,346 @@
   border-top: 1px solid #e6edf8;
 }
 
-.metricList,
-.templateRanking {
+.highlightGrid {
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
   margin-top: 0.9rem;
 }
 
-.metricCard,
-.rankCard {
-  padding: 0.95rem 1rem;
+.highlightPanel {
+  padding: 1rem;
   background: #f8fbff;
   border: 1px solid #dce6f4;
-  border-radius: 18px;
+  border-radius: 20px;
 }
 
-.metricCard p,
-.rankCard p,
+.chipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.statChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.chipRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.chipSafe {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
 .emptyMessage {
-  grid-column: 1 / -1;
-  margin: 0.45rem 0 0;
+  margin: 0.75rem 0 0;
   line-height: 1.6;
   color: var(--muted);
 }
 
-.metricTop span {
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+
+.legendLabel {
   font-size: 0.82rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.legendList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.legendItem,
+.matchupBadge,
+.verdictBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.legendItem {
+  min-width: 58px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.tableWrap {
+  margin-top: 0.9rem;
+  overflow: auto;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.matrixTable {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+}
+
+.matrixTable th,
+.matrixTable td {
+  padding: 0.8rem 0.65rem;
+  text-align: center;
+  border-right: 1px solid #eef3fb;
+  border-bottom: 1px solid #eef3fb;
+}
+
+.matrixTable tr:last-child th,
+.matrixTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.matrixTable th:last-child,
+.matrixTable td:last-child {
+  border-right: 0;
+}
+
+.matrixTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fbff;
+}
+
+.typeHeader,
+.typeRowHeader {
+  min-width: 110px;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.typeRowHeader {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #18212f;
+  background: #fbfdff;
+}
+
+.typeRowBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  padding: 0.52rem 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: var(--type-accent, #64748b);
+  border-radius: 14px;
+}
+
+.slotHeader {
+  min-width: 136px;
+}
+
+.slotHeader span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.slotHeader strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+}
+
+.typeChipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.typeChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--type-accent, #64748b);
+  border-radius: 999px;
+}
+
+.pendingType {
+  display: block;
+  margin-top: 0.45rem;
+  color: #94a3b8;
+}
+
+.summaryHeader {
+  min-width: 188px;
+}
+
+.matrixCell {
+  background: #ffffff;
+}
+
+.cellRiskHeavy {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.cellRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.cellNeutral {
+  color: #324962;
+  background: #f8fbff;
+  border-color: #dce6f4;
+}
+
+.cellSafe {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.cellSafeHeavy {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.cellImmune {
+  color: #ffffff;
+  background: #1f2937;
+  border-color: #0f172a;
+}
+
+.cellEmpty {
+  color: #94a3b8;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.matchupBadge {
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.overviewStack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.verdictBadge {
+  justify-self: flex-start;
+  padding: 0.4rem 0.72rem;
+  font-size: 0.78rem;
+}
+
+.verdictRiskHeavy,
+.legendRiskHeavy {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.verdictRisk,
+.legendRisk {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.verdictNeutral,
+.legendNeutral {
+  color: #324962;
+  background: #f8fbff;
+  border-color: #dce6f4;
+}
+
+.verdictSafe,
+.legendSafe {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.legendSafeHeavy {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.legendImmune {
+  color: #ffffff;
+  background: #1f2937;
+  border-color: #0f172a;
+}
+
+.overviewCell {
+  text-align: left;
+  background: #fbfdff;
+}
+
+.overviewList {
+  display: grid;
+  gap: 0.24rem;
+  font-size: 0.82rem;
   color: #324962;
 }
 
-.metricBarTrack {
-  height: 10px;
-  margin-top: 0.9rem;
-  background: #e8effa;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.metricBarFillRisk,
-.metricBarFillSafe {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-}
-
-.metricBarFillRisk {
-  background: linear-gradient(90deg, #ef5350, #f59e0b);
-}
-
-.metricBarFillSafe {
-  background: linear-gradient(90deg, #22c55e, #0ea5e9);
-}
-
-.typeGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-top: 0.9rem;
-}
-
-.typeTile {
-  display: grid;
-  gap: 0.18rem;
-  padding: 0.85rem 0.9rem;
-  background: #ffffff;
-  border: 1px solid #dce6f4;
-  border-radius: 16px;
-}
-
-.typeTile strong {
-  margin-bottom: 0.2rem;
-}
-
-.typeTile span,
-.rankMeta span {
-  color: var(--muted);
-}
-
-.rankCardBest {
-  border-color: #f6d365;
-  background: linear-gradient(180deg, #fff9dd, #fffef6);
-}
-
-.rankMeta {
-  align-items: center;
-  min-width: 100px;
-}
-
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .summaryGrid,
-  .typeGrid {
+  .highlightGrid {
     grid-template-columns: 1fr;
   }
 
+  .legend {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
   .header,
   .blockHeading,
-  .rankCard {
+  .panelHeading {
     flex-direction: column;
   }
 }

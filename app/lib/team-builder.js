@@ -1,7 +1,7 @@
 import { createPlaceholderPokemon, formatDexNumber, translateType } from './pokemon'
 
-export const TEAM_STORAGE_KEY = 'pokemon-project-team-templates-v1'
-export const TEAM_TEMPLATE_LIMIT = 5
+export const TEAM_STORAGE_KEY = 'pokemon-project-team-v2'
+export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates-v1'
 export const TEAM_SIZE = 6
 export const TEAM_SEARCH_LIMIT = 18
 
@@ -26,41 +26,51 @@ export const ATTACKING_TYPES = [
   'fairy',
 ]
 
-export function createDefaultTeamTemplates() {
-  return Array.from({ length: TEAM_TEMPLATE_LIMIT }, (_, index) => ({
-    id: `team-template-${index + 1}`,
-    name: `Plantilla ${index + 1}`,
+export function createDefaultTeam() {
+  return {
+    name: 'Equipo principal',
     slots: Array(TEAM_SIZE).fill(null),
     leaderSlot: 0,
-  }))
+  }
 }
 
-export function sanitizeTeamTemplates(value) {
-  if (!Array.isArray(value) || !value.length) {
-    return createDefaultTeamTemplates()
+function sanitizeSlots(value) {
+  const safeSlots = Array.isArray(value)
+    ? value.slice(0, TEAM_SIZE).map((slot) => (typeof slot === 'string' ? slot : null))
+    : []
+
+  while (safeSlots.length < TEAM_SIZE) {
+    safeSlots.push(null)
   }
 
-  const defaults = createDefaultTeamTemplates()
+  return safeSlots
+}
 
-  return defaults.map((template, index) => {
-    const source = value[index] ?? {}
-    const safeSlots = Array.isArray(source.slots)
-      ? source.slots.slice(0, TEAM_SIZE).map((slot) => (typeof slot === 'string' ? slot : null))
-      : template.slots
+export function sanitizeStoredTeam(value) {
+  const defaultTeam = createDefaultTeam()
+  const safeSlots = sanitizeSlots(value?.slots)
 
-    while (safeSlots.length < TEAM_SIZE) {
-      safeSlots.push(null)
-    }
+  return {
+    name: typeof value?.name === 'string' && value.name.trim() ? value.name.trim() : defaultTeam.name,
+    slots: safeSlots,
+    leaderSlot:
+      Number.isInteger(value?.leaderSlot) && value.leaderSlot >= 0 && value.leaderSlot < TEAM_SIZE
+        ? value.leaderSlot
+        : defaultTeam.leaderSlot,
+  }
+}
 
-    return {
-      id: typeof source.id === 'string' ? source.id : template.id,
-      name: typeof source.name === 'string' && source.name.trim() ? source.name.trim() : template.name,
-      slots: safeSlots,
-      leaderSlot:
-        Number.isInteger(source.leaderSlot) && source.leaderSlot >= 0 && source.leaderSlot < TEAM_SIZE
-          ? source.leaderSlot
-          : template.leaderSlot,
-    }
+export function migrateLegacyTemplates(value) {
+  if (!Array.isArray(value) || !value.length) {
+    return createDefaultTeam()
+  }
+
+  const source = value[0] ?? {}
+
+  return sanitizeStoredTeam({
+    name: source.name,
+    slots: source.slots,
+    leaderSlot: source.leaderSlot,
   })
 }
 
@@ -124,7 +134,7 @@ export function getSingleTypeMultiplier(attackingType, defendingType, typeChart)
 
 export function getPokemonDefensiveMultiplier(pokemon, attackingType, typeChart) {
   if (!pokemon || pokemon.isPlaceholder || !pokemon.typeKeys?.length) {
-    return 1
+    return null
   }
 
   return pokemon.typeKeys.reduce((multiplier, defendingType) => {
@@ -134,10 +144,8 @@ export function getPokemonDefensiveMultiplier(pokemon, attackingType, typeChart)
 
 export function buildTeamTypeAnalysis(teamMembers, typeChart) {
   return ATTACKING_TYPES.map((attackingType) => {
-    const multipliers = teamMembers
-      .filter(Boolean)
-      .map((pokemon) => getPokemonDefensiveMultiplier(pokemon, attackingType, typeChart))
-
+    const slotMultipliers = teamMembers.map((pokemon) => getPokemonDefensiveMultiplier(pokemon, attackingType, typeChart))
+    const multipliers = slotMultipliers.filter((value) => typeof value === 'number')
     const weakCount = multipliers.filter((value) => value > 1).length
     const superWeakCount = multipliers.filter((value) => value >= 4).length
     const resistCount = multipliers.filter((value) => value > 0 && value < 1).length
@@ -147,6 +155,7 @@ export function buildTeamTypeAnalysis(teamMembers, typeChart) {
     return {
       type: attackingType,
       label: translateType(attackingType),
+      slotMultipliers,
       multipliers,
       weakCount,
       superWeakCount,
@@ -163,7 +172,7 @@ export function buildTeamTypeAnalysis(teamMembers, typeChart) {
 export function summarizeTeam(teamMembers, typeChart) {
   const filledSlots = teamMembers.filter(Boolean).length
   const readyMembers = teamMembers.filter((pokemon) => pokemon && !pokemon.isPlaceholder)
-  const typeAnalysis = buildTeamTypeAnalysis(readyMembers, typeChart)
+  const typeAnalysis = buildTeamTypeAnalysis(teamMembers, typeChart)
   const weaknesses = [...typeAnalysis]
     .filter((entry) => entry.weakCount > 0)
     .sort((left, right) => right.riskScore - left.riskScore || right.maxMultiplier - left.maxMultiplier)

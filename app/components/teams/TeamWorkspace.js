@@ -24,15 +24,15 @@ function getCardStyle(pokemon) {
 }
 
 export default function TeamWorkspace({
-  activeTemplate,
+  activeTeam,
   catalogCount,
   isCatalogLoading,
   isPokemonLoading,
   notice,
   onAddPokemon,
-  onClearActiveTemplate,
+  onClearTeam,
   onRemovePokemon,
-  onRenameActiveTemplate,
+  onRenameTeam,
   onSelectSlot,
   onSetLeaderSlot,
   searchQuery,
@@ -45,18 +45,18 @@ export default function TeamWorkspace({
     <section className={styles.workspace}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Constructor de equipo</p>
+          <p className={styles.kicker}>Equipo guardado</p>
           <input
             className={styles.nameInput}
             type="text"
-            value={activeTemplate?.name ?? ''}
-            onChange={(event) => onRenameActiveTemplate(event.target.value)}
-            placeholder="Nombre de la plantilla"
-            aria-label="Nombre de la plantilla activa"
+            value={activeTeam?.name ?? ''}
+            onChange={(event) => onRenameTeam(event.target.value)}
+            placeholder="Nombre del equipo"
+            aria-label="Nombre del equipo actual"
           />
         </div>
 
-        <button type="button" className={styles.clearButton} onClick={onClearActiveTemplate}>
+        <button type="button" className={styles.clearButton} onClick={onClearTeam}>
           Vaciar equipo
         </button>
       </div>
@@ -66,7 +66,7 @@ export default function TeamWorkspace({
       <div className={styles.slotGrid}>
         {teamMembers.map((pokemon, index) => {
           const isActive = index === selectedSlotIndex
-          const isLeader = activeTemplate?.leaderSlot === index
+          const isLeader = activeTeam?.leaderSlot === index
 
           if (!pokemon) {
             return (
@@ -80,7 +80,7 @@ export default function TeamWorkspace({
               >
                 <span className={styles.slotIndex}>Hueco {index + 1}</span>
                 <strong>Selecciona un Pokemon</strong>
-                <p>Usa el buscador inferior para completar la plantilla.</p>
+                <p>Usa el buscador inferior para completar tu equipo.</p>
               </button>
             )
           }
@@ -127,7 +127,7 @@ export default function TeamWorkspace({
       <div className={styles.searchSection}>
         <div className={styles.searchHeader}>
           <div>
-            <p className={styles.kicker}>Buscador de plantilla</p>
+            <p className={styles.kicker}>Buscador del equipo</p>
             <h3>Anade Pokemon al hueco activo</h3>
           </div>
 

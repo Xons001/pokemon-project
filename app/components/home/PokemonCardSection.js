@@ -3,11 +3,11 @@ import { pokemonCardStats } from '../../lib/pokemon'
 import sharedStyles from './shared.module.css'
 import styles from './PokemonCardSection.module.css'
 
-export default function PokemonCardSection({ pokemon, cardRef }) {
+export default function PokemonCardSection({ pokemon, cardRef, eyebrow = 'Carta destacada' }) {
   return (
     <section className={styles.pokemonCardSection} ref={cardRef} id="ficha">
       <div className={styles.pokemonCardCopy}>
-        <p className={sharedStyles.eyebrow}>Carta destacada</p>
+        <p className={sharedStyles.eyebrow}>{eyebrow}</p>
         <h2 className={sharedStyles.sectionTitle}>{pokemon.name}</h2>
         <p className={sharedStyles.sectionText}>{pokemon.description}</p>
       </div>
