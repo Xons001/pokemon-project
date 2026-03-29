@@ -3,25 +3,236 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background: #f4f7fb;
+  --surface: #ffffff;
+  --surface-strong: #14161a;
+  --text: #18212f;
+  --muted: #5f6c80;
+  --border: #d8dfeb;
+  --accent: #ffcc03;
+  --accent-strong: #ef5350;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  margin: 0;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top, #ffffff 0%, #eef3ff 38%, #e7edf8 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 72px;
+  padding: 1rem 1.5rem;
+  color: #ffffff;
+  background: var(--surface-strong);
+  border-bottom: 4px solid var(--accent);
+}
+
+.site-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.site-logo h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.site-logo-kicker {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fb0cb;
+}
+
+.pokeball-mark {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: 4px solid #101318;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, var(--accent-strong) 0 50%, #ffffff 50% 100%);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+.pokeball-mark::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #101318;
+  transform: translateY(-50%);
+}
+
+.pokeball-mark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border: 4px solid #101318;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.site-nav a {
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.site-nav a:hover {
+  color: var(--accent);
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.hero,
+.theory-section,
+.notes-section {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(24, 33, 47, 0.08);
+}
+
+.eyebrow,
+.section-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.hero h2,
+.section-copy h3 {
+  margin: 0;
+  line-height: 1.1;
+}
+
+.hero h2 {
+  max-width: 12ch;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+}
+
+.hero-copy,
+.section-copy p,
+.notes-card p {
+  max-width: 62ch;
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.theory-section,
+.notes-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.theory-strip {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #111827;
+  border-radius: 20px;
+}
+
+.theory-card {
+  flex: 1;
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.theory-card-red {
+  background: #ff6b6b;
+}
+
+.theory-card-yellow {
+  background: #ffe066;
+}
+
+.notes-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1d4ed8, #0f172a);
+  border-radius: 20px;
+  color: #ffffff;
+}
+
+.notes-card p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.notes-card strong {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 720px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-nav {
+    width: 100%;
+    padding-top: 0.25rem;
+  }
+
+  .theory-section,
+  .notes-section {
+    grid-template-columns: 1fr;
+  }
+
+  .theory-strip {
+    flex-direction: column;
+  }
 }
