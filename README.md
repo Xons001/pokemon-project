@@ -1,34 +1,142 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Pokemon Project
 
-## Getting Started
+Aplicacion web construida con Next.js y React que consume [PokeAPI](https://pokeapi.co/) para mostrar una Pokedex interactiva.
 
-First, run the development server:
+La app permite:
+
+- Buscar Pokemon por nombre, numero o tipo.
+- Navegar por el catalogo completo con paginacion.
+- Seleccionar un Pokemon y ver su ficha principal actualizada al instante.
+- Mostrar datos sacados del endpoint `pokemon/{id}` como `hp`, `attack`, `defense`, `special-attack`, `special-defense`, `speed`, `types`, `height`, `weight` y `abilities`.
+
+## Tecnologias
+
+- Next.js 13
+- React 18
+- CSS global
+- PokeAPI
+
+## Como arrancarlo
+
+1. Entra en la carpeta del proyecto:
+
+```bash
+cd C:\RepositoriosJavascript\pokemon-project
+```
+
+2. Instala dependencias:
+
+```bash
+npm install
+```
+
+3. Arranca el servidor de desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Abre el navegador en:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Scripts disponibles
 
-## Learn More
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Levanta el proyecto en modo desarrollo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Lanza ESLint para revisar el codigo.
 
-## Deploy on Vercel
+```bash
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Genera la build de produccion.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```bash
+npm run start
+```
+
+Arranca la build de produccion.
+
+## Nota para Windows
+
+Si `npm run build` falla con un error parecido a `EPERM ... .next\\trace`, normalmente significa que el servidor de desarrollo sigue abierto y bloqueando archivos dentro de `.next`.
+
+En ese caso:
+
+1. Para el servidor con `Ctrl + C`.
+2. Vuelve a ejecutar:
+
+```bash
+npm run build
+```
+
+## De que va la app
+
+La pagina principal funciona como una Pokedex visual:
+
+- Arriba hay un buscador con sugerencias rapidas.
+- Debajo aparece una galeria paginada con Pokemon.
+- Al seleccionar uno, la ficha principal cambia con sus datos reales.
+- La misma seleccion se reutiliza tambien en la tarjeta destacada y en la seccion promocional inferior.
+
+La idea del proyecto es mezclar una interfaz mas visual de portfolio con datos reales sacados de API.
+
+## Estructura principal
+
+```text
+app/
+  components/
+    home/
+      ConfirmationSection.js
+      GalleryToolbar.js
+      PokedexHub.js
+      PokemonCardSection.js
+      PokemonDetail.js
+      PokemonGallery.js
+      PromoSection.js
+      SearchPanel.js
+      SiteHeader.js
+    icons/
+      MicIcon.js
+      SearchIcon.js
+  hooks/
+    usePokemonCatalog.js
+  lib/
+    pokemon.js
+  globals.css
+  layout.js
+  page.js
+```
+
+## Organizacion del codigo
+
+- `app/page.js`: pagina maestra que compone la home.
+- `app/hooks/usePokemonCatalog.js`: hook con la logica de carga, busqueda, cache y paginacion.
+- `app/lib/pokemon.js`: constantes, helpers y transformacion de datos de PokeAPI.
+- `app/components/home/*`: componentes visuales de la home.
+- `app/globals.css`: estilos globales del proyecto.
+
+## API utilizada
+
+Este proyecto usa [PokeAPI](https://pokeapi.co/).
+
+Endpoint principal usado para la ficha:
+
+```text
+https://pokeapi.co/api/v2/pokemon/{id}
+```
+
+## Estado actual
+
+Ahora mismo el proyecto ya permite navegar por el catalogo y visualizar datos reales de Pokemon en una interfaz propia construida con React.
