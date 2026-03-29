@@ -1,6 +1,11 @@
 import Image from 'next/image'
 
-const navItems = ['Inicio', 'Pokedex', 'Tipos']
+const navItems = [
+  { label: 'Inicio', href: '#inicio' },
+  { label: 'Pokedex', href: '#pokedex' },
+  { label: 'Tipos', href: '#tipos' },
+  { label: 'Buscar', href: '#buscar' },
+]
 
 const stackedPokemon = [
   { name: 'Blastoise', image: '/pokemon/blastoise.png' },
@@ -9,6 +14,26 @@ const stackedPokemon = [
   { name: 'Gengar', image: '/pokemon/gengar.png' },
   { name: 'Squirtle', image: '/pokemon/squirtle.png' },
 ]
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M16 16L21 21" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M7 11a5 5 0 0 0 10 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 16v4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M9 20h6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
 
 export default function Home() {
   return (
@@ -24,8 +49,8 @@ export default function Home() {
 
         <nav className="site-nav" aria-label="Navegacion principal">
           {navItems.map((item) => (
-            <a key={item} href={`#${item.toLowerCase()}`}>
-              {item}
+            <a key={item.label} href={item.href}>
+              {item.label}
             </a>
           ))}
         </nav>
@@ -126,6 +151,44 @@ export default function Home() {
                 />
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="search-section" id="buscar">
+          <div className="search-section-copy">
+            <p className="eyebrow">Busqueda rapida</p>
+            <h2 className="section-title">Una barra central para localizar Pokemon, tipos y movimientos.</h2>
+            <p className="section-text">
+              Este siguiente bloque adapta la barra de busqueda del curso para
+              que forme parte de la Pokedex. De momento es una interfaz visual
+              lista para evolucionar en proximos pasos.
+            </p>
+          </div>
+
+          <div className="search-panel">
+            <label className="search-bar" htmlFor="pokemon-search">
+              <input
+                id="pokemon-search"
+                type="text"
+                placeholder="Buscar Pokemon, tipo o habilidad"
+              />
+
+              <div className="search-actions" aria-hidden="true">
+                <button type="button">
+                  <MicIcon />
+                </button>
+                <button type="button">
+                  <SearchIcon />
+                </button>
+              </div>
+            </label>
+
+            <div className="search-suggestions" aria-label="Sugerencias">
+              <span>Pikachu</span>
+              <span>Legendarios</span>
+              <span>Fuego</span>
+              <span>Starter</span>
+            </div>
           </div>
         </section>
       </main>
