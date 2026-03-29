@@ -15,6 +15,12 @@ const stackedPokemon = [
   { name: 'Squirtle', image: '/pokemon/squirtle.png' },
 ]
 
+const pokemonCardStats = [
+  { label: 'Poder', image: '/pokemon-card/fuego.png' },
+  { label: 'Resistencia', image: '/pokemon-card/castillo.png' },
+  { label: 'Bonus', image: '/pokemon-card/cofre.png' },
+]
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -219,6 +225,56 @@ export default function Home() {
               </button>
             </div>
           </div>
+        </section>
+
+        <section className="pokemon-card-section">
+          <div className="pokemon-card-copy">
+            <p className="eyebrow">Carta destacada</p>
+            <h2 className="section-title">Una card coleccionable para llevar la Pokedex a algo mas visual.</h2>
+            <p className="section-text">
+              Este bloque adapta la card de Pokemon del curso y la integra como
+              una pieza fuerte de la landing. Ya empezamos a acercarnos mas a la
+              estetica final del proyecto.
+            </p>
+          </div>
+
+          <article className="showcase-card">
+            <Image
+              src="/pokemon-card/fondoencabezado.svg"
+              alt="Fondo decorativo"
+              width={640}
+              height={220}
+              className="showcase-card-header"
+            />
+
+            <div className="showcase-card-body">
+              <div className="showcase-card-avatar">
+                <Image
+                  src="/pokemon/charizard.png"
+                  alt="Charizard"
+                  width={170}
+                  height={170}
+                  className="showcase-card-avatar-image"
+                />
+              </div>
+
+              <h3 className="showcase-card-title">
+                Charizard <span>#006</span>
+              </h3>
+              <p className="showcase-card-text">Coleccion especial de tipo fuego</p>
+            </div>
+
+            <div className="showcase-card-footer">
+              {pokemonCardStats.map((item) => (
+                <div key={item.label} className="showcase-card-stat">
+                  <h4>{item.label}</h4>
+                  <div className="showcase-card-stat-icon">
+                    <Image src={item.image} alt={item.label} width={36} height={36} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
         </section>
       </main>
     </>

@@ -647,6 +647,107 @@ a {
   background: #f4f7fb;
 }
 
+.pokemon-card-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 360px);
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffe7d4, #fff4ec);
+  border: 1px solid #f5cfb1;
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(24, 33, 47, 0.1);
+}
+
+.showcase-card {
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.2);
+}
+
+.showcase-card-header {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.showcase-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid #f7c8a9;
+}
+
+.showcase-card-avatar {
+  display: grid;
+  place-items: center;
+  width: 142px;
+  height: 142px;
+  margin-top: -58px;
+  border: 6px solid #f67c55;
+  border-radius: 50%;
+  background: #fcd3c6;
+  box-shadow: 0 -10px 20px rgba(246, 124, 85, 0.45);
+}
+
+.showcase-card-avatar-image {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+}
+
+.showcase-card-title {
+  margin: 1.4rem 0 0;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.showcase-card-title span {
+  color: #fcb173;
+}
+
+.showcase-card-text {
+  margin: 0.55rem 0 0;
+  color: #7a5c4e;
+  font-weight: 600;
+}
+
+.showcase-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+
+.showcase-card-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.showcase-card-stat h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.showcase-card-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+
+.showcase-card-stat-icon img {
+  display: block;
+  object-fit: contain;
+}
+
 @media (max-width: 720px) {
   .site-header {
     flex-direction: column;
@@ -699,5 +800,9 @@ a {
 
   .confirmation-actions {
     flex-direction: column;
+  }
+
+  .pokemon-card-section {
+    grid-template-columns: 1fr;
   }
 }
