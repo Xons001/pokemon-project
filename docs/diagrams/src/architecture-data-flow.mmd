@@ -1,0 +1,18 @@
+flowchart LR
+  PokeAPI["PokeAPI"]
+  Showdown["Pokemon Showdown"]
+  Smogon["Smogon Stats"]
+
+  Ingest["Scripts de ingestion\nscripts/ + src/modules/ingest"]
+  Postgres["PostgreSQL"]
+  Prisma["Prisma Client"]
+  NextAPI["Next.js App Router\nRoute Handlers / Server code"]
+  UI["Frontend\ncomponents + hooks"]
+
+  PokeAPI --> Ingest
+  Showdown --> Ingest
+  Smogon --> Ingest
+  Ingest --> Postgres
+  Postgres --> Prisma
+  Prisma --> NextAPI
+  NextAPI --> UI

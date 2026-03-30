@@ -45,9 +45,9 @@ export default function SearchPanel({
       </div>
 
       {loadError ? <p className={styles.helperText}>{loadError}</p> : null}
-      {isCatalogLoading ? <p className={styles.helperText}>Cargando catalogo completo de PokeAPI...</p> : null}
+      {isCatalogLoading ? <p className={styles.helperText}>Cargando catalogo desde la API interna...</p> : null}
       {isPageLoading && !isCatalogLoading ? (
-        <p className={styles.helperText}>Cargando stats y tipos desde el endpoint pokemon/{'{id}'}...</p>
+        <p className={styles.helperText}>Cargando stats y tipos desde tu backend...</p>
       ) : null}
     </div>
   )

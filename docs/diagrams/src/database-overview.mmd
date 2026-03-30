@@ -1,0 +1,69 @@
+flowchart LR
+  subgraph Structural["Dominio estructural"]
+    generation["generation"]
+    species["pokemon_species"]
+    pokemon["pokemon"]
+    form["pokemon_form"]
+    move["move"]
+    item["item"]
+    pokedex["pokedex"]
+  end
+
+  subgraph Bridges["Tablas puente y soporte"]
+    pokemonType["pokemon_type"]
+    pokemonAbility["pokemon_ability"]
+    pokemonStat["pokemon_stat_value"]
+    pokemonMove["pokemon_move_learn"]
+    evolution["evolution_chain + evolution_link"]
+    machine["machine"]
+    pokedexEntry["pokedex_entry"]
+  end
+
+  subgraph Competitive["Capa competitiva"]
+    competitiveFormat["competitive_format"]
+    competitiveTier["competitive_tier"]
+    pokemonFormat["pokemon_format"]
+    learnset["competitive_learnset_entry"]
+    sampleSet["sample_set"]
+    usage["usage_stat_monthly"]
+  end
+
+  subgraph User["Auth y negocio de usuario"]
+    user["user"]
+    auth["account / session / verification_token"]
+    teams["user_team + user_team_pokemon"]
+    builds["user_saved_build"]
+    favorites["user_favorite_pokemon"]
+    preferences["user_preferences"]
+  end
+
+  generation --> species --> pokemon --> form
+  pokemon --> pokemonType
+  pokemon --> pokemonAbility
+  pokemon --> pokemonStat
+  pokemon --> pokemonMove
+  move --> pokemonMove
+  item --> machine
+  species --> evolution
+  pokedex --> pokedexEntry --> species
+
+  pokemon --> pokemonFormat
+  species --> pokemonFormat
+  competitiveFormat --> pokemonFormat
+  competitiveTier --> pokemonFormat
+  move --> learnset
+  pokemon --> learnset
+  species --> learnset
+  competitiveFormat --> sampleSet
+  pokemon --> sampleSet
+  competitiveFormat --> usage
+  pokemon --> usage
+
+  user --> auth
+  user --> teams
+  user --> builds
+  user --> favorites
+  user --> preferences
+  pokemon --> teams
+  pokemon --> builds
+  pokemon --> favorites

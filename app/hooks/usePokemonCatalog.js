@@ -1,12 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { fetchPokemonCatalog, fetchPokemonDetail } from '../lib/api'
 import {
   PAGE_SIZE,
   INITIAL_SELECTED_SLUG,
-  createCatalogEntry,
   createPlaceholderPokemon,
-  createPokemonDetails,
   formatDexNumber,
   quickSuggestions,
 } from '../lib/pokemon'
@@ -28,25 +27,14 @@ export function usePokemonCatalog() {
 
     async function loadCatalog() {
       try {
-        const countResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1&offset=0')
-        if (!countResponse.ok) {
-          throw new Error('No se pudo cargar el total de Pokemon')
-        }
-
-        const countData = await countResponse.json()
-        const catalogResponse = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${countData.count}&offset=0`)
-        if (!catalogResponse.ok) {
-          throw new Error('No se pudo cargar el catalogo')
-        }
-
-        const catalogData = await catalogResponse.json()
+        const catalogData = await fetchPokemonCatalog()
         if (!isMounted) return
 
-        setCatalog(catalogData.results.map(createCatalogEntry))
+        setCatalog(catalogData.items)
         setLoadError('')
       } catch (error) {
         if (!isMounted) return
-        setLoadError('No se pudo cargar el catalogo completo desde PokeAPI.')
+        setLoadError('No se pudo cargar el catalogo desde la API interna.')
       } finally {
         if (isMounted) {
           setIsCatalogLoading(false)
@@ -124,16 +112,7 @@ export function usePokemonCatalog() {
 
     async function loadPagePokemon() {
       const results = await Promise.allSettled(
-        missingSlugs.map(async (slug) => {
-          const entry = catalog.find((item) => item.slug === slug)
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${entry?.id ?? slug}`)
-          if (!response.ok) {
-            throw new Error(`No se pudo cargar ${slug}`)
-          }
-
-          const data = await response.json()
-          return createPokemonDetails(data)
-        })
+        missingSlugs.map((slug) => fetchPokemonDetail(slug))
       )
 
       setPokemonCache((previous) => {
@@ -148,7 +127,7 @@ export function usePokemonCatalog() {
 
       const failedCount = results.filter((result) => result.status === 'rejected').length
       if (failedCount && !cancelled) {
-        setLoadError(`Algunos Pokemon no se pudieron cargar correctamente desde PokeAPI (${failedCount}).`)
+        setLoadError(`Algunos Pokemon no se pudieron cargar correctamente desde la API interna (${failedCount}).`)
       } else if (!cancelled) {
         setLoadError('')
       }
@@ -163,7 +142,7 @@ export function usePokemonCatalog() {
       missingSlugs.forEach((slug) => loadingSlugsRef.current.delete(slug))
       if (!cancelled) {
         setIsPageLoading(false)
-        setLoadError('No se pudieron cargar los datos de algunos Pokemon desde PokeAPI.')
+        setLoadError('No se pudieron cargar los datos de algunos Pokemon desde la API interna.')
       }
     })
 

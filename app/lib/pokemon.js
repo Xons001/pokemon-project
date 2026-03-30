@@ -132,13 +132,16 @@ export function createCatalogEntry(entry) {
 }
 
 export function createPlaceholderPokemon(entry) {
+  const image = entry.image ?? '/placeholder-pokemon.png'
+  const thumb = entry.thumb ?? image
+
   return {
     isPlaceholder: true,
     id: formatDexNumber(entry.id),
     slug: entry.slug,
     name: entry.label,
-    image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${entry.id}.png`,
-    thumb: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.id}.png`,
+    image,
+    thumb,
     type: 'Cargando',
     types: [],
     typeKeys: [],
@@ -149,7 +152,7 @@ export function createPlaceholderPokemon(entry) {
     specialDefense: '--',
     speed: '--',
     bonus: 'Cargando',
-    description: 'Estamos trayendo los datos oficiales desde PokeAPI.',
+    description: 'Estamos cargando los datos desde la base de datos local.',
     role: 'Sincronizando',
     palette: 'neutral',
     height: '--',
@@ -230,7 +233,7 @@ export function createPokemonDetails(data) {
     data.sprites.other?.['official-artwork']?.front_default ??
     data.sprites.other?.home?.front_default ??
     data.sprites.front_default ??
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png`
+    '/placeholder-pokemon.png'
 
   return {
     isPlaceholder: false,

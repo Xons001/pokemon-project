@@ -1,0 +1,49 @@
+flowchart LR
+  subgraph FormatCatalog["Catalogo competitivo"]
+    direction TB
+    competitiveFormat["competitive_format"]
+    competitiveTier["competitive_tier"]
+    banlistEntry["banlist_entry"]
+  end
+
+  subgraph FormatMapping["Mapeo por formato"]
+    direction TB
+    pokemonFormat["pokemon_format"]
+    tierHistory["pokemon_tier_history"]
+  end
+
+  subgraph CompetitiveData["Datos competitivos"]
+    direction TB
+    sampleSet["sample_set"]
+    learnset["competitive_learnset_entry"]
+    usage["usage_stat_monthly"]
+  end
+
+  subgraph Canonical["Dominio canonico"]
+    direction TB
+    pokemon["pokemon"]
+    species["pokemon_species"]
+    move["move"]
+  end
+
+  competitiveFormat --> pokemonFormat
+  competitiveTier --> pokemonFormat
+  competitiveTier --> tierHistory
+  competitiveFormat --> banlistEntry
+
+  pokemon --> pokemonFormat
+  species --> pokemonFormat
+  pokemon --> tierHistory
+  species --> tierHistory
+
+  competitiveFormat --> sampleSet
+  pokemon --> sampleSet
+  species --> sampleSet
+
+  competitiveFormat --> usage
+  pokemon --> usage
+  species --> usage
+
+  pokemon --> learnset
+  species --> learnset
+  move --> learnset
