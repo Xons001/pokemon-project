@@ -447,6 +447,7 @@ export async function ingestShowdownSampleSets(context: IngestContext) {
 }
 
 export async function ingestShowdownUsageStats(context: IngestContext) {
+  const useSequentialInserts = context.showdownUsageInsertMode === 'sequential'
   const month = context.smogonStatsMonth ?? (await context.showdownClient.getLatestStatsMonth())
 
   if (!month) {
@@ -574,23 +575,33 @@ export async function ingestShowdownUsageStats(context: IngestContext) {
       })
     })
 
-    await context.prisma.$transaction(async (transaction) => {
-      await transaction.usageStatMonthly.deleteMany({
-        where: {
-          competitiveFormatId: competitiveFormat.id,
-          month,
-          rating,
-        },
-      })
+    await context.prisma.usageStatMonthly.deleteMany({
+      where: {
+        competitiveFormatId: competitiveFormat.id,
+        month,
+        rating,
+      },
+    })
 
+    if (useSequentialInserts) {
+      // Free-tier hosted Postgres instances can reject JSON-heavy createMany payloads on usage snapshots.
+      // Sequential inserts are slower, but much more tolerant of constrained cloud plans.
+      for (const row of rows) {
+        await context.prisma.usageStatMonthly.create({
+          data: row.usageRow,
+        })
+      }
+    } else {
       for (const batch of chunkArray(rows.map((entry) => entry.usageRow), 500)) {
         if (batch.length) {
-          await transaction.usageStatMonthly.createMany({
+          await context.prisma.usageStatMonthly.createMany({
             data: batch,
           })
         }
       }
+    }
 
+    await context.prisma.$transaction(async (transaction) => {
       await transaction.pokemonFormat.deleteMany({
         where: {
           competitiveFormatId: competitiveFormat.id,

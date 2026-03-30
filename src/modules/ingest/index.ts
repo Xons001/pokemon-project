@@ -73,6 +73,7 @@ export async function runIngestion(options: RunIngestionOptions = {}) {
     concurrency: env.pokeApiConcurrency,
     showdownConcurrency: env.showdownConcurrency,
     smogonStatsMonth: env.smogonStatsMonth,
+    showdownUsageInsertMode: env.showdownUsageInsertMode,
     log,
   }
 

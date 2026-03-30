@@ -64,7 +64,7 @@ fuentes externas -> ingest -> PostgreSQL -> Prisma -> rutas internas / server co
 
 ## Estado actual
 
-La base ya esta preparada e ingestada con:
+La base ya esta preparada para:
 
 - dominio principal de Pokemon
 - tablas puente y learnsets por version/metodo/nivel
@@ -72,7 +72,7 @@ La base ya esta preparada e ingestada con:
 - capa competitiva base de Showdown/Smogon
 - tablas de auth y negocio de usuario para una fase posterior
 
-Algunos conteos actuales de referencia:
+Conteos locales de referencia para la carga completa:
 
 - `pokemon_species`: `1025`
 - `pokemon`: `1350`
@@ -85,6 +85,8 @@ Algunos conteos actuales de referencia:
 - `usage_stat_monthly`: `75802`
 - `sample_set`: `15486`
 - `competitive_learnset_entry`: `321713`
+
+En una base cloud gratuita de `develop` se puede cargar todo el dominio Pokemon y casi toda la capa competitiva, pero no el historico completo de `usage_stat_monthly`: en Neon free se alcanza el limite fisico de `512 MB`. Para ese entorno se usa una ingesta cloud-safe sin ese paso pesado.
 
 ## Organizacion del repositorio
 
@@ -261,6 +263,7 @@ SHOWDOWN_DATA_BASE_URL="https://play.pokemonshowdown.com/data"
 SHOWDOWN_CONCURRENCY="4"
 SMOGON_STATS_BASE_URL="https://www.smogon.com/stats"
 SMOGON_STATS_MONTH=""
+SHOWDOWN_USAGE_INSERT_MODE="bulk"
 ```
 
 Si `SMOGON_STATS_MONTH` esta vacio, la ingestion intentara usar el ultimo snapshot mensual disponible.
@@ -311,6 +314,12 @@ Solo capa competitiva:
 npm run ingest:showdown
 ```
 
+Ingesta recomendada para una base cloud gratuita:
+
+```bash
+npm run ingest:cloud
+```
+
 Tambien puedes lanzar pasos concretos:
 
 ```bash
@@ -348,7 +357,46 @@ http://localhost:3000/pokedex
 | `npm run ingest` | Ejecuta el orquestador general de ingestion. |
 | `npm run ingest:core` | Ingesta el dominio estructural desde PokeAPI. |
 | `npm run ingest:showdown` | Ingesta la capa competitiva desde Showdown/Smogon. |
+| `npm run ingest:cloud` | Ingesta compatible con una base cloud gratuita; omite `showdown-usage` para no reventar el limite de almacenamiento. |
+| `npm run ingest:cloud-dev` | Alias del modo cloud gratuito mantenido por compatibilidad. |
 | `npm run ingest:all` | Ejecuta todos los pasos en orden. |
+
+## Entornos cloud
+
+### Develop en la nube
+
+El proyecto ya esta enlazado a Vercel y tiene una base PostgreSQL gratuita de Neon conectada para `development` y `preview`.
+
+Flujo recomendado:
+
+```bash
+npx vercel env pull .env.development.vercel --environment=development
+```
+
+Despues puedes usar esa base cloud desde tu maquina cargando ese fichero de entorno y ejecutando:
+
+```bash
+npx prisma migrate deploy
+npm run ingest:cloud
+```
+
+Notas importantes:
+
+- `DIRECT_URL` tambien debe existir en cloud para que Prisma pueda migrar correctamente.
+- `SHOWDOWN_USAGE_INSERT_MODE="bulk"` es el modo normal para local o una base cloud con capacidad suficiente.
+- Si alguna vez quieres forzar insercion mas conservadora de `usage_stat_monthly`, puedes usar `SHOWDOWN_USAGE_INSERT_MODE="sequential"`, aunque sera mas lenta.
+- En Neon free no cabe la carga completa de `usage_stat_monthly`; para `develop` se deja fuera a proposito.
+
+### Main / produccion
+
+Para `main`, la recomendacion es crear una segunda base gestionada y separada de la de `develop`.
+
+En produccion deberias hacer:
+
+- una base distinta para no mezclar pruebas con datos reales
+- `npx prisma migrate deploy`
+- `npm run ingest:all` solo si la base tiene capacidad para el dataset completo, incluyendo `showdown-usage`
+- variables de entorno propias de `production` en Vercel
 
 ## API interna
 
@@ -426,6 +474,19 @@ Si solo quieres desarrollo UI sobre datos ya cargados:
 npm run dev
 ```
 
+Si quieres probar localmente contra la base cloud de `develop`:
+
+```bash
+npx vercel env pull .env.development.vercel --environment=development
+```
+
+Luego carga esas variables en tu shell y ejecuta:
+
+```bash
+npx prisma migrate deploy
+npm run dev
+```
+
 ## Notas de implementacion
 
 - El frontend ya no hace llamadas directas a PokeAPI.
@@ -433,6 +494,7 @@ npm run dev
 - Los scripts de ingest usan `upsert` en tablas base y resincronizacion controlada en tablas derivadas.
 - En tablas grandes se guarda `rawPayload` para poder reparsear o ampliar campos mas adelante.
 - La capa competitiva combina datos de Showdown con estadisticas mensuales de Smogon.
+- La base cloud gratuita de `develop` esta pensada para validacion funcional y pruebas de integracion, no para alojar todo el historico competitivo pesado.
 
 ## Despliegue futuro
 
@@ -443,6 +505,7 @@ La arquitectura ya esta preparada para:
 - ejecutar migraciones en produccion
 - anadir Auth.js / NextAuth con Google
 - almacenar equipos, favoritos y builds persistidos por usuario
+- mantener una base gratuita ligera en `develop` y otra mas amplia para `main`
 
 ## Verificacion rapida
 

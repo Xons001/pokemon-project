@@ -37,6 +37,7 @@ export type IngestContext = {
   concurrency: number
   showdownConcurrency: number
   smogonStatsMonth: string | null
+  showdownUsageInsertMode: 'bulk' | 'sequential'
   log: (message: string) => void
 }
 

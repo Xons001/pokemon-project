@@ -7,6 +7,7 @@ type AppEnv = {
   smogonStatsBaseUrl: string
   showdownConcurrency: number
   smogonStatsMonth: string | null
+  showdownUsageInsertMode: 'bulk' | 'sequential'
 }
 
 let cachedEnv: AppEnv | null = null
@@ -32,6 +33,11 @@ function getNumberEnv(name: string, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
+function getShowdownUsageInsertMode(): 'bulk' | 'sequential' {
+  const rawValue = process.env.SHOWDOWN_USAGE_INSERT_MODE?.trim().toLowerCase()
+  return rawValue === 'sequential' ? 'sequential' : 'bulk'
+}
+
 export function getAppEnv(): AppEnv {
   if (cachedEnv) {
     return cachedEnv
@@ -46,6 +52,7 @@ export function getAppEnv(): AppEnv {
     smogonStatsBaseUrl: process.env.SMOGON_STATS_BASE_URL ?? 'https://www.smogon.com/stats',
     showdownConcurrency: getNumberEnv('SHOWDOWN_CONCURRENCY', 4),
     smogonStatsMonth: process.env.SMOGON_STATS_MONTH?.trim() || null,
+    showdownUsageInsertMode: getShowdownUsageInsertMode(),
   }
 
   return cachedEnv
