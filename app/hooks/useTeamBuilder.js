@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createCatalogEntry, createPokemonDetails, createPlaceholderPokemon } from '../lib/pokemon'
+import { fetchPokemonCatalog, fetchPokemonDetail, fetchTypeChart } from '../lib/api'
+import { createPlaceholderPokemon } from '../lib/pokemon'
 import {
   ATTACKING_TYPES,
   LEGACY_TEAM_TEMPLATES_STORAGE_KEY,
@@ -9,12 +10,9 @@ import {
   buildCatalogSearchResults,
   createDefaultTeam,
   migrateLegacyTemplates,
-  normalizeTypeChartEntry,
   sanitizeStoredTeam,
   summarizeTeam,
 } from '../lib/team-builder'
-
-const EXCLUDED_TYPES = new Set(['unknown', 'shadow', 'stellar'])
 
 export function useTeamBuilder() {
   const [catalog, setCatalog] = useState([])
@@ -63,24 +61,13 @@ export function useTeamBuilder() {
 
     async function loadCatalog() {
       try {
-        const countResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1&offset=0')
-        if (!countResponse.ok) {
-          throw new Error('No se pudo cargar el total de Pokemon')
-        }
-
-        const countData = await countResponse.json()
-        const catalogResponse = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${countData.count}&offset=0`)
-        if (!catalogResponse.ok) {
-          throw new Error('No se pudo cargar el catalogo')
-        }
-
-        const catalogData = await catalogResponse.json()
+        const catalogData = await fetchPokemonCatalog()
         if (!isMounted) return
 
-        setCatalog(catalogData.results.map(createCatalogEntry))
+        setCatalog(catalogData.items)
       } catch {
         if (!isMounted) return
-        setLoadError('No se pudo cargar el catalogo completo desde PokeAPI.')
+        setLoadError('No se pudo cargar el catalogo desde la API interna.')
       } finally {
         if (isMounted) {
           setIsCatalogLoading(false)
@@ -100,36 +87,12 @@ export function useTeamBuilder() {
 
     async function loadTypeChart() {
       try {
-        const response = await fetch('https://pokeapi.co/api/v2/type?limit=100')
-        if (!response.ok) {
-          throw new Error('No se pudo cargar la tabla de tipos')
-        }
-
-        const typeListData = await response.json()
-        const battleTypes = typeListData.results.filter((entry) => !EXCLUDED_TYPES.has(entry.name))
-        const typeResponses = await Promise.all(
-          battleTypes.map(async (entry) => {
-            const typeResponse = await fetch(entry.url)
-            if (!typeResponse.ok) {
-              throw new Error(`No se pudo cargar el tipo ${entry.name}`)
-            }
-
-            const typeData = await typeResponse.json()
-            return normalizeTypeChartEntry(typeData)
-          })
-        )
-
+        const chart = await fetchTypeChart()
         if (!isMounted) return
-
-        const chart = typeResponses.reduce((accumulator, entry) => {
-          accumulator[entry.name] = entry
-          return accumulator
-        }, {})
-
         setTypeChart(chart)
       } catch {
         if (!isMounted) return
-        setLoadError('No se pudo cargar la tabla de compatibilidades de tipos.')
+        setLoadError('No se pudo cargar la tabla de compatibilidades de tipos desde la API interna.')
       } finally {
         if (isMounted) {
           setIsTypeChartLoading(false)
@@ -161,16 +124,7 @@ export function useTeamBuilder() {
 
     async function loadTeamPokemon() {
       const results = await Promise.allSettled(
-        missingSlugs.map(async (slug) => {
-          const entry = catalog.find((item) => item.slug === slug)
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${entry?.id ?? slug}`)
-          if (!response.ok) {
-            throw new Error(`No se pudo cargar ${slug}`)
-          }
-
-          const data = await response.json()
-          return createPokemonDetails(data)
-        })
+        missingSlugs.map((slug) => fetchPokemonDetail(slug))
       )
 
       setPokemonCache((previous) => {

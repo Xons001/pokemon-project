@@ -6,15 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "ingest": "tsx scripts/ingest.ts",
+    "ingest:core": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex",
+    "ingest:showdown": "tsx scripts/ingest.ts --steps=showdown-format,showdown-tier,showdown-learnset,showdown-sample-set,showdown-usage",
+    "ingest:all": "tsx scripts/ingest.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.2",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "10.4.15",
+    "dotenv": "^17.2.3",
     "eslint": "8.49.0",
     "eslint-config-next": "^13.5.11",
     "next": "^13.5.11",
+    "pg": "^8.20.0",
     "postcss": "^8.4.31",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -31,5 +44,13 @@
   "bugs": {
     "url": "https://github.com/Xons001/pokemon-project/issues"
   },
-  "homepage": "https://github.com/Xons001/pokemon-project#readme"
+  "homepage": "https://github.com/Xons001/pokemon-project#readme",
+  "devDependencies": {
+    "@types/node": "^22.17.2",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "prisma": "^6.19.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.3"
+  }
 }

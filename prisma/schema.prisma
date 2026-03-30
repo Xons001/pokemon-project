@@ -1,0 +1,740 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Generation {
+  id            Int              @id
+  name          String           @unique
+  mainRegion    String?
+  species       PokemonSpecies[]
+  types         Type[]
+  abilities     Ability[]
+  moves         Move[]
+  versionGroups VersionGroup[]
+
+  @@map("generation")
+}
+
+model VersionGroup {
+  id                 Int                  @id
+  name               String               @unique
+  generationId       Int
+  sortOrder          Int?
+  rawPayload         Json?
+  generation         Generation           @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  versions           Version[]
+  machines           Machine[]
+  pokemonMoveLearns  PokemonMoveLearn[]
+  preferredByUsers   UserPreferences[]
+
+  @@index([generationId])
+  @@map("version_group")
+}
+
+model Version {
+  id             Int          @id
+  name           String       @unique
+  versionGroupId Int
+  versionGroup   VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Restrict)
+
+  @@index([versionGroupId])
+  @@map("version")
+}
+
+model PokemonSpecies {
+  id                   Int               @id
+  name                 String            @unique
+  showdownId           String?           @unique
+  generationId         Int
+  evolutionChainId     Int?
+  baseHappiness        Int?
+  captureRate          Int?
+  colorName            String?
+  formsSwitchable      Boolean           @default(false)
+  genderRate           Int?
+  growthRateName       String?
+  habitatName          String?
+  hasGenderDifferences Boolean           @default(false)
+  hatchCounter         Int?
+  isBaby               Boolean           @default(false)
+  isLegendary          Boolean           @default(false)
+  isMythical           Boolean           @default(false)
+  order                Int?
+  shapeName            String?
+  rawPayload           Json?
+  generation           Generation        @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  evolutionChain       EvolutionChain?   @relation(fields: [evolutionChainId], references: [id], onDelete: SetNull)
+  pokemon              Pokemon[]
+  evolvedFromLinks     EvolutionLink[]   @relation("EvolutionLinkFromSpecies")
+  evolvesToLinks       EvolutionLink[]   @relation("EvolutionLinkToSpecies")
+  partyEvolutionLinks  EvolutionLink[]   @relation("EvolutionLinkPartySpecies")
+  tradeEvolutionLinks  EvolutionLink[]   @relation("EvolutionLinkTradeSpecies")
+  pokedexEntries       PokedexEntry[]
+  competitiveFormats   PokemonFormat[]
+  tierHistory          PokemonTierHistory[]
+  usageStats           UsageStatMonthly[]
+  sampleSets           SampleSet[]
+  competitiveLearnsets CompetitiveLearnsetEntry[]
+
+  @@index([generationId])
+  @@index([evolutionChainId])
+  @@map("pokemon_species")
+}
+
+model Pokemon {
+  id                 Int                 @id
+  name               String              @unique
+  showdownId         String?             @unique
+  speciesId          Int
+  baseExperience     Int?
+  heightDecimetres   Int?
+  weightHectograms   Int?
+  sortOrder          Int?
+  isDefault          Boolean             @default(false)
+  officialArtworkUrl String?
+  spriteUrl          String?
+  rawPayload         Json?
+  species            PokemonSpecies      @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  forms              PokemonForm[]
+  types              PokemonType[]
+  abilities          PokemonAbility[]
+  stats              PokemonStatValue[]
+  moveLearns         PokemonMoveLearn[]
+  favoriteOfUsers    UserFavoritePokemon[]
+  savedBuilds        UserSavedBuild[]
+  teamSlots          UserTeamPokemon[]
+  competitiveFormats PokemonFormat[]
+  tierHistory        PokemonTierHistory[]
+  usageStats         UsageStatMonthly[]
+  sampleSets         SampleSet[]
+  competitiveLearnsets CompetitiveLearnsetEntry[]
+
+  @@index([speciesId])
+  @@map("pokemon")
+}
+
+model PokemonForm {
+  id           Int     @id
+  name         String  @unique
+  pokemonId    Int
+  formName     String?
+  formOrder    Int?
+  isBattleOnly Boolean @default(false)
+  isDefault    Boolean @default(false)
+  isMega       Boolean @default(false)
+  sortOrder    Int?
+  rawPayload   Json?
+  pokemon      Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
+  @@index([pokemonId])
+  @@map("pokemon_form")
+}
+
+model Type {
+  id                      Int                  @id
+  name                    String               @unique
+  generationId            Int
+  rawPayload              Json?
+  generation              Generation           @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  moves                   Move[]
+  pokemon                 PokemonType[]
+  knownMoveTypeEvolutions EvolutionLink[]      @relation("EvolutionLinkKnownMoveType")
+  partyTypeEvolutions     EvolutionLink[]      @relation("EvolutionLinkPartyType")
+
+  @@index([generationId])
+  @@map("type")
+}
+
+model Ability {
+  id                 Int               @id
+  name               String            @unique
+  generationId       Int
+  isMainSeries       Boolean           @default(true)
+  rawPayload         Json?
+  generation         Generation        @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  pokemon            PokemonAbility[]
+  savedBuilds        UserSavedBuild[]
+  teamSlots          UserTeamPokemon[]
+
+  @@index([generationId])
+  @@map("ability")
+}
+
+model Stat {
+  id              Int                @id
+  name            String             @unique
+  gameIndex       Int?
+  isBattleOnly    Boolean            @default(false)
+  moveDamageClass String?
+  pokemonValues   PokemonStatValue[]
+
+  @@map("stat")
+}
+
+model Move {
+  id                  Int                  @id
+  name                String               @unique
+  generationId        Int
+  typeId              Int
+  accuracy            Int?
+  effectChance        Int?
+  power               Int?
+  pp                  Int?
+  priority            Int?
+  damageClassName     String?
+  targetName          String?
+  rawPayload          Json?
+  generation          Generation           @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  type                Type                 @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  machines            Machine[]
+  pokemonMoveLearns   PokemonMoveLearn[]
+  knownMoveEvolutions EvolutionLink[]      @relation("EvolutionLinkKnownMove")
+  competitiveLearnsets CompetitiveLearnsetEntry[]
+
+  @@index([generationId])
+  @@index([typeId])
+  @@map("move")
+}
+
+model MoveLearnMethod {
+  id                 Int                @id
+  name               String             @unique
+  description        String?
+  sortOrder          Int?
+  pokemonMoveLearns  PokemonMoveLearn[]
+
+  @@map("move_learn_method")
+}
+
+model Machine {
+  id             Int          @id
+  moveId         Int
+  itemId         Int
+  versionGroupId Int
+  rawPayload     Json?
+  move           Move         @relation(fields: [moveId], references: [id], onDelete: Restrict)
+  item           Item         @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  versionGroup   VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Restrict)
+
+  @@unique([moveId, itemId, versionGroupId])
+  @@index([moveId])
+  @@index([itemId])
+  @@index([versionGroupId])
+  @@map("machine")
+}
+
+model EvolutionChain {
+  id                     Int             @id
+  babyTriggerItemId      Int?
+  rawPayload             Json?
+  babyTriggerItem        Item?           @relation("EvolutionChainBabyTriggerItem", fields: [babyTriggerItemId], references: [id], onDelete: SetNull)
+  species                PokemonSpecies[]
+  evolutionLinks         EvolutionLink[]
+
+  @@index([babyTriggerItemId])
+  @@map("evolution_chain")
+}
+
+model EvolutionLink {
+  id                    Int             @id @default(autoincrement())
+  evolutionChainId      Int
+  fromSpeciesId         Int?
+  toSpeciesId           Int
+  evolutionTriggerName  String?
+  triggerItemId         Int?
+  minimumLevel          Int?
+  gender                Int?
+  heldItemId            Int?
+  knownMoveId           Int?
+  knownMoveTypeId       Int?
+  locationName          String?
+  minimumHappiness      Int?
+  minimumBeauty         Int?
+  minimumAffection      Int?
+  needsOverworldRain    Boolean         @default(false)
+  partySpeciesId        Int?
+  partyTypeId           Int?
+  relativePhysicalStats Int?
+  timeOfDay             String?
+  tradeSpeciesId        Int?
+  turnUpsideDown        Boolean         @default(false)
+  rawPayload            Json?
+  evolutionChain        EvolutionChain  @relation(fields: [evolutionChainId], references: [id], onDelete: Cascade)
+  fromSpecies           PokemonSpecies? @relation("EvolutionLinkFromSpecies", fields: [fromSpeciesId], references: [id], onDelete: SetNull)
+  toSpecies             PokemonSpecies  @relation("EvolutionLinkToSpecies", fields: [toSpeciesId], references: [id], onDelete: Restrict)
+  triggerItem           Item?           @relation("EvolutionLinkTriggerItem", fields: [triggerItemId], references: [id], onDelete: SetNull)
+  heldItem              Item?           @relation("EvolutionLinkHeldItem", fields: [heldItemId], references: [id], onDelete: SetNull)
+  knownMove             Move?           @relation("EvolutionLinkKnownMove", fields: [knownMoveId], references: [id], onDelete: SetNull)
+  knownMoveType         Type?           @relation("EvolutionLinkKnownMoveType", fields: [knownMoveTypeId], references: [id], onDelete: SetNull)
+  partySpecies          PokemonSpecies? @relation("EvolutionLinkPartySpecies", fields: [partySpeciesId], references: [id], onDelete: SetNull)
+  partyType             Type?           @relation("EvolutionLinkPartyType", fields: [partyTypeId], references: [id], onDelete: SetNull)
+  tradeSpecies          PokemonSpecies? @relation("EvolutionLinkTradeSpecies", fields: [tradeSpeciesId], references: [id], onDelete: SetNull)
+
+  @@index([evolutionChainId])
+  @@index([fromSpeciesId])
+  @@index([toSpeciesId])
+  @@map("evolution_link")
+}
+
+model Item {
+  id                      Int              @id
+  name                    String           @unique
+  cost                    Int?
+  flingPower              Int?
+  flingEffectName         String?
+  categoryName            String?
+  rawPayload              Json?
+  machines                Machine[]
+  babyTriggerEvolutions   EvolutionChain[] @relation("EvolutionChainBabyTriggerItem")
+  triggerItemEvolutions   EvolutionLink[]  @relation("EvolutionLinkTriggerItem")
+  heldItemEvolutions      EvolutionLink[]  @relation("EvolutionLinkHeldItem")
+  savedBuilds             UserSavedBuild[]
+  teamSlots               UserTeamPokemon[]
+
+  @@map("item")
+}
+
+model Pokedex {
+  id              Int               @id
+  name            String            @unique
+  isMainSeries    Boolean           @default(true)
+  regionName      String?
+  rawPayload      Json?
+  entries         PokedexEntry[]
+  preferredByUsers UserPreferences[]
+
+  @@map("pokedex")
+}
+
+model PokedexEntry {
+  id          Int            @id @default(autoincrement())
+  pokedexId   Int
+  speciesId   Int
+  entryNumber Int
+  pokedex     Pokedex        @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
+  species     PokemonSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([pokedexId, speciesId])
+  @@unique([pokedexId, entryNumber])
+  @@index([speciesId])
+  @@map("pokedex_entry")
+}
+
+model PokemonType {
+  pokemonId Int
+  typeId    Int
+  slot      Int
+  pokemon   Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  type      Type    @relation(fields: [typeId], references: [id], onDelete: Restrict)
+
+  @@id([pokemonId, slot])
+  @@unique([pokemonId, typeId])
+  @@index([typeId])
+  @@map("pokemon_type")
+}
+
+model PokemonAbility {
+  pokemonId  Int
+  abilityId  Int
+  slot       Int
+  isHidden   Boolean @default(false)
+  pokemon    Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  ability    Ability @relation(fields: [abilityId], references: [id], onDelete: Restrict)
+
+  @@id([pokemonId, slot])
+  @@unique([pokemonId, abilityId])
+  @@index([abilityId])
+  @@map("pokemon_ability")
+}
+
+model PokemonStatValue {
+  pokemonId Int
+  statId    Int
+  baseStat  Int
+  effort    Int      @default(0)
+  pokemon   Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  stat      Stat     @relation(fields: [statId], references: [id], onDelete: Restrict)
+
+  @@id([pokemonId, statId])
+  @@index([statId])
+  @@map("pokemon_stat_value")
+}
+
+model PokemonMoveLearn {
+  id                 Int             @id @default(autoincrement())
+  pokemonId          Int
+  moveId             Int
+  versionGroupId     Int
+  moveLearnMethodId  Int
+  levelLearnedAt     Int             @default(0)
+  sortOrder          Int             @default(0)
+  pokemon            Pokemon         @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  move               Move            @relation(fields: [moveId], references: [id], onDelete: Restrict)
+  versionGroup       VersionGroup    @relation(fields: [versionGroupId], references: [id], onDelete: Restrict)
+  moveLearnMethod    MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Restrict)
+
+  @@unique([pokemonId, moveId, versionGroupId, moveLearnMethodId, levelLearnedAt])
+  @@index([moveId])
+  @@index([versionGroupId])
+  @@index([moveLearnMethodId])
+  @@map("pokemon_move_learn")
+}
+
+model CompetitiveFormat {
+  id                String            @id @default(cuid())
+  formatKey         String            @unique
+  name              String
+  section           String?
+  mod               String?
+  gameType          String?
+  teamType          String?
+  challengeShow     Boolean           @default(true)
+  searchShow        Boolean           @default(true)
+  tournamentShow    Boolean           @default(true)
+  rated             Boolean           @default(true)
+  bestOfDefault     Boolean?
+  ruleset           Json?
+  banlist           Json?
+  restricted        Json?
+  unbanlist         Json?
+  rawPayload        Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  pokemonFormats    PokemonFormat[]
+  usageStats        UsageStatMonthly[]
+  sampleSets        SampleSet[]
+  banlistEntries    BanlistEntry[]
+
+  @@map("competitive_format")
+}
+
+model CompetitiveTier {
+  id               String             @id @default(cuid())
+  scope            String
+  key              String
+  name             String
+  rawPayload       Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  pokemonFormats   PokemonFormat[]
+  tierHistory      PokemonTierHistory[]
+
+  @@unique([scope, key])
+  @@map("competitive_tier")
+}
+
+model PokemonFormat {
+  id                  String             @id @default(cuid())
+  competitiveFormatId String
+  competitiveTierId   String?
+  pokemonId           Int?
+  speciesId           Int?
+  showdownPokemonId   String
+  isSampleSetAvailable Boolean           @default(false)
+  isUsageTracked      Boolean            @default(false)
+  latestUsageMonth    String?
+  latestUsageRating   Int?
+  latestUsagePercent  Float?
+  isNonstandard       String?
+  rawPayload          Json?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  competitiveFormat   CompetitiveFormat  @relation(fields: [competitiveFormatId], references: [id], onDelete: Cascade)
+  competitiveTier     CompetitiveTier?   @relation(fields: [competitiveTierId], references: [id], onDelete: SetNull)
+  pokemon             Pokemon?           @relation(fields: [pokemonId], references: [id], onDelete: SetNull)
+  species             PokemonSpecies?    @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+
+  @@unique([competitiveFormatId, showdownPokemonId])
+  @@index([competitiveTierId])
+  @@index([pokemonId])
+  @@index([speciesId])
+  @@map("pokemon_format")
+}
+
+model PokemonTierHistory {
+  id                String            @id @default(cuid())
+  competitiveTierId String
+  pokemonId         Int?
+  speciesId         Int?
+  showdownPokemonId String
+  dimension         String
+  snapshotKey       String
+  isCurrent         Boolean           @default(true)
+  rawPayload        Json?
+  capturedAt        DateTime          @default(now())
+  competitiveTier   CompetitiveTier   @relation(fields: [competitiveTierId], references: [id], onDelete: Cascade)
+  pokemon           Pokemon?          @relation(fields: [pokemonId], references: [id], onDelete: SetNull)
+  species           PokemonSpecies?   @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+
+  @@unique([showdownPokemonId, dimension, snapshotKey])
+  @@index([competitiveTierId])
+  @@index([pokemonId])
+  @@index([speciesId])
+  @@map("pokemon_tier_history")
+}
+
+model UsageStatMonthly {
+  id                 String             @id @default(cuid())
+  competitiveFormatId String
+  pokemonId          Int?
+  speciesId          Int?
+  showdownPokemonId  String
+  month              String
+  rating             Int
+  metagame           String
+  cutoffDeviation    Int?
+  teamType           String?
+  totalBattles       Int?
+  rank               Int?
+  usagePercent       Float?
+  rawCount           Float?
+  realCount          Float?
+  weightedCount      Float?
+  viabilityCeiling   Json?
+  abilities          Json?
+  items              Json?
+  moves              Json?
+  teraTypes          Json?
+  teammates          Json?
+  counters           Json?
+  spreads            Json?
+  rawPayload         Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  competitiveFormat  CompetitiveFormat  @relation(fields: [competitiveFormatId], references: [id], onDelete: Cascade)
+  pokemon            Pokemon?           @relation(fields: [pokemonId], references: [id], onDelete: SetNull)
+  species            PokemonSpecies?    @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+
+  @@unique([competitiveFormatId, month, rating, showdownPokemonId])
+  @@index([pokemonId])
+  @@index([speciesId])
+  @@map("usage_stat_monthly")
+}
+
+model SampleSet {
+  id                 String             @id @default(cuid())
+  competitiveFormatId String
+  pokemonId          Int?
+  speciesId          Int?
+  showdownPokemonId  String
+  setName            String
+  sourceFile         String
+  abilityName        String?
+  itemName           String?
+  nature             String?
+  teraType           String?
+  level              Int?
+  happiness          Int?
+  shiny              Boolean?
+  gender             String?
+  moves              Json
+  evs                Json?
+  ivs                Json?
+  rawPayload         Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  competitiveFormat  CompetitiveFormat  @relation(fields: [competitiveFormatId], references: [id], onDelete: Cascade)
+  pokemon            Pokemon?           @relation(fields: [pokemonId], references: [id], onDelete: SetNull)
+  species            PokemonSpecies?    @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+
+  @@unique([competitiveFormatId, showdownPokemonId, setName])
+  @@index([pokemonId])
+  @@index([speciesId])
+  @@map("sample_set")
+}
+
+model BanlistEntry {
+  id                 String             @id @default(cuid())
+  competitiveFormatId String
+  kind               String
+  value              String
+  sortOrder          Int                @default(0)
+  rawPayload         Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  competitiveFormat  CompetitiveFormat  @relation(fields: [competitiveFormatId], references: [id], onDelete: Cascade)
+
+  @@unique([competitiveFormatId, kind, value])
+  @@map("banlist_entry")
+}
+
+model CompetitiveLearnsetEntry {
+  id                 String            @id @default(cuid())
+  pokemonId          Int?
+  speciesId          Int?
+  moveId             Int?
+  showdownPokemonId  String
+  showdownMoveId     String
+  sourceCode         String
+  generation         Int?
+  acquisitionMethod  String?
+  levelLearnedAt     Int?
+  eventIndex         Int?
+  rawPayload         Json?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  pokemon            Pokemon?          @relation(fields: [pokemonId], references: [id], onDelete: SetNull)
+  species            PokemonSpecies?   @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+  move               Move?             @relation(fields: [moveId], references: [id], onDelete: SetNull)
+
+  @@unique([showdownPokemonId, showdownMoveId, sourceCode])
+  @@index([pokemonId])
+  @@index([speciesId])
+  @@index([moveId])
+  @@map("competitive_learnset_entry")
+}
+
+model User {
+  id               String              @id @default(cuid())
+  name             String?
+  email            String?             @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  teams            UserTeam[]
+  savedBuilds      UserSavedBuild[]
+  favoritePokemon  UserFavoritePokemon[]
+  preferences      UserPreferences?
+
+  @@map("user")
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refreshToken      String?   @map("refresh_token") @db.Text
+  accessToken       String?   @map("access_token") @db.Text
+  expiresAt         Int?      @map("expires_at")
+  tokenType         String?   @map("token_type")
+  scope             String?
+  idToken           String?   @map("id_token") @db.Text
+  sessionState      String?   @map("session_state")
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_token")
+}
+
+model UserTeam {
+  id          String            @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  leaderSlot  Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members     UserTeamPokemon[]
+
+  @@index([userId])
+  @@map("user_team")
+}
+
+model UserTeamPokemon {
+  id        String   @id @default(cuid())
+  teamId     String
+  pokemonId  Int
+  slot       Int
+  nickname   String?
+  abilityId  Int?
+  itemId     Int?
+  notes      String?
+  moveIds    Json?
+  buildData  Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  team       UserTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  pokemon    Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Restrict)
+  ability    Ability? @relation(fields: [abilityId], references: [id], onDelete: SetNull)
+  item       Item?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@unique([teamId, slot])
+  @@index([pokemonId])
+  @@index([abilityId])
+  @@index([itemId])
+  @@map("user_team_pokemon")
+}
+
+model UserSavedBuild {
+  id         String   @id @default(cuid())
+  userId     String
+  pokemonId  Int
+  title      String
+  formatKey  String?
+  abilityId  Int?
+  itemId     Int?
+  moveIds    Json?
+  evSpread   Json?
+  ivSpread   Json?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pokemon    Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Restrict)
+  ability    Ability? @relation(fields: [abilityId], references: [id], onDelete: SetNull)
+  item       Item?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([pokemonId])
+  @@map("user_saved_build")
+}
+
+model UserFavoritePokemon {
+  userId     String
+  pokemonId  Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pokemon    Pokemon  @relation(fields: [pokemonId], references: [id], onDelete: Restrict)
+
+  @@id([userId, pokemonId])
+  @@index([pokemonId])
+  @@map("user_favorite_pokemon")
+}
+
+model UserPreferences {
+  userId                   String            @id
+  locale                   String?
+  defaultPokedexId         Int?
+  preferredVersionGroupId  Int?
+  showShinySprites         Boolean           @default(false)
+  data                     Json?
+  updatedAt                DateTime          @updatedAt
+  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultPokedex           Pokedex?          @relation(fields: [defaultPokedexId], references: [id], onDelete: SetNull)
+  preferredVersionGroup    VersionGroup?     @relation(fields: [preferredVersionGroupId], references: [id], onDelete: SetNull)
+
+  @@index([defaultPokedexId])
+  @@index([preferredVersionGroupId])
+  @@map("user_preferences")
+}
