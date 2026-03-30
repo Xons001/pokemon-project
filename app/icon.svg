@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="30" fill="#101318"/>
+  <clipPath id="pokeball-cut">
+    <circle cx="32" cy="32" r="24"/>
+  </clipPath>
+  <g clip-path="url(#pokeball-cut)">
+    <rect x="8" y="8" width="48" height="24" fill="#ef5350"/>
+    <rect x="8" y="32" width="48" height="24" fill="#ffffff"/>
+  </g>
+  <rect x="8" y="29" width="48" height="6" rx="3" fill="#101318"/>
+  <circle cx="32" cy="32" r="10" fill="#101318"/>
+  <circle cx="32" cy="32" r="6" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3"/>
+  <circle cx="32" cy="32" r="24" fill="none" stroke="#101318" stroke-width="4"/>
+</svg>

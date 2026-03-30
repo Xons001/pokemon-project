@@ -359,8 +359,30 @@ Rutas expuestas actualmente:
 - `GET /api/pokemon/[name]/moves`
 - `GET /api/team/type-chart`
 - `GET /api/pokedex/[id]`
+- `GET /api/views/pokemon-summary`
+- `GET /api/views/pokemon-move-learn`
+- `GET /api/views/pokedex-entries`
+- `GET /api/views/competitive-overview`
+- `GET /api/openapi`
+- `GET /api/docs`
 
 Estas rutas consultan PostgreSQL via Prisma y son las que consume el frontend.
+
+### Swagger / OpenAPI
+
+La documentacion navegable esta disponible en:
+
+```text
+http://localhost:3000/api/docs
+```
+
+La especificacion OpenAPI en JSON esta disponible en:
+
+```text
+http://localhost:3000/api/openapi
+```
+
+El Swagger documenta tanto la API funcional de la app como los endpoints read-only sobre las views SQL.
 
 ## Conexion desde DBeaver
 

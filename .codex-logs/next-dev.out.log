@@ -1,0 +1,12 @@
+
+> pokemon-project@0.1.0 dev
+> next dev
+
+  ▲ Next.js 13.5.11
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Ready in 1603ms
+ ✓ Compiled /api/docs/route in 87ms (14 modules)
+ ✓ Compiled /favicon.ico/route in 2.1s (475 modules)
+ ✓ Compiled /api/team/type-chart/route in 97ms (258 modules)
