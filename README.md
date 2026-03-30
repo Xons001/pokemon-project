@@ -13,6 +13,18 @@ PokeAPI + Pokemon Showdown/Smogon
   -> frontend
 ```
 
+## Documentacion
+
+La documentacion ampliada del proyecto esta en [docs/README.md](./docs/README.md).
+
+Guia rapida:
+
+- [docs/architecture.md](./docs/architecture.md): arquitectura, capas y flujo de datos
+- [docs/database.md](./docs/database.md): modelo de datos, tablas, views y diagramas
+- [docs/ingestion.md](./docs/ingestion.md): scripts de carga, orden de ingestion y resincronizacion
+- [docs/deployment.md](./docs/deployment.md): entornos local, develop y production con Vercel + Neon
+- [docs/api.md](./docs/api.md): rutas internas, Swagger y views expuestas
+
 ## Objetivo
 
 El proyecto esta preparado para funcionar como una base propia de datos Pokemon y como cimiento para una capa competitiva y de usuario:

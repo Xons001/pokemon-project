@@ -1,0 +1,54 @@
+flowchart LR
+  subgraph Auth["Auth base"]
+    direction TB
+    user["user"]
+    account["account"]
+    session["session"]
+    verificationToken["verification_token"]
+  end
+
+  subgraph Preferences["Preferencias"]
+    direction TB
+    userPreferences["user_preferences"]
+    pokedex["pokedex"]
+    versionGroup["version_group"]
+  end
+
+  subgraph Team["Equipos"]
+    direction TB
+    userTeam["user_team"]
+    userTeamPokemon["user_team_pokemon"]
+  end
+
+  subgraph Saved["Guardado personal"]
+    direction TB
+    userSavedBuild["user_saved_build"]
+    userFavoritePokemon["user_favorite_pokemon"]
+  end
+
+  subgraph PokemonDomain["Dominio Pokemon"]
+    direction TB
+    pokemon["pokemon"]
+    ability["ability"]
+    item["item"]
+  end
+
+  user --> account
+  user --> session
+  user --> userPreferences
+  user --> userTeam --> userTeamPokemon
+  user --> userSavedBuild
+  user --> userFavoritePokemon
+
+  pokedex --> userPreferences
+  versionGroup --> userPreferences
+
+  pokemon --> userTeamPokemon
+  ability --> userTeamPokemon
+  item --> userTeamPokemon
+
+  pokemon --> userSavedBuild
+  ability --> userSavedBuild
+  item --> userSavedBuild
+
+  pokemon --> userFavoritePokemon

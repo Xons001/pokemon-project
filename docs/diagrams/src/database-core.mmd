@@ -1,0 +1,63 @@
+flowchart LR
+  subgraph Reference["Catalogo base"]
+    direction TB
+    generation["generation"]
+    versionGroup["version_group"]
+    version["version"]
+    type["type"]
+    ability["ability"]
+    stat["stat"]
+    move["move"]
+    moveLearnMethod["move_learn_method"]
+    item["item"]
+  end
+
+  subgraph PokemonModel["Modelo Pokemon"]
+    direction TB
+    species["pokemon_species"]
+    pokemon["pokemon"]
+    form["pokemon_form"]
+    pokemonType["pokemon_type"]
+    pokemonAbility["pokemon_ability"]
+    pokemonStat["pokemon_stat_value"]
+    pokemonMove["pokemon_move_learn"]
+  end
+
+  subgraph Support["Evolucion y Pokedex"]
+    direction TB
+    evolutionChain["evolution_chain"]
+    evolutionLink["evolution_link"]
+    machine["machine"]
+    pokedex["pokedex"]
+    pokedexEntry["pokedex_entry"]
+  end
+
+  generation --> versionGroup --> version
+  generation --> species --> pokemon --> form
+  generation --> type
+  generation --> ability
+  generation --> move
+
+  type --> move
+
+  pokemon --> pokemonType --> type
+  pokemon --> pokemonAbility --> ability
+  pokemon --> pokemonStat --> stat
+  pokemon --> pokemonMove
+  move --> pokemonMove
+  versionGroup --> pokemonMove
+  moveLearnMethod --> pokemonMove
+
+  evolutionChain --> species
+  evolutionChain --> evolutionLink
+  species --> evolutionLink
+  item --> evolutionChain
+  item --> evolutionLink
+  move --> evolutionLink
+  type --> evolutionLink
+
+  item --> machine
+  move --> machine
+  versionGroup --> machine
+
+  pokedex --> pokedexEntry --> species

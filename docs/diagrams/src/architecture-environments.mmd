@@ -1,0 +1,8 @@
+flowchart TD
+  Local["Local\nNext.js + Docker Postgres"]
+  Develop["Develop / Preview\nVercel + Neon dev"]
+  Production["Main / Production\nVercel + Neon prod"]
+
+  Local -->|"DATABASE_URL en .env"| LocalDB["pokemon_project"]
+  Develop -->|"Variables Preview / Development"| DevDB["Neon dev"]
+  Production -->|"Variables Production"| ProdDB["Neon prod"]
