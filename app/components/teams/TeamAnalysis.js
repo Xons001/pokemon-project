@@ -1,5 +1,6 @@
 import { getBalanceLabel } from '../../lib/team-builder'
 import { getPalette } from '../../lib/pokemon'
+import TeamValidator from './TeamValidator'
 import styles from './TeamAnalysis.module.css'
 
 const paletteAccents = {
@@ -178,7 +179,22 @@ function getTeamTypeVerdict(entry) {
   }
 }
 
-export default function TeamAnalysis({ isTypeChartLoading, teamMembers, teamSummary, typeAnalysis, typeChartReady }) {
+export default function TeamAnalysis({
+  competitiveFormats,
+  isFormatsLoading,
+  isTypeChartLoading,
+  isValidationDirty,
+  isValidationLoading,
+  onSetFormatKey,
+  onValidateTeam,
+  selectedFormatKey,
+  teamMembers,
+  teamSummary,
+  typeAnalysis,
+  typeChartReady,
+  validationError,
+  validationResult,
+}) {
   const hasReadyAnalysis = typeChartReady && teamSummary.readyMembers > 0
   const hasSelectedMembers = teamSummary.filledSlots > 0
   const leadingWeaknesses = teamSummary.weaknesses.slice(0, 4)
@@ -187,6 +203,18 @@ export default function TeamAnalysis({ isTypeChartLoading, teamMembers, teamSumm
 
   return (
     <section className={styles.analysis} id="analisis">
+      <TeamValidator
+        competitiveFormats={competitiveFormats}
+        isFormatsLoading={isFormatsLoading}
+        isValidationDirty={isValidationDirty}
+        isValidationLoading={isValidationLoading}
+        onSetFormatKey={onSetFormatKey}
+        onValidateTeam={onValidateTeam}
+        selectedFormatKey={selectedFormatKey}
+        validationError={validationError}
+        validationResult={validationResult}
+      />
+
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Analisis del equipo</p>

@@ -46,6 +46,8 @@ Variables relevantes:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME=preview`
 
 Aplicadas en:
 
@@ -58,6 +60,8 @@ Variables relevantes:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME=production`
 
 Aplicadas en:
 
@@ -110,6 +114,37 @@ Usa los valores de `.env.production.vercel`, tambien con la URL directa y SSL `r
 
 ## Checklist de despliegue
 
+## Variables custom para automatizacion
+
+Estas dos variables no vienen dadas por Neon ni por Vercel.
+Hay que crearlas manualmente:
+
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME`
+
+Regla:
+
+- `Key` = nombre de variable
+- `Value` = contenido
+
+Valores recomendados:
+
+- `Preview` -> `POKEMON_PROJECT_ENV_NAME=preview`
+- `Production` -> `POKEMON_PROJECT_ENV_NAME=production`
+
+Los `OPS_META_REFRESH_TOKEN` de preview y production deben ser distintos.
+
+## Que deployment cuenta para Airflow
+
+Para este proyecto, Airflow no debe apuntar al preview de una rama `feature/*`.
+
+Los targets correctos son:
+
+- `Preview` estable de `develop`
+- `Production` estable de `main`
+
+Si una feature branch tiene un preview propio, sirve para probar UI o funcionalidad, pero no como endpoint estable del DAG.
+
 ### Antes de mergear a `develop`
 
 1. `npm run lint`
@@ -123,6 +158,7 @@ Usa los valores de `.env.production.vercel`, tambien con la URL directa y SSL `r
 2. comprobar variables de `Production` en Vercel
 3. comprobar migraciones en la base prod
 4. comprobar que la base prod este cargada con `npm run ingest:cloud` o `npm run ingest:all` segun capacidad
+5. comprobar que las rutas `/api/ops/meta-refresh/status` y `/api/ops/meta-refresh/apply` existen en el deployment
 
 ## Limitacion actual de cloud free
 

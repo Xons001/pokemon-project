@@ -396,6 +396,45 @@
   color: var(--muted);
 }
 
+.buildConfigGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.configField {
+  display: grid;
+  gap: 0.42rem;
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 20px;
+}
+
+.configField span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.configField select {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  font: inherit;
+  color: #18212f;
+  background: #ffffff;
+  border: 1px solid #d6deeb;
+  border-radius: 16px;
+}
+
+.configField small {
+  line-height: 1.5;
+  color: var(--muted);
+}
+
 .moveGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -670,6 +709,7 @@
 }
 
 @media (max-width: 900px) {
+  .buildConfigGrid,
   .moveGrid,
   .slotGrid,
   .searchResults {

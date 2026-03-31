@@ -2,7 +2,14 @@ import { Prisma } from '@prisma/client'
 
 import { getPrismaClient } from '@/src/lib/prisma'
 
-import type { PokemonCatalogItem, PokemonDetailDto, PokemonHeldItem, PokemonLevelMove, PokemonMoveLearnDto } from './contracts'
+import type {
+  PokemonAbilityOption,
+  PokemonCatalogItem,
+  PokemonDetailDto,
+  PokemonHeldItem,
+  PokemonLevelMove,
+  PokemonMoveLearnDto,
+} from './contracts'
 import {
   buildDescription,
   buildRole,
@@ -301,6 +308,30 @@ function extractHeldItems(rawPayload: Prisma.JsonValue | null): PokemonHeldItem[
     })
 }
 
+function extractAbilities(record: PokemonDetailRecord): PokemonAbilityOption[] {
+  if (record.abilities.length) {
+    return record.abilities.map((entry) => ({
+      slug: entry.ability.name,
+      label: formatName(entry.ability.name),
+      isHidden: entry.isHidden,
+      slot: entry.slot,
+    }))
+  }
+
+  const payload = (record.rawPayload ?? {}) as JsonObject
+  const rawAbilities = Array.isArray(payload.abilities) ? payload.abilities : []
+
+  return rawAbilities
+    .map((entry) => ({
+      slug: entry?.ability?.name,
+      label: entry?.ability?.name ? formatName(entry.ability.name) : null,
+      isHidden: Boolean(entry?.is_hidden),
+      slot: typeof entry?.slot === 'number' ? entry.slot : 0,
+    }))
+    .filter((entry): entry is PokemonAbilityOption => Boolean(entry.slug && entry.label))
+    .sort((left, right) => left.slot - right.slot)
+}
+
 function extractLevelMoves(record: PokemonDetailRecord): PokemonLevelMove[] {
   if (!record.moveLearns.length) {
     const payload = (record.rawPayload ?? {}) as JsonObject
@@ -415,6 +446,7 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
     palette: getPalette(primaryTypeKey),
     height: typeof record.heightDecimetres === 'number' ? Number((record.heightDecimetres / 10).toFixed(1)) : null,
     weight: typeof record.weightHectograms === 'number' ? Number((record.weightHectograms / 10).toFixed(1)) : null,
+    abilities: extractAbilities(record),
     levelMoves: extractLevelMoves(record),
     heldItems: extractHeldItems(record.rawPayload),
   }

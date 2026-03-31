@@ -1,4 +1,6 @@
 .analysis {
+  display: grid;
+  gap: 1.2rem;
   min-width: 0;
   padding: 1.2rem;
   border: 1px solid var(--border);

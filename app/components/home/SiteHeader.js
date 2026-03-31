@@ -4,6 +4,7 @@ import styles from './SiteHeader.module.css'
 const navItems = [
   { label: 'Pokedex', href: '/pokedex' },
   { label: 'Equipos', href: '/equipos' },
+  { label: 'Ops', href: '/ops/meta-refresh' },
 ]
 
 export default function SiteHeader() {

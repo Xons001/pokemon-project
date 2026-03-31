@@ -27,6 +27,13 @@ export type PokemonHeldItem = {
   rarity: number | null
 }
 
+export type PokemonAbilityOption = {
+  slug: string
+  label: string
+  isHidden: boolean
+  slot: number
+}
+
 export type PokemonDetailDto = {
   isPlaceholder: false
   id: string
@@ -49,6 +56,7 @@ export type PokemonDetailDto = {
   palette: string
   height: number | null
   weight: number | null
+  abilities: PokemonAbilityOption[]
   levelMoves: PokemonLevelMove[]
   heldItems: PokemonHeldItem[]
 }

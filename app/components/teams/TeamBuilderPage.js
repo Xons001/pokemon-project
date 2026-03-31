@@ -31,8 +31,8 @@ export default function TeamBuilderPage() {
 
           <div className={styles.heroStats}>
             <div className={styles.statCard}>
-              <span>Equipo guardado</span>
-              <strong>1</strong>
+              <span>Formato</span>
+              <strong>{teamBuilder.activeTeam.formatKey.toUpperCase()}</strong>
             </div>
             <div className={styles.statCard}>
               <span>Huecos ocupados</span>
@@ -56,6 +56,7 @@ export default function TeamBuilderPage() {
             onAddPokemon={teamBuilder.addPokemonToTeam}
             onAssignEffortValue={teamBuilder.assignEffortValue}
             onAssignIndividualValue={teamBuilder.assignIndividualValue}
+            onAssignAbilityToSlot={teamBuilder.assignAbilityToSlot}
             onAssignMoveToSlot={teamBuilder.assignMoveToSlot}
             onClearTeam={teamBuilder.clearTeam}
             onClearMovesFromSlot={teamBuilder.clearMovesFromSlot}
@@ -65,6 +66,7 @@ export default function TeamBuilderPage() {
             onSelectSlot={teamBuilder.selectSlot}
             searchQuery={teamBuilder.searchQuery}
             searchResults={teamBuilder.searchResults}
+            selectedPokemonDetail={teamBuilder.selectedPokemonDetail}
             selectedPokemonMoves={teamBuilder.selectedPokemonMoves}
             selectedSlot={teamBuilder.selectedSlot}
             selectedSlotIndex={teamBuilder.selectedSlotIndex}
@@ -73,11 +75,20 @@ export default function TeamBuilderPage() {
           />
 
           <TeamAnalysis
+            competitiveFormats={teamBuilder.competitiveFormats}
+            isFormatsLoading={teamBuilder.isFormatsLoading}
             isTypeChartLoading={teamBuilder.isTypeChartLoading}
+            isValidationDirty={teamBuilder.isValidationDirty}
+            isValidationLoading={teamBuilder.isValidationLoading}
             teamMembers={teamBuilder.teamMembers}
             teamSummary={teamBuilder.teamSummary}
             typeAnalysis={teamBuilder.typeAnalysis}
             typeChartReady={teamBuilder.typeChartReady}
+            validationError={teamBuilder.validationError}
+            validationResult={teamBuilder.validationResult}
+            selectedFormatKey={teamBuilder.activeTeam.formatKey}
+            onSetFormatKey={teamBuilder.setFormatKey}
+            onValidateTeam={teamBuilder.runValidation}
           />
         </section>
 

@@ -5,6 +5,7 @@ export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates
 export const TEAM_SIZE = 6
 export const TEAM_MOVE_SLOTS = 4
 export const TEAM_SEARCH_LIMIT = 18
+export const DEFAULT_TEAM_FORMAT = 'gen9ou'
 export const TEAM_STAT_LEVEL = 50
 export const TEAM_MAX_EVS = 510
 export const TEAM_MAX_EVS_PER_STAT = 252
@@ -113,22 +114,25 @@ function sanitizeIndividualValues(value) {
 export function createEmptyTeamSlot() {
   return {
     pokemonSlug: null,
+    abilitySlug: null,
     moveSlugs: Array(TEAM_MOVE_SLOTS).fill(null),
     evs: createDefaultEffortValues(),
     ivs: createDefaultIndividualValues(),
   }
 }
 
-export function createTeamSlot(pokemonSlug) {
+export function createTeamSlot(pokemonSlug, abilitySlug = null) {
   return {
     ...createEmptyTeamSlot(),
     pokemonSlug,
+    abilitySlug,
   }
 }
 
 export function createDefaultTeam() {
   return {
     name: 'Equipo principal',
+    formatKey: DEFAULT_TEAM_FORMAT,
     slots: Array.from({ length: TEAM_SIZE }, () => createEmptyTeamSlot()),
     leaderSlot: 0,
   }
@@ -153,6 +157,7 @@ function sanitizeTeamSlot(value) {
 
   return {
     pokemonSlug: typeof value.pokemonSlug === 'string' ? value.pokemonSlug : null,
+    abilitySlug: typeof value.abilitySlug === 'string' ? value.abilitySlug : null,
     moveSlugs: safeMoveSlugs,
     evs: sanitizeEffortValues(value.evs),
     ivs: sanitizeIndividualValues(value.ivs),
@@ -175,6 +180,8 @@ export function sanitizeStoredTeam(value) {
 
   return {
     name: typeof value?.name === 'string' && value.name.trim() ? value.name.trim() : defaultTeam.name,
+    formatKey:
+      typeof value?.formatKey === 'string' && value.formatKey.trim() ? value.formatKey.trim().toLowerCase() : defaultTeam.formatKey,
     slots: safeSlots,
     leaderSlot:
       Number.isInteger(value?.leaderSlot) && value.leaderSlot >= 0 && value.leaderSlot < TEAM_SIZE

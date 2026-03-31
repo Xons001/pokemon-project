@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+
 import { formatDexNumber } from '../../lib/pokemon'
 import TeamStatEditor from './TeamStatEditor'
 import styles from './TeamWorkspace.module.css'
@@ -72,6 +73,7 @@ export default function TeamWorkspace({
   isPokemonLoading,
   notice,
   onAddPokemon,
+  onAssignAbilityToSlot,
   onAssignEffortValue,
   onAssignIndividualValue,
   onAssignMoveToSlot,
@@ -83,6 +85,7 @@ export default function TeamWorkspace({
   onSelectSlot,
   searchQuery,
   searchResults,
+  selectedPokemonDetail,
   selectedPokemonMoves,
   selectedSlot,
   selectedSlotIndex,
@@ -90,16 +93,19 @@ export default function TeamWorkspace({
   teamMembers,
 }) {
   const teamPanelRef = useRef(null)
+  const movePickerRefs = useRef([])
   const [openMovePickerIndex, setOpenMovePickerIndex] = useState(null)
   const [moveSearchQuery, setMoveSearchQuery] = useState('')
   const [searchPanelHeight, setSearchPanelHeight] = useState(null)
-  const movePickerRefs = useRef([])
+
   const activePokemon = teamMembers[selectedSlotIndex] ?? null
   const activeMoveSlugs = selectedSlot?.moveSlugs ?? []
+  const selectedAbilitySlug = selectedSlot?.abilitySlug ?? ''
+  const selectedMovesCount = activeMoveSlugs.filter(Boolean).length
   const selectedMoveEntries = activeMoveSlugs.map(
     (moveSlug) => selectedPokemonMoves.find((entry) => entry.moveSlug === moveSlug) ?? null
   )
-  const selectedMovesCount = activeMoveSlugs.filter(Boolean).length
+  const selectedAbilityOptions = selectedPokemonDetail?.abilities ?? []
 
   useEffect(() => {
     if (openMovePickerIndex === null) {
@@ -181,7 +187,7 @@ export default function TeamWorkspace({
   }, [])
 
   function formatMoveOptionLabel(move) {
-    return `${move.move} · ${move.type} · ${move.category}`
+    return `${move.move} | ${move.type} | ${move.category}`
   }
 
   function formatMoveMetrics(move) {
@@ -199,9 +205,7 @@ export default function TeamWorkspace({
 
   function toggleMovePicker(index) {
     setMoveSearchQuery('')
-    setOpenMovePickerIndex((previous) => {
-      return previous === index ? null : index
-    })
+    setOpenMovePickerIndex((previous) => (previous === index ? null : index))
   }
 
   function handleMoveSelection(index, moveSlug) {
@@ -316,7 +320,7 @@ export default function TeamWorkspace({
 
           <p className={styles.helperText}>
             {isPokemonLoading
-              ? 'Sincronizando los Pokemon del equipo para analizar compatibilidades...'
+              ? 'Sincronizando datos del Pokemon activo para editar su build...'
               : 'Haz clic en un resultado para colocarlo en el hueco seleccionado.'}
           </p>
 
@@ -387,8 +391,34 @@ export default function TeamWorkspace({
             <p className={styles.buildHelperText}>
               {isMovesLoading
                 ? 'Cargando learnset competitivo para este Pokemon...'
-                : 'Elige un moveset base. Este paso nos servira despues para detectar hazards, prioridad, pivots y wincons del equipo.'}
+                : 'Elige una habilidad y un moveset base. Esto alimentara despues el checklist y el validador.'}
             </p>
+
+            <div className={styles.buildConfigGrid}>
+              <label className={styles.configField}>
+                <span>Habilidad</span>
+                <select
+                  value={selectedAbilitySlug}
+                  onChange={(event) => onAssignAbilityToSlot(event.target.value)}
+                  disabled={!selectedAbilityOptions.length && isPokemonLoading}
+                >
+                  <option value="">Selecciona una habilidad</option>
+                  {selectedAbilityOptions.map((ability) => (
+                    <option key={ability.slug} value={ability.slug}>
+                      {ability.label}
+                      {ability.isHidden ? ' (Oculta)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <small>
+                  {selectedAbilityOptions.length
+                    ? 'La habilidad seleccionada se validara contra el meta elegido.'
+                    : isPokemonLoading
+                      ? 'Cargando habilidades disponibles...'
+                      : 'Todavia no tenemos habilidades cargadas para este Pokemon.'}
+                </small>
+              </label>
+            </div>
 
             <div className={styles.moveGrid}>
               {activeMoveSlugs.map((moveSlug, index) => {
@@ -465,7 +495,7 @@ export default function TeamWorkspace({
                             )}
                           </span>
                         </span>
-                        <span className={styles.moveSelectChevron}>{isPickerOpen ? '▴' : '▾'}</span>
+                        <span className={styles.moveSelectChevron}>{isPickerOpen ? '^' : 'v'}</span>
                       </button>
 
                       {isPickerOpen ? (
@@ -526,7 +556,7 @@ export default function TeamWorkspace({
                                     </span>
                                     <span className={styles.moveOptionStats}>
                                       {formatMoveMetrics(move).length
-                                        ? formatMoveMetrics(move).join(' · ')
+                                        ? formatMoveMetrics(move).join(' | ')
                                         : formatMoveOptionLabel(move)}
                                     </span>
                                   </button>
@@ -573,7 +603,7 @@ export default function TeamWorkspace({
         ) : (
           <div className={styles.emptyBuildState}>
             <strong>Selecciona un Pokemon en este hueco</strong>
-            <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar sus cuatro movimientos base.</p>
+            <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar habilidad y cuatro movimientos base.</p>
           </div>
         )}
 

@@ -1,0 +1,35 @@
+services:
+  airflow:
+    image: apache/airflow:2.10.5-python3.11
+    container_name: pokemon-project-airflow-vercel
+    restart: unless-stopped
+    command: standalone
+    ports:
+      - "8081:8080"
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      POKEMON_PROJECT_TARGETS_JSON: >-
+        [
+          {
+            "name": "preview",
+            "apiBaseUrl": "${POKEMON_PROJECT_PREVIEW_API_BASE_URL:-https://pokemon-project-git-develop-xons001s-projects.vercel.app}",
+            "schedule": "${POKEMON_PROJECT_PREVIEW_DAG_SCHEDULE:-0 */12 * * *}",
+            "token": "${POKEMON_PROJECT_PREVIEW_OPS_TOKEN}",
+            "headers": {
+              "x-vercel-protection-bypass": "${POKEMON_PROJECT_PREVIEW_VERCEL_BYPASS_SECRET}"
+            }
+          },
+          {
+            "name": "production",
+            "apiBaseUrl": "${POKEMON_PROJECT_PRODUCTION_API_BASE_URL:-https://pokemon-project.vercel.app}",
+            "schedule": "${POKEMON_PROJECT_PRODUCTION_DAG_SCHEDULE:-0 */12 * * *}",
+            "token": "${POKEMON_PROJECT_PRODUCTION_OPS_TOKEN}"
+          }
+        ]
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow_home_vercel:/opt/airflow
+
+volumes:
+  airflow_home_vercel:

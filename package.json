@@ -14,6 +14,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "ingest": "tsx scripts/ingest.ts",
+    "ingest:smart": "tsx scripts/ingest-smart.ts",
     "ingest:core": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex",
     "ingest:showdown": "tsx scripts/ingest.ts --steps=showdown-format,showdown-tier,showdown-learnset,showdown-sample-set,showdown-usage",
     "ingest:cloud": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex,showdown-format,showdown-tier,showdown-learnset,showdown-sample-set",
