@@ -5,6 +5,11 @@ export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates
 export const TEAM_SIZE = 6
 export const TEAM_MOVE_SLOTS = 4
 export const TEAM_SEARCH_LIMIT = 18
+export const TEAM_STAT_LEVEL = 50
+export const TEAM_MAX_EVS = 510
+export const TEAM_MAX_EVS_PER_STAT = 252
+export const TEAM_MAX_IVS_PER_STAT = 31
+export const TEAM_STAT_KEYS = ['hp', 'attack', 'defense', 'specialAttack', 'specialDefense', 'speed']
 
 export const ATTACKING_TYPES = [
   'normal',
@@ -27,10 +32,90 @@ export const ATTACKING_TYPES = [
   'fairy',
 ]
 
+export function createDefaultEffortValues() {
+  return {
+    hp: 0,
+    attack: 0,
+    defense: 0,
+    specialAttack: 0,
+    specialDefense: 0,
+    speed: 0,
+  }
+}
+
+export function createDefaultIndividualValues() {
+  return {
+    hp: 31,
+    attack: 31,
+    defense: 31,
+    specialAttack: 31,
+    specialDefense: 31,
+    speed: 31,
+  }
+}
+
+function normalizeEffortValue(value) {
+  if (!Number.isFinite(Number(value))) {
+    return 0
+  }
+
+  const normalized = Math.round(Number(value) / 4) * 4
+  return Math.min(Math.max(normalized, 0), TEAM_MAX_EVS_PER_STAT)
+}
+
+function normalizeIndividualValue(value) {
+  if (!Number.isFinite(Number(value))) {
+    return TEAM_MAX_IVS_PER_STAT
+  }
+
+  return Math.min(Math.max(Math.round(Number(value)), 0), TEAM_MAX_IVS_PER_STAT)
+}
+
+function sanitizeEffortValues(value) {
+  const base = createDefaultEffortValues()
+
+  TEAM_STAT_KEYS.forEach((statKey) => {
+    base[statKey] = normalizeEffortValue(value?.[statKey])
+  })
+
+  let total = Object.values(base).reduce((sum, statValue) => sum + statValue, 0)
+
+  if (total <= TEAM_MAX_EVS) {
+    return base
+  }
+
+  const next = { ...base }
+
+  for (const statKey of TEAM_STAT_KEYS) {
+    if (total <= TEAM_MAX_EVS) {
+      break
+    }
+
+    const overflow = total - TEAM_MAX_EVS
+    const deduction = Math.min(next[statKey], Math.ceil(overflow / 4) * 4)
+    next[statKey] -= deduction
+    total -= deduction
+  }
+
+  return next
+}
+
+function sanitizeIndividualValues(value) {
+  const base = createDefaultIndividualValues()
+
+  TEAM_STAT_KEYS.forEach((statKey) => {
+    base[statKey] = normalizeIndividualValue(value?.[statKey])
+  })
+
+  return base
+}
+
 export function createEmptyTeamSlot() {
   return {
     pokemonSlug: null,
     moveSlugs: Array(TEAM_MOVE_SLOTS).fill(null),
+    evs: createDefaultEffortValues(),
+    ivs: createDefaultIndividualValues(),
   }
 }
 
@@ -69,6 +154,8 @@ function sanitizeTeamSlot(value) {
   return {
     pokemonSlug: typeof value.pokemonSlug === 'string' ? value.pokemonSlug : null,
     moveSlugs: safeMoveSlugs,
+    evs: sanitizeEffortValues(value.evs),
+    ivs: sanitizeIndividualValues(value.ivs),
   }
 }
 
@@ -143,6 +230,48 @@ export function normalizeTypeChartEntry(typeData) {
     halfDamageFrom: typeData.damage_relations.half_damage_from.map((entry) => entry.name),
     noDamageFrom: typeData.damage_relations.no_damage_from.map((entry) => entry.name),
   }
+}
+
+export function getEffortValueTotal(evs) {
+  return TEAM_STAT_KEYS.reduce((sum, statKey) => sum + (Number(evs?.[statKey]) || 0), 0)
+}
+
+export function buildUpdatedEffortValues(currentEvs, statKey, nextValue) {
+  const nextEvs = {
+    ...createDefaultEffortValues(),
+    ...currentEvs,
+  }
+
+  const normalizedValue = normalizeEffortValue(nextValue)
+  const totalWithoutCurrent = TEAM_STAT_KEYS.reduce((sum, key) => {
+    return key === statKey ? sum : sum + (Number(nextEvs[key]) || 0)
+  }, 0)
+  const allowedValue = Math.max(0, Math.min(normalizedValue, TEAM_MAX_EVS - totalWithoutCurrent))
+
+  nextEvs[statKey] = allowedValue
+
+  return nextEvs
+}
+
+export function buildUpdatedIndividualValues(currentIvs, statKey, nextValue) {
+  return {
+    ...createDefaultIndividualValues(),
+    ...currentIvs,
+    [statKey]: normalizeIndividualValue(nextValue),
+  }
+}
+
+export function calculateBattleStat({ base, iv, ev, level = TEAM_STAT_LEVEL, statKey }) {
+  const safeBase = Number(base) || 0
+  const safeIv = normalizeIndividualValue(iv)
+  const safeEv = normalizeEffortValue(ev)
+  const isHp = statKey === 'hp'
+
+  if (isHp) {
+    return Math.floor(((2 * safeBase + safeIv + Math.floor(safeEv / 4)) * level) / 100) + level + 10
+  }
+
+  return Math.floor(((2 * safeBase + safeIv + Math.floor(safeEv / 4)) * level) / 100) + 5
 }
 
 export function getSingleTypeMultiplier(attackingType, defendingType, typeChart) {

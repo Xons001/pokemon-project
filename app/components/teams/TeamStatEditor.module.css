@@ -1,0 +1,332 @@
+.editor {
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid #e6edf8;
+}
+
+.header,
+.headerActions,
+.layout,
+.sliderMeta,
+.baseMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2vw, 1.75rem);
+}
+
+.headerActions {
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.summaryBadge,
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.summaryBadge {
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+}
+
+.resetButton {
+  color: #7f1d1d;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  cursor: pointer;
+}
+
+.layout {
+  margin-top: 1rem;
+  align-items: stretch;
+}
+
+.radarPanel {
+  flex: 0 0 310px;
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 24px;
+}
+
+.radarLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.legendChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border-radius: 999px;
+}
+
+.legendChipBase {
+  color: #92400e;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.legendChipAdjusted {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.radarFrame {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff, #eef4fd);
+}
+
+.radarSvg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+.radarGrid {
+  fill: none;
+  stroke: #d5dfed;
+  stroke-width: 1;
+}
+
+.radarAxis {
+  stroke: #c0cbdb;
+  stroke-width: 1;
+}
+
+.radarAreaBase {
+  fill: rgba(245, 158, 11, 0.12);
+  stroke: #f59e0b;
+  stroke-width: 2;
+}
+
+.radarAreaAdjusted {
+  fill: rgba(67, 97, 238, 0.26);
+  stroke: #4361ee;
+  stroke-width: 2.5;
+}
+
+.radarDot {
+  fill: var(--dot-color, #4361ee);
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.radarLabel {
+  fill: #324962;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.radarCaption {
+  margin: 0.9rem 0 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.statTable {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.statTableHead {
+  display: grid;
+  grid-template-columns: 72px minmax(150px, 0.9fr) minmax(190px, 1fr) minmax(190px, 1fr) 60px;
+  align-items: center;
+  padding: 0 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+  gap: 0.9rem;
+}
+
+.statTableHead span:nth-child(5) {
+  text-align: right;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 72px minmax(150px, 0.9fr) minmax(190px, 1fr) minmax(190px, 1fr) 60px;
+  align-items: center;
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid color-mix(in srgb, var(--stat-accent, #dce6f4) 18%, #dce6f4);
+  border-radius: 22px;
+  gap: 0.9rem;
+}
+
+.statLabelCell {
+  min-width: 0;
+}
+
+.statKey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: var(--stat-accent, #4361ee);
+  border-radius: 999px;
+}
+
+.baseCell {
+  min-width: 0;
+}
+
+.baseMeta,
+.sliderMeta {
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.82rem;
+  color: #5f6c80;
+}
+
+.baseMeta strong,
+.sliderMeta strong {
+  color: #18212f;
+}
+
+.baseMeter {
+  position: relative;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #c9d2de;
+}
+
+.baseMeterFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--stat-accent, #4361ee);
+}
+
+.statTotal {
+  width: 60px;
+  font-size: 1.05rem;
+  text-align: center;
+  color: #18212f;
+}
+
+.statTotal {
+  text-align: right;
+}
+
+.controlCell {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.valuePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #18212f;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 10px;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--stat-accent, #4361ee);
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .radarPanel {
+    flex-basis: auto;
+  }
+
+  .statTableHead,
+  .statRow {
+    grid-template-columns: 72px minmax(130px, 0.8fr) minmax(160px, 1fr) minmax(160px, 1fr) 60px;
+  }
+}
+
+@media (max-width: 860px) {
+  .header,
+  .statRow,
+  .statTableHead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .statTableHead {
+    display: none;
+  }
+
+  .statRow {
+    display: flex;
+  }
+
+  .statLabelCell,
+  .controlCell,
+  .baseCell,
+  .statTotal {
+    width: 100%;
+  }
+
+  .statTotal {
+    text-align: left;
+  }
+}

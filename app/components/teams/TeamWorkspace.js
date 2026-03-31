@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { formatDexNumber } from '../../lib/pokemon'
+import TeamStatEditor from './TeamStatEditor'
 import styles from './TeamWorkspace.module.css'
 
 const paletteAccents = {
@@ -71,10 +72,13 @@ export default function TeamWorkspace({
   isPokemonLoading,
   notice,
   onAddPokemon,
+  onAssignEffortValue,
+  onAssignIndividualValue,
   onAssignMoveToSlot,
   onClearTeam,
   onClearMovesFromSlot,
   onRemovePokemon,
+  onResetStatSpread,
   onRenameTeam,
   onSelectSlot,
   searchQuery,
@@ -572,6 +576,14 @@ export default function TeamWorkspace({
             <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar sus cuatro movimientos base.</p>
           </div>
         )}
+
+        <TeamStatEditor
+          pokemon={activePokemon}
+          selectedSlot={selectedSlot}
+          onAssignEffortValue={onAssignEffortValue}
+          onAssignIndividualValue={onAssignIndividualValue}
+          onResetStatSpread={() => onResetStatSpread(selectedSlotIndex)}
+        />
       </section>
     </section>
   )

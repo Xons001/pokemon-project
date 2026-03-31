@@ -7,6 +7,8 @@ import {
   ATTACKING_TYPES,
   LEGACY_TEAM_TEMPLATES_STORAGE_KEY,
   TEAM_STORAGE_KEY,
+  buildUpdatedEffortValues,
+  buildUpdatedIndividualValues,
   buildCatalogSearchResults,
   createDefaultTeam,
   createEmptyTeamSlot,
@@ -312,6 +314,57 @@ export function useTeamBuilder() {
     setNotice('Moveset reiniciado para este Pokemon.')
   }
 
+  function assignEffortValue(statKey, value) {
+    updateTeam((previous) => {
+      const nextSlots = [...previous.slots]
+      const currentSlot = nextSlots[selectedSlotIndex] ?? createEmptyTeamSlot()
+
+      nextSlots[selectedSlotIndex] = {
+        ...currentSlot,
+        evs: buildUpdatedEffortValues(currentSlot.evs, statKey, value),
+      }
+
+      return {
+        ...previous,
+        slots: nextSlots,
+      }
+    })
+  }
+
+  function assignIndividualValue(statKey, value) {
+    updateTeam((previous) => {
+      const nextSlots = [...previous.slots]
+      const currentSlot = nextSlots[selectedSlotIndex] ?? createEmptyTeamSlot()
+
+      nextSlots[selectedSlotIndex] = {
+        ...currentSlot,
+        ivs: buildUpdatedIndividualValues(currentSlot.ivs, statKey, value),
+      }
+
+      return {
+        ...previous,
+        slots: nextSlots,
+      }
+    })
+  }
+
+  function resetStatSpread(index) {
+    updateTeam((previous) => {
+      const nextSlots = [...previous.slots]
+      const currentSlot = nextSlots[index] ?? createEmptyTeamSlot()
+
+      nextSlots[index] = createTeamSlot(currentSlot.pokemonSlug)
+      nextSlots[index].moveSlugs = currentSlot.moveSlugs
+
+      return {
+        ...previous,
+        slots: nextSlots,
+      }
+    })
+
+    setNotice('EVs e IVs reiniciados para este Pokemon.')
+  }
+
   function clearTeam() {
     updateTeam(() => createDefaultTeam())
     setSelectedSlotIndex(0)
@@ -346,7 +399,10 @@ export function useTeamBuilder() {
     selectSlot,
     addPokemonToTeam,
     assignMoveToSlot,
+    assignEffortValue,
+    assignIndividualValue,
     clearMovesFromSlot,
+    resetStatSpread,
     removePokemonFromTeam,
     clearTeam,
     renameTeam,
