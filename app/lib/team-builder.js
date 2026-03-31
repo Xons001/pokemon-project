@@ -1,4 +1,4 @@
-import { createPlaceholderPokemon, formatDexNumber, translateType } from './pokemon'
+import { createCatalogPokemon, formatAbility, formatDexNumber, translateType } from './pokemon'
 
 export const TEAM_STORAGE_KEY = 'pokemon-project-team-v2'
 export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates-v1'
@@ -74,17 +74,20 @@ export function migrateLegacyTemplates(value) {
   })
 }
 
-export function buildCatalogSearchResults(catalog, pokemonCache, query) {
+export function buildCatalogSearchResults(catalog, query) {
   const normalized = query.trim().toLowerCase()
   const baseResults = normalized
     ? catalog.filter((entry) => {
-        const cached = pokemonCache[entry.slug]
         const haystack = [
           entry.label,
           entry.slug,
           formatDexNumber(entry.id),
-          cached?.type,
-          ...(cached?.types ?? []),
+          entry.primaryAbility,
+          entry.primaryAbility ? formatAbility(entry.primaryAbility) : null,
+          entry.primaryType,
+          entry.secondaryType,
+          entry.primaryType ? translateType(entry.primaryType) : null,
+          entry.secondaryType ? translateType(entry.secondaryType) : null,
         ]
           .filter(Boolean)
           .join(' ')
@@ -94,9 +97,7 @@ export function buildCatalogSearchResults(catalog, pokemonCache, query) {
       })
     : catalog
 
-  return baseResults.slice(0, TEAM_SEARCH_LIMIT).map((entry) => {
-    return pokemonCache[entry.slug] ?? createPlaceholderPokemon(entry)
-  })
+  return baseResults.slice(0, TEAM_SEARCH_LIMIT).map((entry) => createCatalogPokemon(entry))
 }
 
 export function normalizeTypeChartEntry(typeData) {

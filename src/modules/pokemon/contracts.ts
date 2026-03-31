@@ -4,6 +4,17 @@ export type PokemonCatalogItem = {
   label: string
   image: string | null
   thumb: string | null
+  primaryType: string | null
+  secondaryType: string | null
+  primaryAbility: string | null
+  hp: number | null
+  attack: number | null
+  defense: number | null
+  specialAttack: number | null
+  specialDefense: number | null
+  speed: number | null
+  height: number | null
+  weight: number | null
 }
 
 export type PokemonLevelMove = {

@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import { getPrismaClient } from '@/src/lib/prisma'
 
@@ -6,6 +6,74 @@ import type { PokemonCatalogItem, PokemonDetailDto, PokemonHeldItem, PokemonLeve
 import { buildDescription, buildRole, formatDexNumber, formatName, getPalette, translateType } from './format'
 
 type JsonObject = Record<string, any>
+
+type PokemonCatalogRecord = {
+  pokemon_id: number
+  pokemon_slug: string
+  primary_type: string | null
+  secondary_type: string | null
+  primary_ability: string | null
+  hp: number | null
+  attack: number | null
+  defense: number | null
+  special_attack: number | null
+  special_defense: number | null
+  speed: number | null
+  height_m: number | string | null
+  weight_kg: number | string | null
+  official_artwork_url: string | null
+  sprite_url: string | null
+}
+
+const pokemonCatalogFallbackSelect = {
+  id: true,
+  name: true,
+  heightDecimetres: true,
+  weightHectograms: true,
+  officialArtworkUrl: true,
+  spriteUrl: true,
+  types: {
+    select: {
+      slot: true,
+      type: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      slot: 'asc',
+    },
+  },
+  abilities: {
+    select: {
+      slot: true,
+      isHidden: true,
+      ability: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      slot: 'asc',
+    },
+  },
+  stats: {
+    select: {
+      baseStat: true,
+      stat: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.PokemonSelect
+
+type PokemonCatalogFallbackRecord = Prisma.PokemonGetPayload<{
+  select: typeof pokemonCatalogFallbackSelect
+}>
 
 const pokemonDetailSelect = {
   id: true,
@@ -88,6 +156,15 @@ function getStat(stats: Array<{ baseStat: number; stat: { name: string } }>, sta
   return stats.find((entry) => entry.stat.name === statName)?.baseStat ?? 0
 }
 
+function toNullableNumber(value: number | string | null): number | null {
+  if (value === null || typeof value === 'number') {
+    return value
+  }
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 function getRawPayloadStats(rawPayload: Prisma.JsonValue | null) {
   const payload = (rawPayload ?? {}) as JsonObject
   const stats = Array.isArray(payload.stats) ? payload.stats : []
@@ -130,6 +207,65 @@ function getPrimaryAbilityName(record: PokemonDetailRecord): string | null {
   const visibleAbility = sortedAbilities.find((entry) => !entry?.is_hidden)?.ability?.name ?? sortedAbilities[0]?.ability?.name
 
   return typeof visibleAbility === 'string' ? visibleAbility : null
+}
+
+function getCatalogTypeKeys(record: PokemonCatalogFallbackRecord): string[] {
+  return record.types.map((entry) => entry.type.name).filter(Boolean)
+}
+
+function getCatalogPrimaryAbilityName(record: PokemonCatalogFallbackRecord): string | null {
+  return (
+    record.abilities.find((entry) => !entry.isHidden)?.ability.name ??
+    record.abilities.find((entry) => entry.slot === 1)?.ability.name ??
+    record.abilities[0]?.ability.name ??
+    null
+  )
+}
+
+function serializePokemonCatalogFromView(entry: PokemonCatalogRecord): PokemonCatalogItem {
+  return {
+    id: entry.pokemon_id,
+    slug: entry.pokemon_slug,
+    label: formatName(entry.pokemon_slug),
+    image: entry.official_artwork_url,
+    thumb: entry.sprite_url,
+    primaryType: entry.primary_type,
+    secondaryType: entry.secondary_type,
+    primaryAbility: entry.primary_ability,
+    hp: entry.hp,
+    attack: entry.attack,
+    defense: entry.defense,
+    specialAttack: entry.special_attack,
+    specialDefense: entry.special_defense,
+    speed: entry.speed,
+    height: toNullableNumber(entry.height_m),
+    weight: toNullableNumber(entry.weight_kg),
+  }
+}
+
+function serializePokemonCatalogFromPokemon(record: PokemonCatalogFallbackRecord): PokemonCatalogItem {
+  const typeKeys = getCatalogTypeKeys(record)
+
+  return {
+    id: record.id,
+    slug: record.name,
+    label: formatName(record.name),
+    image: record.officialArtworkUrl,
+    thumb: record.spriteUrl,
+    primaryType: typeKeys[0] ?? null,
+    secondaryType: typeKeys[1] ?? null,
+    primaryAbility: getCatalogPrimaryAbilityName(record),
+    hp: getStat(record.stats, 'hp'),
+    attack: getStat(record.stats, 'attack'),
+    defense: getStat(record.stats, 'defense'),
+    specialAttack: getStat(record.stats, 'special-attack'),
+    specialDefense: getStat(record.stats, 'special-defense'),
+    speed: getStat(record.stats, 'speed'),
+    height:
+      typeof record.heightDecimetres === 'number' ? Number((record.heightDecimetres / 10).toFixed(1)) : null,
+    weight:
+      typeof record.weightHectograms === 'number' ? Number((record.weightHectograms / 10).toFixed(1)) : null,
+  }
 }
 
 function extractHeldItems(rawPayload: Prisma.JsonValue | null): PokemonHeldItem[] {
@@ -278,25 +414,42 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
 
 export async function listPokemonCatalog(): Promise<PokemonCatalogItem[]> {
   const prisma = getPrismaClient()
-  const pokemon = await prisma.pokemon.findMany({
-    select: {
-      id: true,
-      name: true,
-      officialArtworkUrl: true,
-      spriteUrl: true,
-    },
-    orderBy: {
-      id: 'asc',
-    },
-  })
 
-  return pokemon.map((entry) => ({
-    id: entry.id,
-    slug: entry.name,
-    label: formatName(entry.name),
-    image: entry.officialArtworkUrl,
-    thumb: entry.spriteUrl,
-  }))
+  try {
+    const pokemon = await prisma.$queryRaw<PokemonCatalogRecord[]>(Prisma.sql`
+      SELECT
+        pokemon_id,
+        pokemon_slug,
+        primary_type,
+        secondary_type,
+        primary_ability,
+        hp,
+        attack,
+        defense,
+        special_attack,
+        special_defense,
+        speed,
+        height_m,
+        weight_kg,
+        official_artwork_url,
+        sprite_url
+      FROM pokemon_summary_view
+      ORDER BY pokemon_id ASC
+    `)
+
+    return pokemon.map(serializePokemonCatalogFromView)
+  } catch (error) {
+    console.warn('[pokemon] pokemon_summary_view unavailable, falling back to relational catalog query.', error)
+
+    const pokemon = await prisma.pokemon.findMany({
+      select: pokemonCatalogFallbackSelect,
+      orderBy: {
+        id: 'asc',
+      },
+    })
+
+    return pokemon.map(serializePokemonCatalogFromPokemon)
+  }
 }
 
 export async function getPokemonDetailByName(nameOrId: string): Promise<PokemonDetailDto | null> {

@@ -1,4 +1,4 @@
-export const PAGE_SIZE = 16
+export const DESKTOP_PAGE_SIZE = 16
 export const INITIAL_SELECTED_SLUG = 'charizard'
 export const INITIAL_SELECTED_ENTRY = {
   id: 6,
@@ -22,6 +22,30 @@ export const pokemonCardStats = [
 ]
 
 export const socialLinks = ['FB', 'X', 'IG']
+
+export function getResponsiveGalleryColumns(viewportWidth) {
+  if (typeof viewportWidth !== 'number' || Number.isNaN(viewportWidth)) {
+    return 8
+  }
+
+  if (viewportWidth <= 720) {
+    return 2
+  }
+
+  if (viewportWidth <= 1100) {
+    return 4
+  }
+
+  if (viewportWidth <= 1440) {
+    return 6
+  }
+
+  return 8
+}
+
+export function getResponsivePageSize(viewportWidth) {
+  return getResponsiveGalleryColumns(viewportWidth) * 2
+}
 
 const typeLabels = {
   bug: 'Bicho',
@@ -157,6 +181,47 @@ export function createPlaceholderPokemon(entry) {
     palette: 'neutral',
     height: '--',
     weight: '--',
+    levelMoves: [],
+    heldItems: [],
+  }
+}
+
+export function createCatalogPokemon(entry) {
+  const image = entry.image ?? '/placeholder-pokemon.png'
+  const thumb = entry.thumb ?? image
+  const typeKeys = [entry.primaryType, entry.secondaryType].filter(Boolean)
+  const types = typeKeys.map((typeKey) => translateType(typeKey))
+  const hasRoleStats =
+    typeof entry.attack === 'number' &&
+    typeof entry.defense === 'number' &&
+    typeof entry.speed === 'number'
+  const role = hasRoleStats ? buildRole(entry.attack, entry.defense, entry.speed) : 'Analisis rapido'
+  const name = entry.label ?? formatName(entry.slug)
+
+  return {
+    isPlaceholder: false,
+    id: formatDexNumber(entry.id),
+    slug: entry.slug,
+    name,
+    image,
+    thumb,
+    type: types[0] ?? 'Normal',
+    types,
+    typeKeys,
+    hp: typeof entry.hp === 'number' ? entry.hp : '--',
+    attack: typeof entry.attack === 'number' ? entry.attack : '--',
+    defense: typeof entry.defense === 'number' ? entry.defense : '--',
+    specialAttack: typeof entry.specialAttack === 'number' ? entry.specialAttack : '--',
+    specialDefense: typeof entry.specialDefense === 'number' ? entry.specialDefense : '--',
+    speed: typeof entry.speed === 'number' ? entry.speed : '--',
+    bonus: entry.primaryAbility ? formatAbility(entry.primaryAbility) : 'Sin dato',
+    description: hasRoleStats && types.length
+      ? buildDescription(name, types, role, entry.attack, entry.speed)
+      : `${name} listo para consulta rapida en la Pokedex.`,
+    role,
+    palette: getPalette(typeKeys[0] ?? 'neutral'),
+    height: typeof entry.height === 'number' ? entry.height : '--',
+    weight: typeof entry.weight === 'number' ? entry.weight : '--',
     levelMoves: [],
     heldItems: [],
   }
