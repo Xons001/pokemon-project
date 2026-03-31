@@ -19,6 +19,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 15px;
 }
 
 body {
@@ -42,4 +43,10 @@ input {
 img {
   display: block;
   max-width: 100%;
+}
+
+@media (max-width: 720px) {
+  html {
+    font-size: 16px;
+  }
 }

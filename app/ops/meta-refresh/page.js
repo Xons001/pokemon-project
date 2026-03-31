@@ -1,5 +1,6 @@
 import SiteHeader from '../../components/home/SiteHeader'
 import pageStyles from '../../page.module.css'
+import { notFound } from 'next/navigation'
 
 import { getPrismaClient } from '@/src/lib/prisma'
 import { listIngestCheckpoints } from '@/src/modules/ingest/checkpoints'
@@ -7,6 +8,7 @@ import { buildSmartIngestPlan } from '@/src/modules/ingest/smart-plan'
 import {
   getMetaRefreshEnvironmentName,
   getMetaRefreshRecommendedDagId,
+  isMetaRefreshUiEnabled,
   META_REFRESH_DAG_FILE,
   META_REFRESH_LOCAL_UI_URL,
 } from '@/src/modules/ops/meta-refresh'
@@ -31,6 +33,10 @@ function formatStatusBadge(shouldRun) {
 }
 
 export default async function MetaRefreshPage() {
+  if (!isMetaRefreshUiEnabled()) {
+    notFound()
+  }
+
   const prisma = getPrismaClient()
   const [plan, checkpoints] = await Promise.all([
     buildSmartIngestPlan(),

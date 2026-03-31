@@ -122,6 +122,10 @@ Hay que crearlas manualmente:
 - `OPS_META_REFRESH_TOKEN`
 - `POKEMON_PROJECT_ENV_NAME`
 
+Opcionalmente, si quieres ver la UI interna de `Ops` tambien en un deployment cloud, puedes activar:
+
+- `POKEMON_PROJECT_ENABLE_OPS_UI=true`
+
 Regla:
 
 - `Key` = nombre de variable
@@ -133,6 +137,21 @@ Valores recomendados:
 - `Production` -> `POKEMON_PROJECT_ENV_NAME=production`
 
 Los `OPS_META_REFRESH_TOKEN` de preview y production deben ser distintos.
+
+## Visibilidad de Ops
+
+La pantalla `/ops/meta-refresh` no deberia mostrarse a usuarios finales.
+
+Comportamiento actual:
+
+- en `local` se muestra para facilitar desarrollo
+- en `production` queda oculta del header por defecto
+- en `production` la ruta devuelve `404` salvo que actives `POKEMON_PROJECT_ENABLE_OPS_UI=true`
+
+Importante:
+
+- ocultar la UI no sustituye la proteccion de API
+- las rutas `/api/ops/meta-refresh/*` siguen protegidas por `OPS_META_REFRESH_TOKEN`
 
 ## Que deployment cuenta para Airflow
 

@@ -3,6 +3,10 @@ export const META_REFRESH_DAG_FILE = 'ops/airflow/dags/pokemon_meta_refresh.py'
 export const META_REFRESH_LOCAL_UI_URL = 'http://localhost:8080'
 export const OPS_META_REFRESH_TOKEN_HEADER = 'x-ops-token'
 
+function isTruthyFlag(value: string | undefined) {
+  return value?.trim().toLowerCase() === 'true'
+}
+
 function normalizeIdentifierSegment(value: string) {
   return value
     .trim()
@@ -32,6 +36,14 @@ export function getMetaRefreshRecommendedDagId() {
 
 export function getMetaRefreshOpsToken() {
   return process.env.OPS_META_REFRESH_TOKEN?.trim() || process.env.OPS_REFRESH_TOKEN?.trim() || ''
+}
+
+export function isMetaRefreshUiEnabled() {
+  if (process.env.NODE_ENV !== 'production') {
+    return true
+  }
+
+  return isTruthyFlag(process.env.POKEMON_PROJECT_ENABLE_OPS_UI)
 }
 
 export function isMetaRefreshRequestAuthorized(request: Request) {

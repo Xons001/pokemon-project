@@ -4,6 +4,7 @@ import SiteHeader from '../home/SiteHeader'
 import { useTeamBuilder } from '../../hooks/useTeamBuilder'
 import pageStyles from '../../page.module.css'
 import TeamAnalysis from './TeamAnalysis'
+import TeamSuggestions from './TeamSuggestions'
 import TeamValidator from './TeamValidator'
 import TeamWorkspace from './TeamWorkspace'
 import styles from './TeamBuilderPage.module.css'
@@ -75,17 +76,27 @@ export default function TeamBuilderPage() {
             teamMembers={teamBuilder.teamMembers}
           />
 
-          <TeamValidator
-            competitiveFormats={teamBuilder.competitiveFormats}
-            isFormatsLoading={teamBuilder.isFormatsLoading}
-            isValidationDirty={teamBuilder.isValidationDirty}
-            isValidationLoading={teamBuilder.isValidationLoading}
-            onSetFormatKey={teamBuilder.setFormatKey}
-            onValidateTeam={teamBuilder.runValidation}
-            selectedFormatKey={teamBuilder.activeTeam.formatKey}
-            validationError={teamBuilder.validationError}
-            validationResult={teamBuilder.validationResult}
-          />
+          <div className={styles.metaGrid}>
+            <TeamValidator
+              competitiveFormats={teamBuilder.competitiveFormats}
+              isFormatsLoading={teamBuilder.isFormatsLoading}
+              isValidationDirty={teamBuilder.isValidationDirty}
+              isValidationLoading={teamBuilder.isValidationLoading}
+              onSetFormatKey={teamBuilder.setFormatKey}
+              onValidateTeam={teamBuilder.runValidation}
+              selectedFormatKey={teamBuilder.activeTeam.formatKey}
+              validationError={teamBuilder.validationError}
+              validationResult={teamBuilder.validationResult}
+            />
+
+            <TeamSuggestions
+              isSuggestionsLoading={teamBuilder.isSuggestionsLoading}
+              onAddPokemon={teamBuilder.addPokemonToTeam}
+              selectedSlotIndex={teamBuilder.selectedSlotIndex}
+              suggestionsError={teamBuilder.suggestionsError}
+              suggestionsResult={teamBuilder.suggestionsResult}
+            />
+          </div>
 
           <TeamAnalysis
             isTypeChartLoading={teamBuilder.isTypeChartLoading}

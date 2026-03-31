@@ -178,6 +178,23 @@
   transform: translateY(-1px);
 }
 
+.searchActions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.searchActions button:disabled:hover {
+  color: #61748f;
+  background: #f4f7fb;
+}
+
+.searchActionActive {
+  color: #ffffff;
+  background: #ef5350 !important;
+  box-shadow: 0 10px 22px rgba(239, 83, 80, 0.28);
+}
+
 .searchActions svg {
   width: 20px;
   height: 20px;

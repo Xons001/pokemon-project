@@ -1,11 +1,26 @@
 .validator {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 1rem;
+  align-self: start;
   min-width: 0;
+  height: var(--meta-panel-height, min(700px, calc(100vh - 140px)));
+  max-height: var(--meta-panel-height, min(700px, calc(100vh - 140px)));
   overflow: hidden;
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.contentStack {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
 }
 
 .header {
@@ -80,13 +95,13 @@
 }
 
 .helperText {
-  margin: 0.95rem 0 0;
+  margin: 0;
   line-height: 1.6;
   color: var(--muted);
 }
 
 .errorBanner {
-  margin: 1rem 0 0;
+  margin: 0;
   padding: 0.85rem 1rem;
   color: #7f1d1d;
   background: #fff5f5;
@@ -98,7 +113,6 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.8rem;
-  margin-top: 1rem;
 }
 
 .summaryCard {
@@ -120,7 +134,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-top: 0.95rem;
   font-size: 0.86rem;
   color: #4b5f78;
 }
@@ -128,7 +141,6 @@
 .slotList {
   display: grid;
   gap: 0.9rem;
-  margin-top: 1rem;
 }
 
 .slotCard {
@@ -231,7 +243,6 @@
 .emptyState {
   display: grid;
   gap: 0.45rem;
-  margin-top: 1rem;
   padding: 1rem;
   background: #f8fbff;
   border: 1px dashed #dce6f4;
@@ -266,6 +277,16 @@
 }
 
 @media (max-width: 640px) {
+  .validator {
+    height: auto;
+    max-height: none;
+  }
+
+  .contentStack {
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .summaryGrid {
     grid-template-columns: 1fr;
   }

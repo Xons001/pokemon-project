@@ -56,3 +56,7 @@ export function fetchCompetitiveFormats() {
 export function validateTeamBuild(payload) {
   return sendJson('/api/team/validate', 'POST', payload)
 }
+
+export function fetchTeamSuggestions(payload) {
+  return sendJson('/api/team/suggestions', 'POST', payload)
+}

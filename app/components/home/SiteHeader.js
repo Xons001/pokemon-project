@@ -1,13 +1,18 @@
 import Link from 'next/link'
+
+import { isMetaRefreshUiEnabled } from '@/src/modules/ops/meta-refresh'
+
 import styles from './SiteHeader.module.css'
 
 const navItems = [
   { label: 'Pokedex', href: '/pokedex' },
   { label: 'Equipos', href: '/equipos' },
-  { label: 'Ops', href: '/ops/meta-refresh' },
 ]
 
 export default function SiteHeader() {
+  const resolvedNavItems = isMetaRefreshUiEnabled()
+    ? [...navItems, { label: 'Ops', href: '/ops/meta-refresh' }]
+    : navItems
 
   return (
     <header className={styles.siteHeader}>
@@ -20,7 +25,7 @@ export default function SiteHeader() {
       </Link>
 
       <nav className={styles.siteNav} aria-label="Navegacion principal">
-        {navItems.map((item) => (
+        {resolvedNavItems.map((item) => (
           <Link key={item.label} href={item.href}>
             {item.label}
           </Link>

@@ -6,6 +6,7 @@ import {
   fetchPokemonCatalog,
   fetchPokemonDetail,
   fetchPokemonMoves,
+  fetchTeamSuggestions,
   fetchTypeChart,
   validateTeamBuild,
 } from '../lib/api'
@@ -41,9 +42,12 @@ export function useTeamBuilder() {
   const [isPokemonLoading, setIsPokemonLoading] = useState(false)
   const [isMovesLoading, setIsMovesLoading] = useState(false)
   const [isValidationLoading, setIsValidationLoading] = useState(false)
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false)
   const [isStorageReady, setIsStorageReady] = useState(false)
   const [validationError, setValidationError] = useState('')
   const [validationResult, setValidationResult] = useState(null)
+  const [suggestionsError, setSuggestionsError] = useState('')
+  const [suggestionsResult, setSuggestionsResult] = useState(null)
   const [isValidationDirty, setIsValidationDirty] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [notice, setNotice] = useState('Este equipo se guarda automaticamente en este navegador.')
@@ -271,6 +275,26 @@ export function useTeamBuilder() {
     return teamMembers[team.leaderSlot] ?? teamMembers.find(Boolean) ?? null
   }, [team, teamMembers])
 
+  const hasSelectedPokemon = useMemo(() => {
+    return team.slots.some((slot) => slot.pokemonSlug)
+  }, [team.slots])
+
+  const suggestionsRequestPayload = useMemo(() => {
+    return {
+      formatKey: team.formatKey,
+      limit: 8,
+      slots: team.slots.map((slot) => ({
+        pokemonSlug: slot.pokemonSlug,
+        abilitySlug: slot.abilitySlug,
+        moveSlugs: slot.moveSlugs,
+      })),
+    }
+  }, [team.formatKey, team.slots])
+
+  const suggestionsRequestKey = useMemo(() => {
+    return JSON.stringify(suggestionsRequestPayload)
+  }, [suggestionsRequestPayload])
+
   const selectedPokemonMoves = useMemo(() => {
     if (!selectedPokemonSlug) {
       return []
@@ -311,6 +335,44 @@ export function useTeamBuilder() {
   useEffect(() => {
     setIsValidationDirty(true)
   }, [team])
+
+  useEffect(() => {
+    if (!hasSelectedPokemon) {
+      setSuggestionsResult(null)
+      setSuggestionsError('')
+      setIsSuggestionsLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function loadSuggestions() {
+      setIsSuggestionsLoading(true)
+      setSuggestionsError('')
+
+      try {
+        const result = await fetchTeamSuggestions({
+          ...suggestionsRequestPayload,
+        })
+
+        if (cancelled) return
+        setSuggestionsResult(result)
+      } catch (error) {
+        if (cancelled) return
+        setSuggestionsError(error instanceof Error ? error.message : 'No se pudieron cargar las sugerencias.')
+      } finally {
+        if (!cancelled) {
+          setIsSuggestionsLoading(false)
+        }
+      }
+    }
+
+    loadSuggestions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [hasSelectedPokemon, suggestionsRequestKey, suggestionsRequestPayload])
 
   function updateTeam(updater) {
     setTeam((previous) => updater(previous))
@@ -577,6 +639,7 @@ export function useTeamBuilder() {
     isCatalogLoading,
     isFormatsLoading,
     isPokemonLoading,
+    isSuggestionsLoading,
     isTypeChartLoading,
     isValidationDirty,
     isValidationLoading,
@@ -605,6 +668,8 @@ export function useTeamBuilder() {
     renameTeam,
     runValidation,
     setLeaderSlot,
+    suggestionsError,
+    suggestionsResult,
     teamMembers,
     teamSummary,
     typeAnalysis: teamSummary.typeAnalysis,
