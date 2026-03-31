@@ -4,6 +4,7 @@ import SiteHeader from '../home/SiteHeader'
 import { useTeamBuilder } from '../../hooks/useTeamBuilder'
 import pageStyles from '../../page.module.css'
 import TeamAnalysis from './TeamAnalysis'
+import TeamValidator from './TeamValidator'
 import TeamWorkspace from './TeamWorkspace'
 import styles from './TeamBuilderPage.module.css'
 
@@ -74,21 +75,24 @@ export default function TeamBuilderPage() {
             teamMembers={teamBuilder.teamMembers}
           />
 
-          <TeamAnalysis
+          <TeamValidator
             competitiveFormats={teamBuilder.competitiveFormats}
             isFormatsLoading={teamBuilder.isFormatsLoading}
-            isTypeChartLoading={teamBuilder.isTypeChartLoading}
             isValidationDirty={teamBuilder.isValidationDirty}
             isValidationLoading={teamBuilder.isValidationLoading}
+            onSetFormatKey={teamBuilder.setFormatKey}
+            onValidateTeam={teamBuilder.runValidation}
+            selectedFormatKey={teamBuilder.activeTeam.formatKey}
+            validationError={teamBuilder.validationError}
+            validationResult={teamBuilder.validationResult}
+          />
+
+          <TeamAnalysis
+            isTypeChartLoading={teamBuilder.isTypeChartLoading}
             teamMembers={teamBuilder.teamMembers}
             teamSummary={teamBuilder.teamSummary}
             typeAnalysis={teamBuilder.typeAnalysis}
             typeChartReady={teamBuilder.typeChartReady}
-            validationError={teamBuilder.validationError}
-            validationResult={teamBuilder.validationResult}
-            selectedFormatKey={teamBuilder.activeTeam.formatKey}
-            onSetFormatKey={teamBuilder.setFormatKey}
-            onValidateTeam={teamBuilder.runValidation}
           />
         </section>
 

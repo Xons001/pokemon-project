@@ -2,6 +2,7 @@
   display: grid;
   gap: 1.2rem;
   min-width: 0;
+  overflow: hidden;
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
