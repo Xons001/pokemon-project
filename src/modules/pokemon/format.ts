@@ -40,6 +40,12 @@ const typePaletteMap: Record<string, string> = {
   water: 'water',
 }
 
+const damageClassLabels: Record<string, string> = {
+  physical: 'Fisico',
+  special: 'Especial',
+  status: 'Estado',
+}
+
 export function formatName(value: string): string {
   return value
     .split('-')
@@ -49,6 +55,14 @@ export function formatName(value: string): string {
 
 export function translateType(value: string): string {
   return typeLabels[value] ?? formatName(value)
+}
+
+export function translateDamageClass(value: string | null | undefined): string {
+  if (!value) {
+    return 'Sin dato'
+  }
+
+  return damageClassLabels[value] ?? formatName(value)
 }
 
 export function formatDexNumber(id: number): string {

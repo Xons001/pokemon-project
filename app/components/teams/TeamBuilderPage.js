@@ -9,6 +9,11 @@ import styles from './TeamBuilderPage.module.css'
 
 export default function TeamBuilderPage() {
   const teamBuilder = useTeamBuilder()
+  const filledSlots = teamBuilder.activeTeam.slots.filter((slot) => slot.pokemonSlug).length
+  const configuredMoves = teamBuilder.activeTeam.slots.reduce(
+    (total, slot) => total + slot.moveSlugs.filter(Boolean).length,
+    0
+  )
 
   return (
     <>
@@ -30,12 +35,12 @@ export default function TeamBuilderPage() {
               <strong>1</strong>
             </div>
             <div className={styles.statCard}>
-              <span>Huecos</span>
-              <strong>6</strong>
+              <span>Huecos ocupados</span>
+              <strong>{filledSlots}/6</strong>
             </div>
             <div className={styles.statCard}>
-              <span>Tabla</span>
-              <strong>Tipos arriba</strong>
+              <span>Moveset</span>
+              <strong>{configuredMoves}/24</strong>
             </div>
           </div>
         </section>
@@ -45,15 +50,20 @@ export default function TeamBuilderPage() {
             activeTeam={teamBuilder.activeTeam}
             catalogCount={teamBuilder.catalogCount}
             isCatalogLoading={teamBuilder.isCatalogLoading}
+            isMovesLoading={teamBuilder.isMovesLoading}
             isPokemonLoading={teamBuilder.isPokemonLoading}
             notice={teamBuilder.notice}
             onAddPokemon={teamBuilder.addPokemonToTeam}
+            onAssignMoveToSlot={teamBuilder.assignMoveToSlot}
             onClearTeam={teamBuilder.clearTeam}
+            onClearMovesFromSlot={teamBuilder.clearMovesFromSlot}
             onRemovePokemon={teamBuilder.removePokemonFromTeam}
             onRenameTeam={teamBuilder.renameTeam}
             onSelectSlot={teamBuilder.selectSlot}
             searchQuery={teamBuilder.searchQuery}
             searchResults={teamBuilder.searchResults}
+            selectedPokemonMoves={teamBuilder.selectedPokemonMoves}
+            selectedSlot={teamBuilder.selectedSlot}
             selectedSlotIndex={teamBuilder.selectedSlotIndex}
             setSearchQuery={teamBuilder.setSearchQuery}
             teamMembers={teamBuilder.teamMembers}

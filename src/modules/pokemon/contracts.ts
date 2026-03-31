@@ -58,9 +58,15 @@ export type PokemonMoveLearnDto = {
   moveSlug: string
   type: string
   typeKey: string
-  method: string
-  methodKey: string
-  versionGroup: string
-  versionGroupKey: string
-  level: number
+  category: string
+  categoryKey: string | null
+  power: number | null
+  accuracy: number | null
+  pp: number | null
+  priority: number | null
+  learnMethods: string[]
+  learnMethodKeys: string[]
+  versionGroups: string[]
+  versionGroupKeys: string[]
+  level: number | null
 }

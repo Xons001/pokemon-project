@@ -3,6 +3,7 @@ import { createCatalogPokemon, formatAbility, formatDexNumber, translateType } f
 export const TEAM_STORAGE_KEY = 'pokemon-project-team-v2'
 export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates-v1'
 export const TEAM_SIZE = 6
+export const TEAM_MOVE_SLOTS = 4
 export const TEAM_SEARCH_LIMIT = 18
 
 export const ATTACKING_TYPES = [
@@ -26,21 +27,56 @@ export const ATTACKING_TYPES = [
   'fairy',
 ]
 
+export function createEmptyTeamSlot() {
+  return {
+    pokemonSlug: null,
+    moveSlugs: Array(TEAM_MOVE_SLOTS).fill(null),
+  }
+}
+
+export function createTeamSlot(pokemonSlug) {
+  return {
+    ...createEmptyTeamSlot(),
+    pokemonSlug,
+  }
+}
+
 export function createDefaultTeam() {
   return {
     name: 'Equipo principal',
-    slots: Array(TEAM_SIZE).fill(null),
+    slots: Array.from({ length: TEAM_SIZE }, () => createEmptyTeamSlot()),
     leaderSlot: 0,
   }
 }
 
-function sanitizeSlots(value) {
-  const safeSlots = Array.isArray(value)
-    ? value.slice(0, TEAM_SIZE).map((slot) => (typeof slot === 'string' ? slot : null))
+function sanitizeTeamSlot(value) {
+  if (typeof value === 'string') {
+    return createTeamSlot(value)
+  }
+
+  if (!value || typeof value !== 'object') {
+    return createEmptyTeamSlot()
+  }
+
+  const safeMoveSlugs = Array.isArray(value.moveSlugs)
+    ? value.moveSlugs.slice(0, TEAM_MOVE_SLOTS).map((moveSlug) => (typeof moveSlug === 'string' ? moveSlug : null))
     : []
 
+  while (safeMoveSlugs.length < TEAM_MOVE_SLOTS) {
+    safeMoveSlugs.push(null)
+  }
+
+  return {
+    pokemonSlug: typeof value.pokemonSlug === 'string' ? value.pokemonSlug : null,
+    moveSlugs: safeMoveSlugs,
+  }
+}
+
+function sanitizeSlots(value) {
+  const safeSlots = Array.isArray(value) ? value.slice(0, TEAM_SIZE).map((slot) => sanitizeTeamSlot(slot)) : []
+
   while (safeSlots.length < TEAM_SIZE) {
-    safeSlots.push(null)
+    safeSlots.push(createEmptyTeamSlot())
   }
 
   return safeSlots

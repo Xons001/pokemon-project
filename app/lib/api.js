@@ -24,6 +24,10 @@ export function fetchPokemonDetail(slug) {
   return requestJson(`/api/pokemon/${encodeURIComponent(slug)}`)
 }
 
+export function fetchPokemonMoves(slug) {
+  return requestJson(`/api/pokemon/${encodeURIComponent(slug)}/moves`)
+}
+
 export function fetchTypeChart() {
   return requestJson('/api/team/type-chart')
 }

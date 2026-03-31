@@ -3,7 +3,15 @@ import { Prisma } from '@prisma/client'
 import { getPrismaClient } from '@/src/lib/prisma'
 
 import type { PokemonCatalogItem, PokemonDetailDto, PokemonHeldItem, PokemonLevelMove, PokemonMoveLearnDto } from './contracts'
-import { buildDescription, buildRole, formatDexNumber, formatName, getPalette, translateType } from './format'
+import {
+  buildDescription,
+  buildRole,
+  formatDexNumber,
+  formatName,
+  getPalette,
+  translateDamageClass,
+  translateType,
+} from './format'
 
 type JsonObject = Record<string, any>
 
@@ -501,6 +509,11 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
           move: {
             select: {
               name: true,
+              power: true,
+              accuracy: true,
+              pp: true,
+              priority: true,
+              damageClassName: true,
               type: {
                 select: {
                   name: true,
@@ -518,15 +531,62 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
     return null
   }
 
-  return pokemon.moveLearns.map((entry) => ({
-    move: formatName(entry.move.name),
-    moveSlug: entry.move.name,
-    type: translateType(entry.move.type.name),
-    typeKey: entry.move.type.name,
-    method: formatName(entry.moveLearnMethod.name),
-    methodKey: entry.moveLearnMethod.name,
-    versionGroup: formatName(entry.versionGroup.name),
-    versionGroupKey: entry.versionGroup.name,
-    level: entry.levelLearnedAt,
-  }))
+  const moveMap = new Map<string, PokemonMoveLearnDto>()
+
+  pokemon.moveLearns.forEach((entry) => {
+    const existing = moveMap.get(entry.move.name)
+    const normalizedLevel = entry.levelLearnedAt > 0 ? entry.levelLearnedAt : null
+
+    if (!existing) {
+      moveMap.set(entry.move.name, {
+        move: formatName(entry.move.name),
+        moveSlug: entry.move.name,
+        type: translateType(entry.move.type.name),
+        typeKey: entry.move.type.name,
+        category: translateDamageClass(entry.move.damageClassName),
+        categoryKey: entry.move.damageClassName ?? null,
+        power: entry.move.power ?? null,
+        accuracy: entry.move.accuracy ?? null,
+        pp: entry.move.pp ?? null,
+        priority: entry.move.priority ?? null,
+        learnMethods: [formatName(entry.moveLearnMethod.name)],
+        learnMethodKeys: [entry.moveLearnMethod.name],
+        versionGroups: [formatName(entry.versionGroup.name)],
+        versionGroupKeys: [entry.versionGroup.name],
+        level: normalizedLevel,
+      })
+
+      return
+    }
+
+    if (!existing.learnMethodKeys.includes(entry.moveLearnMethod.name)) {
+      existing.learnMethodKeys.push(entry.moveLearnMethod.name)
+      existing.learnMethods.push(formatName(entry.moveLearnMethod.name))
+    }
+
+    if (!existing.versionGroupKeys.includes(entry.versionGroup.name)) {
+      existing.versionGroupKeys.push(entry.versionGroup.name)
+      existing.versionGroups.push(formatName(entry.versionGroup.name))
+    }
+
+    if (normalizedLevel !== null && (existing.level === null || normalizedLevel < existing.level)) {
+      existing.level = normalizedLevel
+    }
+  })
+
+  return Array.from(moveMap.values()).sort((left, right) => {
+    if (left.level === null && right.level !== null) {
+      return 1
+    }
+
+    if (left.level !== null && right.level === null) {
+      return -1
+    }
+
+    if (left.level !== null && right.level !== null && left.level !== right.level) {
+      return left.level - right.level
+    }
+
+    return left.move.localeCompare(right.move)
+  })
 }
