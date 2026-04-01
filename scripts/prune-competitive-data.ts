@@ -64,6 +64,7 @@ async function main() {
         isUsageTracked: true,
       },
     }),
+    pokemonFormats: await prisma.pokemonFormat.count(),
     sampleSets: await prisma.sampleSet.count(),
     learnsetEntries: await prisma.competitiveLearnsetEntry.count(),
   }
@@ -72,9 +73,10 @@ async function main() {
   console.log(`- profile actual: ${env.metaRefreshProfile}`)
   console.log(`- usage rows: ${formatCount(before.usageRows)}`)
   console.log(`- pokemon_format tracked: ${formatCount(before.trackedFormats)}`)
+  console.log(`- pokemon_format total: ${formatCount(before.pokemonFormats)}`)
   console.log(`- sample sets: ${formatCount(before.sampleSets)}`)
   console.log(`- learnset entries: ${formatCount(before.learnsetEntries)}`)
-  console.log('- accion: borrar usage_stat_monthly y limpiar flags de usage en pokemon_format')
+  console.log('- accion: borrar usage_stat_monthly, vaciar pokemon_format y reconstruir solo desde sample_set')
 
   if (!args.apply) {
     console.log('[prune-competitive] no se ha aplicado nada. Usa --apply para ejecutar.')
@@ -82,40 +84,31 @@ async function main() {
   }
 
   await prisma.usageStatMonthly.deleteMany()
-  await prisma.pokemonFormat.updateMany({
-    where: {
-      OR: [
-        {
-          isUsageTracked: true,
-        },
-        {
-          latestUsageMonth: {
-            not: null,
-          },
-        },
-        {
-          latestUsageRating: {
-            not: null,
-          },
-        },
-        {
-          latestUsagePercent: {
-            not: null,
-          },
-        },
-      ],
-    },
-    data: {
-      isUsageTracked: false,
-      latestUsageMonth: null,
-      latestUsageRating: null,
-      latestUsagePercent: null,
-    },
-  })
+  await prisma.pokemonFormat.deleteMany()
 
   if (args.vacuum) {
     console.log('[prune-competitive] ejecutando VACUUM FULL sobre usage_stat_monthly y pokemon_format...')
     await runVacuum(env.directUrl)
+  }
+
+  const sampleFormatRows = await prisma.sampleSet.groupBy({
+    by: ['competitiveFormatId', 'showdownPokemonId', 'pokemonId', 'speciesId'],
+  })
+
+  for (let index = 0; index < sampleFormatRows.length; index += 500) {
+    const batch = sampleFormatRows.slice(index, index + 500)
+
+    await prisma.pokemonFormat.createMany({
+      data: batch.map((row) => ({
+        competitiveFormatId: row.competitiveFormatId,
+        showdownPokemonId: row.showdownPokemonId,
+        pokemonId: row.pokemonId,
+        speciesId: row.speciesId,
+        isSampleSetAvailable: true,
+        isUsageTracked: false,
+      })),
+      skipDuplicates: true,
+    })
   }
 
   const after = {
@@ -125,11 +118,13 @@ async function main() {
         isUsageTracked: true,
       },
     }),
+    pokemonFormats: await prisma.pokemonFormat.count(),
   }
 
   console.log('[prune-competitive] completado')
   console.log(`- usage rows despues: ${formatCount(after.usageRows)}`)
   console.log(`- pokemon_format tracked despues: ${formatCount(after.trackedFormats)}`)
+  console.log(`- pokemon_format total despues: ${formatCount(after.pokemonFormats)}`)
 }
 
 main()
