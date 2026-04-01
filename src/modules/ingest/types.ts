@@ -38,6 +38,9 @@ export type IngestContext = {
   showdownConcurrency: number
   smogonStatsMonth: string | null
   showdownUsageInsertMode: 'bulk' | 'sequential'
+  showdownUsageTargetFormats: string[]
+  environmentName: string
+  metaRefreshProfile: 'full' | 'lean'
   log: (message: string) => void
 }
 

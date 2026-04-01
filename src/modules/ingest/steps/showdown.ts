@@ -3,6 +3,10 @@ import type { Prisma } from '@prisma/client'
 import { processInBatches } from '@/src/modules/ingest/pokeapi/client'
 import { buildShowdownLookups } from '@/src/modules/ingest/showdown/lookups'
 import type { ShowdownEntityMatch } from '@/src/modules/ingest/showdown/lookups'
+import {
+  getUsageFormatKeyFromStatsFile,
+  selectUsageTargetFormats,
+} from '@/src/modules/ingest/showdown/usage-targets'
 import type { IngestContext } from '@/src/modules/ingest/types'
 import { toShowdownId } from '@/src/modules/showdown/id'
 
@@ -464,7 +468,30 @@ export async function ingestShowdownUsageStats(context: IngestContext) {
     .filter((file) => !file.endsWith('.json.gz'))
     .sort()
 
-  const limitedFiles = typeof context.limit === 'number' ? jsonFiles.slice(0, context.limit) : jsonFiles
+  const usageTargetSelection = selectUsageTargetFormats(jsonFiles, context.showdownUsageTargetFormats)
+
+  if (usageTargetSelection.isRestricted && !usageTargetSelection.selectedFormatKeys.length) {
+    throw new Error(
+      `No usage targets from SHOWDOWN_USAGE_TARGET_FORMATS are available in the ${month} snapshot: ${context.showdownUsageTargetFormats.join(', ')}`
+    )
+  }
+
+  if (usageTargetSelection.isRestricted) {
+    context.log(
+      `[ingest:showdown-usage] ${context.environmentName}/${context.metaRefreshProfile} limitado a ${usageTargetSelection.selectedFormatKeys.join(', ')}`
+    )
+
+    if (usageTargetSelection.missingConfiguredFormatKeys.length) {
+      context.log(
+        `[ingest:showdown-usage] formatos no encontrados en ${month}: ${usageTargetSelection.missingConfiguredFormatKeys.join(', ')}`
+      )
+    }
+  }
+
+  const restrictedFiles = usageTargetSelection.isRestricted
+    ? jsonFiles.filter((file) => usageTargetSelection.selectedFormatKeys.includes(getUsageFormatKeyFromStatsFile(file)))
+    : jsonFiles
+  const limitedFiles = typeof context.limit === 'number' ? restrictedFiles.slice(0, context.limit) : restrictedFiles
 
   await processInBatches(limitedFiles, 1, async (file, index) => {
     const usage = await context.showdownClient.fetchJson<UsageStatsFile>(
@@ -622,4 +649,43 @@ export async function ingestShowdownUsageStats(context: IngestContext) {
       context.log(`[ingest:showdown-usage] ${index + 1}/${limitedFiles.length}`)
     }
   })
+
+  if (usageTargetSelection.isRestricted) {
+    const selectedFormats = await context.prisma.competitiveFormat.findMany({
+      where: {
+        formatKey: {
+          in: usageTargetSelection.selectedFormatKeys,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+    const selectedFormatIds = selectedFormats.map((format) => format.id)
+
+    if (selectedFormatIds.length) {
+      await context.prisma.usageStatMonthly.deleteMany({
+        where: {
+          competitiveFormatId: {
+            notIn: selectedFormatIds,
+          },
+        },
+      })
+
+      await context.prisma.pokemonFormat.updateMany({
+        where: {
+          competitiveFormatId: {
+            notIn: selectedFormatIds,
+          },
+          isUsageTracked: true,
+        },
+        data: {
+          isUsageTracked: false,
+          latestUsageMonth: null,
+          latestUsageRating: null,
+          latestUsagePercent: null,
+        },
+      })
+    }
+  }
 }
