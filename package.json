@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:up": "docker compose up -d postgres",
@@ -14,11 +14,14 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "ingest": "tsx scripts/ingest.ts",
+    "ingest:smart": "tsx scripts/ingest-smart.ts",
     "ingest:core": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex",
     "ingest:showdown": "tsx scripts/ingest.ts --steps=showdown-format,showdown-tier,showdown-learnset,showdown-sample-set,showdown-usage",
     "ingest:cloud": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex,showdown-format,showdown-tier,showdown-learnset,showdown-sample-set",
     "ingest:cloud-dev": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex,showdown-format,showdown-tier,showdown-learnset,showdown-sample-set",
-    "ingest:all": "tsx scripts/ingest.ts"
+    "ingest:all": "tsx scripts/ingest.ts",
+    "prune:competitive": "tsx scripts/prune-competitive-data.ts",
+    "prune:cloud-dev": "tsx scripts/prune-competitive-data.ts --env-file=.env.development.vercel"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

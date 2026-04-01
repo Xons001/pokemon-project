@@ -8,11 +8,14 @@ export default function SearchPanel({
   setQuery,
   isCatalogLoading,
   isPageLoading,
+  isVoiceSearchListening,
+  isVoiceSearchSupported,
   loadError,
-  onRandomSuggestion,
   onSearch,
   onSuggestionClick,
+  onVoiceSearch,
   searchInputRef,
+  voiceSearchMessage,
 }) {
   return (
     <div className={`${styles.searchPanel} ${styles.hubSearch}`} id="buscar">
@@ -27,7 +30,14 @@ export default function SearchPanel({
         />
 
         <div className={styles.searchActions}>
-          <button type="button" onClick={onRandomSuggestion} aria-label="Sugerencia aleatoria">
+          <button
+            type="button"
+            onClick={onVoiceSearch}
+            aria-label={isVoiceSearchListening ? 'Detener busqueda por voz' : 'Buscar Pokemon por voz'}
+            title={isVoiceSearchSupported ? 'Buscar por voz' : 'Busqueda por voz no disponible en este navegador'}
+            className={isVoiceSearchListening ? styles.searchActionActive : undefined}
+            disabled={!isVoiceSearchSupported}
+          >
             <MicIcon />
           </button>
           <button type="button" onClick={onSearch} aria-label="Buscar Pokemon">
@@ -45,6 +55,7 @@ export default function SearchPanel({
       </div>
 
       {loadError ? <p className={styles.helperText}>{loadError}</p> : null}
+      {voiceSearchMessage ? <p className={styles.helperText}>{voiceSearchMessage}</p> : null}
       {isCatalogLoading ? <p className={styles.helperText}>Cargando catalogo desde la API interna...</p> : null}
       {isPageLoading && !isCatalogLoading ? (
         <p className={styles.helperText}>Cargando stats y tipos desde tu backend...</p>

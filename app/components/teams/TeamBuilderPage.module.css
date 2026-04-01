@@ -76,6 +76,14 @@
   margin-top: 1.5rem;
 }
 
+.metaGrid {
+  --meta-panel-height: min(700px, calc(100vh - 140px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.92fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
 .errorBanner {
   margin: 1rem 0 0;
   padding: 1rem 1.15rem;
@@ -87,6 +95,10 @@
 
 @media (max-width: 900px) {
   .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .metaGrid {
     grid-template-columns: 1fr;
   }
 

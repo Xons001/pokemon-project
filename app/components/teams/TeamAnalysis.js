@@ -178,12 +178,34 @@ function getTeamTypeVerdict(entry) {
   }
 }
 
-export default function TeamAnalysis({ isTypeChartLoading, teamMembers, teamSummary, typeAnalysis, typeChartReady }) {
+export default function TeamAnalysis({
+  isTypeChartLoading,
+  teamMembers,
+  teamSummary,
+  typeAnalysis,
+  typeChartReady,
+}) {
   const hasReadyAnalysis = typeChartReady && teamSummary.readyMembers > 0
   const hasSelectedMembers = teamSummary.filledSlots > 0
   const leadingWeaknesses = teamSummary.weaknesses.slice(0, 4)
   const leadingResistances = teamSummary.resistances.slice(0, 4)
   const readyTeamMembers = teamMembers.filter(Boolean)
+  const longestPokemonNameLength = readyTeamMembers.reduce((maximum, pokemon) => {
+    return Math.max(maximum, pokemon.name.length)
+  }, 'Pokemon'.length)
+  const pokemonProfiles = readyTeamMembers.map((pokemon, rowIndex) => {
+    const rowMultipliers = typeAnalysis.map((entry) => entry.slotMultipliers[rowIndex] ?? null)
+
+    return {
+      pokemon,
+      summary: summarizePokemonMatchups(rowMultipliers),
+    }
+  })
+  const matrixStyle = {
+    '--matrix-first-column': 'clamp(7.5rem, 9vw, 8.75rem)',
+    '--matrix-pokemon-column': `clamp(10.25rem, ${Math.max(13, Math.min(Math.ceil(longestPokemonNameLength * 0.92), 24))}ch, 14rem)`,
+    '--matrix-summary-column': 'clamp(8.5rem, 10vw, 10rem)',
+  }
 
   return (
     <section className={styles.analysis} id="analisis">
@@ -283,65 +305,66 @@ export default function TeamAnalysis({ isTypeChartLoading, teamMembers, teamSumm
               </div>
             </div>
 
-            <div className={styles.tableWrap}>
+            <div className={styles.tableWrap} style={matrixStyle}>
               <table className={styles.matrixTable}>
                 <thead>
                   <tr>
-                    <th className={styles.pokemonHeader} scope="col">
-                      Pokemon
+                    <th className={styles.axisHeader} scope="col">
+                      Tipos
                     </th>
 
-                    {typeAnalysis.map((entry) => (
-                      <th key={`type-header-${entry.type}`} className={styles.typeHeader} scope="col">
-                        <span className={styles.typeHeaderBadge} style={getTypeChipStyle(entry.type)}>
-                          {entry.label}
-                        </span>
+                    {readyTeamMembers.map((pokemon) => (
+                      <th key={`pokemon-header-${pokemon.slug}`} className={styles.pokemonColumnHeader} scope="col">
+                        <div className={styles.pokemonColumnCard}>
+                          <strong title={pokemon.name}>{pokemon.name}</strong>
+                          <div className={styles.typeChipGroup}>
+                            {pokemon.typeKeys.map((typeKey, typeIndex) => (
+                              <span key={`${pokemon.slug}-${typeKey}-${typeIndex}`} className={styles.typeChip} style={getTypeChipStyle(typeKey)}>
+                                {pokemon.types[typeIndex]}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </th>
                     ))}
 
                     <th className={styles.summaryHeader} scope="col">
-                      Perfil
+                      Equipo
                     </th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {readyTeamMembers.map((pokemon, rowIndex) => {
-                    const rowMultipliers = typeAnalysis.map((entry) => entry.slotMultipliers[rowIndex] ?? null)
-                    const pokemonSummary = summarizePokemonMatchups(rowMultipliers)
+                  {typeAnalysis.map((entry) => {
+                    const verdict = getTeamTypeVerdict(entry)
 
                     return (
-                      <tr key={`${pokemon.slug}-${rowIndex}`}>
-                        <th scope="row" className={styles.pokemonRowHeader}>
-                          <div className={styles.pokemonRowCard}>
-                            <strong>{pokemon.name}</strong>
-                            <div className={styles.typeChipGroup}>
-                              {pokemon.typeKeys.map((typeKey, typeIndex) => (
-                                <span key={`${pokemon.slug}-${typeKey}-${typeIndex}`} className={styles.typeChip} style={getTypeChipStyle(typeKey)}>
-                                  {pokemon.types[typeIndex]}
-                                </span>
-                              ))}
-                            </div>
+                      <tr key={entry.type}>
+                        <th scope="row" className={styles.typeRowHeader}>
+                          <div className={styles.typeRowCard}>
+                            <span className={styles.typeHeaderBadge} style={getTypeChipStyle(entry.type)}>
+                              {entry.label}
+                            </span>
                           </div>
                         </th>
 
-                        {rowMultipliers.map((multiplier, index) => (
-                          <td key={`${pokemon.slug}-${index}`} className={styles.matrixCell}>
-                            <span className={[styles.matchupBadge, getMultiplierClass(multiplier)].join(' ')}>
-                              {formatMultiplier(multiplier)}
+                        {readyTeamMembers.map((pokemon, index) => (
+                          <td key={`${entry.type}-${pokemon.slug}`} className={styles.matrixCell}>
+                            <span className={[styles.matchupBadge, getMultiplierClass(entry.slotMultipliers[index] ?? null)].join(' ')}>
+                              {formatMultiplier(entry.slotMultipliers[index] ?? null)}
                             </span>
                           </td>
                         ))}
 
                         <td className={styles.overviewCell}>
                           <div className={styles.overviewStack}>
-                            <span className={[styles.verdictBadge, pokemonSummary.className].join(' ')}>
-                              {pokemonSummary.label}
+                            <span className={[styles.verdictBadge, verdict.className].join(' ')}>
+                              {verdict.label}
                             </span>
                             <div className={styles.overviewList}>
-                              <span>{pokemonSummary.weakCount} debiles</span>
-                              <span>{pokemonSummary.resistCount} resisten</span>
-                              <span>{pokemonSummary.immuneCount} inmunes</span>
+                              <span>{entry.weakCount} debiles</span>
+                              <span>{entry.resistCount} resisten</span>
+                              <span>{entry.immuneCount} inmunes</span>
                             </div>
                           </div>
                         </td>
@@ -353,23 +376,33 @@ export default function TeamAnalysis({ isTypeChartLoading, teamMembers, teamSumm
                 <tfoot>
                   <tr>
                     <th className={styles.teamFooterLabel} scope="row">
-                      Equipo
+                      Perfil
                     </th>
 
-                    {typeAnalysis.map((entry) => {
-                      const verdict = getTeamTypeVerdict(entry)
-
-                      return (
-                        <td key={`team-${entry.type}`} className={styles.footerCell}>
-                          <span className={[styles.verdictBadge, verdict.className].join(' ')}>{verdict.label}</span>
-                        </td>
-                      )
-                    })}
+                    {pokemonProfiles.map(({ pokemon, summary }) => (
+                      <td key={`profile-${pokemon.slug}`} className={styles.footerCell}>
+                        <div className={styles.overviewStack}>
+                          <span className={[styles.verdictBadge, summary.className].join(' ')}>
+                            {summary.label}
+                          </span>
+                          <div className={styles.overviewList}>
+                            <span>{summary.weakCount} debiles</span>
+                            <span>{summary.resistCount} resisten</span>
+                            <span>{summary.immuneCount} inmunes</span>
+                          </div>
+                        </div>
+                      </td>
+                    ))}
 
                     <td className={styles.footerCell}>
-                      <div className={styles.overviewList}>
-                        <span>{teamSummary.weaknesses.length} riesgos</span>
-                        <span>{teamSummary.resistances.length} coberturas</span>
+                      <div className={styles.overviewStack}>
+                        <span className={[styles.verdictBadge, styles.verdictNeutral].join(' ')}>
+                          {getBalanceLabel(teamSummary.balanceScore)}
+                        </span>
+                        <div className={styles.overviewList}>
+                          <span>{teamSummary.weaknesses.length} riesgos</span>
+                          <span>{teamSummary.resistances.length} coberturas</span>
+                        </div>
                       </div>
                     </td>
                   </tr>

@@ -8,6 +8,7 @@ type AppEnv = {
   showdownConcurrency: number
   smogonStatsMonth: string | null
   showdownUsageInsertMode: 'bulk' | 'sequential'
+  metaRefreshProfile: 'full' | 'lean'
 }
 
 let cachedEnv: AppEnv | null = null
@@ -38,6 +39,29 @@ function getShowdownUsageInsertMode(): 'bulk' | 'sequential' {
   return rawValue === 'sequential' ? 'sequential' : 'bulk'
 }
 
+function getMetaRefreshProfile(): 'full' | 'lean' {
+  const rawValue = process.env.POKEMON_PROJECT_META_REFRESH_PROFILE?.trim().toLowerCase()
+
+  if (rawValue === 'full' || rawValue === 'lean') {
+    return rawValue
+  }
+
+  const environmentName = (
+    process.env.POKEMON_PROJECT_ENV_NAME ??
+    process.env.VERCEL_TARGET_ENV ??
+    process.env.VERCEL_ENV ??
+    'local'
+  )
+    .trim()
+    .toLowerCase()
+
+  if (['preview', 'develop', 'development', 'staging'].includes(environmentName)) {
+    return 'lean'
+  }
+
+  return 'full'
+}
+
 export function getAppEnv(): AppEnv {
   if (cachedEnv) {
     return cachedEnv
@@ -53,6 +77,7 @@ export function getAppEnv(): AppEnv {
     showdownConcurrency: getNumberEnv('SHOWDOWN_CONCURRENCY', 4),
     smogonStatsMonth: process.env.SMOGON_STATS_MONTH?.trim() || null,
     showdownUsageInsertMode: getShowdownUsageInsertMode(),
+    metaRefreshProfile: getMetaRefreshProfile(),
   }
 
   return cachedEnv

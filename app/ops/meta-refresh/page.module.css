@@ -1,0 +1,226 @@
+.hero,
+.panel,
+.section,
+.card {
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.hero h2,
+.panelHeader h3,
+.sectionHeader h3 {
+  margin: 0;
+}
+
+.lead,
+.helpText,
+.reason {
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.heroActions {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: end;
+}
+
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  color: #18212f;
+  text-decoration: none;
+  background: #ffd24d;
+  border: 1px solid #f6c437;
+  border-radius: 14px;
+}
+
+.command {
+  padding: 0.75rem 0.9rem;
+  font-size: 0.82rem;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.panelHeader,
+.sectionHeader,
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.badgeOk,
+.statusSkip {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.badgeWarn,
+.statusRun {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.badgeNeutral {
+  color: #324962;
+  background: #f8fbff;
+  border-color: #dce6f4;
+}
+
+.infoList,
+.miniGrid {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.miniGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.infoList span,
+.miniGrid span {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.infoList strong,
+.miniGrid strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+}
+
+.stepWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.section {
+  margin-top: 1rem;
+}
+
+.decisionList {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  margin-top: 0;
+}
+
+.cardHeader strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.cardHeader p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.tableWrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+  border: 1px solid #dce6f4;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.table {
+  width: 100%;
+  min-width: 960px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.85rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid #eef3fb;
+}
+
+.table thead th {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6d7f96;
+  background: #f8fbff;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 960px) {
+  .hero,
+  .panelHeader,
+  .sectionHeader,
+  .cardHeader {
+    flex-direction: column;
+  }
+
+  .heroActions {
+    justify-items: start;
+  }
+
+  .grid,
+  .miniGrid {
+    grid-template-columns: 1fr;
+  }
+}

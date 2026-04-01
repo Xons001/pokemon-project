@@ -1,0 +1,413 @@
+.suggestions {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 1rem;
+  align-self: start;
+  min-width: 0;
+  height: var(--meta-panel-height, min(700px, calc(100vh - 140px)));
+  max-height: var(--meta-panel-height, min(700px, calc(100vh - 140px)));
+  overflow: hidden;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+}
+
+.contentStack {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+}
+
+.header,
+.featuredTop,
+.featuredIdentity,
+.titleRow,
+.rankingHeader,
+.rankingMain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3d5a80;
+}
+
+.header h3,
+.rankingHeader h4 {
+  margin: 0;
+}
+
+.header h3 {
+  font-size: 1.45rem;
+}
+
+.statusBadge,
+.scoreBadge,
+.scoreBadgeSmall,
+.metaChip,
+.typeChip,
+.typeChipSmall,
+.buildChip,
+.moveChip,
+.addButton,
+.inlineAddButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.statusBadge {
+  min-width: 92px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.82rem;
+  background: #eff4ff;
+  border-color: #d8dfeb;
+  border-radius: 999px;
+}
+
+.helperText {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.errorBanner {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  color: #7f1d1d;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 18px;
+}
+
+.featuredCard,
+.rankingCard {
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+}
+
+.featuredCard {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.featuredThumb,
+.rankingThumb {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #edf2fb);
+}
+
+.featuredThumb {
+  width: 84px;
+  height: 84px;
+}
+
+.rankingThumb {
+  width: 56px;
+  height: 56px;
+}
+
+.featuredIdentity,
+.rankingMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.featuredCopy,
+.rankingCopy {
+  min-width: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.titleRow strong {
+  min-width: 0;
+  font-size: 1.08rem;
+}
+
+.scoreBadge,
+.scoreBadgeSmall {
+  flex: 0 0 auto;
+  color: #14532d;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  border-radius: 999px;
+}
+
+.scoreBadge {
+  min-width: 70px;
+  padding: 0.42rem 0.7rem;
+  font-size: 0.84rem;
+}
+
+.scoreBadgeSmall {
+  min-width: 58px;
+  padding: 0.34rem 0.58rem;
+  font-size: 0.76rem;
+}
+
+.typeRow,
+.buildWrap,
+.moveWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.typeChip,
+.typeChipSmall {
+  border-radius: 999px;
+}
+
+.typeChip {
+  padding: 0.38rem 0.62rem;
+  font-size: 0.78rem;
+}
+
+.typeChipSmall {
+  padding: 0.24rem 0.48rem;
+  font-size: 0.7rem;
+}
+
+.metaChip {
+  padding: 0.38rem 0.62rem;
+  font-size: 0.76rem;
+  color: #324962;
+  background: #ffffff;
+  border-color: #dce6f4;
+  border-radius: 999px;
+}
+
+.addButton,
+.inlineAddButton {
+  cursor: pointer;
+  color: #18212f;
+  background: #ffd24d;
+  border-color: #f6c437;
+  border-radius: 14px;
+}
+
+.addButton {
+  padding: 0.8rem 1rem;
+}
+
+.inlineAddButton {
+  padding: 0.68rem 0.85rem;
+}
+
+.addButton:disabled,
+.inlineAddButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.reasonList {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.reasonItem {
+  margin: 0;
+  padding: 0.72rem 0.8rem;
+  line-height: 1.5;
+  color: #324962;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 16px;
+}
+
+.buildSection {
+  min-width: 0;
+}
+
+.featuredMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.blockLabel {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6d7f96;
+}
+
+.buildChip,
+.moveChip {
+  gap: 0.4rem;
+  padding: 0.45rem 0.62rem;
+  color: #324962;
+  background: #ffffff;
+  border-color: #dce6f4;
+  border-radius: 14px;
+}
+
+.buildChip strong,
+.moveChip strong {
+  font-size: 0.78rem;
+}
+
+.buildChip small,
+.moveChip small {
+  font-size: 0.72rem;
+}
+
+.buildAbility {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.buildItem {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.buildTera {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.buildSpread {
+  color: #9a3412;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.moveType {
+  padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+}
+
+.ranking {
+  display: grid;
+  gap: 0.85rem;
+  min-height: auto;
+  overflow: visible;
+}
+
+.rankingHeader span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #324962;
+  background: #eff4ff;
+  border: 1px solid #d8dfeb;
+  border-radius: 999px;
+}
+
+.rankingList {
+  display: grid;
+  gap: 0.75rem;
+  min-height: auto;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.rankingCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.82rem;
+}
+
+.rankingReason {
+  margin: 0;
+  line-height: 1.5;
+  color: #51657d;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.emptyState {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  background: #f8fbff;
+  border: 1px dashed #dce6f4;
+  border-radius: 18px;
+}
+
+.emptyState strong,
+.emptyState p {
+  margin: 0;
+}
+
+.emptyState p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .suggestions {
+    grid-template-rows: auto auto auto auto;
+    max-height: none;
+  }
+
+  .contentStack {
+    grid-template-rows: auto auto;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .header,
+  .featuredTop,
+  .rankingMain,
+  .rankingHeader,
+  .titleRow {
+    flex-direction: column;
+  }
+
+  .addButton,
+  .inlineAddButton {
+    width: 100%;
+  }
+
+  .featuredMetaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rankingList {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .rankingCard {
+    grid-template-columns: 1fr;
+  }
+}

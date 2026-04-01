@@ -96,6 +96,7 @@ Los scripts usan una mezcla de:
 | `SMOGON_STATS_BASE_URL` | Base URL de stats mensuales |
 | `SMOGON_STATS_MONTH` | Fuerza un snapshot mensual concreto |
 | `SHOWDOWN_USAGE_INSERT_MODE` | `bulk` o `sequential` para la insercion de `usage_stat_monthly` |
+| `POKEMON_PROJECT_META_REFRESH_PROFILE` | `full` o `lean` para decidir si el refresh automatico incluye `showdown-usage` |
 
 ## Resincronizacion
 

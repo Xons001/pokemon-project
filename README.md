@@ -276,6 +276,7 @@ SHOWDOWN_CONCURRENCY="4"
 SMOGON_STATS_BASE_URL="https://www.smogon.com/stats"
 SMOGON_STATS_MONTH=""
 SHOWDOWN_USAGE_INSERT_MODE="bulk"
+POKEMON_PROJECT_META_REFRESH_PROFILE="full"
 ```
 
 Si `SMOGON_STATS_MONTH` esta vacio, la ingestion intentara usar el ultimo snapshot mensual disponible.
@@ -398,6 +399,8 @@ Notas importantes:
 - `SHOWDOWN_USAGE_INSERT_MODE="bulk"` es el modo normal para local o una base cloud con capacidad suficiente.
 - Si alguna vez quieres forzar insercion mas conservadora de `usage_stat_monthly`, puedes usar `SHOWDOWN_USAGE_INSERT_MODE="sequential"`, aunque sera mas lenta.
 - En Neon free no cabe la carga completa de `usage_stat_monthly`; para `develop` se deja fuera a proposito.
+- Usa `POKEMON_PROJECT_META_REFRESH_PROFILE="lean"` en `Preview / develop` y `POKEMON_PROJECT_META_REFRESH_PROFILE="full"` en `Production / main`.
+- Si una base cloud de `develop` ya se lleno por usage parcial, puedes podarla con `npm run prune:cloud-dev -- --apply --vacuum`.
 
 ### Main / produccion
 

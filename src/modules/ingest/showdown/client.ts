@@ -1,13 +1,70 @@
 import vm from 'node:vm'
 
+const SHOWDOWN_FETCH_TIMEOUT_MS = 30_000
+const SHOWDOWN_FETCH_RETRIES = 3
+
 function ensureTrailingSlash(value: string): string {
   return value.endsWith('/') ? value : `${value}/`
+}
+
+const directoryMonthMap: Record<string, number> = {
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
+}
+
+export type DirectoryEntry = {
+  name: string
+  lastModified: Date | null
 }
 
 function parseDirectoryListing(html: string): string[] {
   return [...html.matchAll(/href="([^"]+)"/g)]
     .map((match) => match[1])
     .filter((value) => value && value !== '../')
+}
+
+function parseDirectoryEntries(html: string): DirectoryEntry[] {
+  const modernMatches = [...html.matchAll(/<a class="row" href="\.\/([^"]+)">[\s\S]*?<small class="filemtime">(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})<\/small>/g)]
+
+  if (modernMatches.length) {
+    return modernMatches.map((match) => ({
+      name: match[1],
+      lastModified: new Date(
+        Date.UTC(
+          Number(match[2]),
+          Number(match[3]) - 1,
+          Number(match[4]),
+          Number(match[5]),
+          Number(match[6]),
+          Number(match[7])
+        )
+      ),
+    }))
+  }
+
+  return [...html.matchAll(/<a href="([^"]+)">[^<]+<\/a>\s+(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2})/g)]
+    .map((match) => {
+      const monthIndex = directoryMonthMap[match[3]]
+
+      return {
+        name: match[1],
+        lastModified:
+          typeof monthIndex === 'number'
+            ? new Date(Date.UTC(Number(match[4]), monthIndex, Number(match[2]), Number(match[5]), Number(match[6])))
+            : null,
+      }
+    })
+    .filter((entry) => entry.name && entry.name !== '../')
 }
 
 export class ShowdownClient {
@@ -19,22 +76,42 @@ export class ShowdownClient {
     this.statsBaseUrl = ensureTrailingSlash(statsBaseUrl)
   }
 
-  async fetchText(url: string): Promise<string> {
-    const response = await fetch(url)
+  async fetchWithRetry(url: string): Promise<Response> {
+    let lastError: unknown = null
 
-    if (!response.ok) {
-      throw new Error(`Showdown request failed (${response.status}) for ${url}`)
+    for (let attempt = 1; attempt <= SHOWDOWN_FETCH_RETRIES; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(SHOWDOWN_FETCH_TIMEOUT_MS),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Showdown request failed (${response.status}) for ${url}`)
+        }
+
+        return response
+      } catch (error) {
+        lastError = error
+
+        if (attempt === SHOWDOWN_FETCH_RETRIES) {
+          break
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 750 * attempt))
+      }
     }
+
+    throw lastError instanceof Error ? lastError : new Error(`Showdown request failed for ${url}`)
+  }
+
+  async fetchText(url: string): Promise<string> {
+    const response = await this.fetchWithRetry(url)
 
     return response.text()
   }
 
   async fetchJson<T>(url: string): Promise<T> {
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`Showdown request failed (${response.status}) for ${url}`)
-    }
+    const response = await this.fetchWithRetry(url)
 
     return response.json() as Promise<T>
   }
@@ -70,9 +147,19 @@ export class ShowdownClient {
     return parseDirectoryListing(html)
   }
 
+  async listDataDirectoryEntries(path: string): Promise<DirectoryEntry[]> {
+    const html = await this.fetchDataText(path)
+    return parseDirectoryEntries(html)
+  }
+
   async listStatsDirectory(path: string): Promise<string[]> {
     const html = await this.fetchText(this.getStatsUrl(path))
     return parseDirectoryListing(html)
+  }
+
+  async listStatsDirectoryEntries(path: string): Promise<DirectoryEntry[]> {
+    const html = await this.fetchText(this.getStatsUrl(path))
+    return parseDirectoryEntries(html)
   }
 
   async getLatestStatsMonth(): Promise<string | null> {

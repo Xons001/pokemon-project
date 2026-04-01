@@ -9,6 +9,7 @@ export default function PokemonGallery({ displayedPokemon, selectedPokemon, onSe
           <button
             key={pokemon.slug}
             type="button"
+            title={pokemon.name}
             className={[styles.galleryPill, selectedPokemon.slug === pokemon.slug ? styles.galleryPillActive : null]
               .filter(Boolean)
               .join(' ')}

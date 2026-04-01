@@ -46,6 +46,9 @@ Variables relevantes:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME=preview`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
 
 Aplicadas en:
 
@@ -58,6 +61,9 @@ Variables relevantes:
 
 - `DATABASE_URL`
 - `DIRECT_URL`
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME=production`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
 
 Aplicadas en:
 
@@ -110,6 +116,56 @@ Usa los valores de `.env.production.vercel`, tambien con la URL directa y SSL `r
 
 ## Checklist de despliegue
 
+## Variables custom para automatizacion
+
+Estas dos variables no vienen dadas por Neon ni por Vercel.
+Hay que crearlas manualmente:
+
+- `OPS_META_REFRESH_TOKEN`
+- `POKEMON_PROJECT_ENV_NAME`
+
+Opcionalmente, si quieres ver la UI interna de `Ops` tambien en un deployment cloud, puedes activar:
+
+- `POKEMON_PROJECT_ENABLE_OPS_UI=true`
+
+Regla:
+
+- `Key` = nombre de variable
+- `Value` = contenido
+
+Valores recomendados:
+
+- `Preview` -> `POKEMON_PROJECT_ENV_NAME=preview`
+- `Production` -> `POKEMON_PROJECT_ENV_NAME=production`
+
+Los `OPS_META_REFRESH_TOKEN` de preview y production deben ser distintos.
+
+## Visibilidad de Ops
+
+La pantalla `/ops/meta-refresh` no deberia mostrarse a usuarios finales.
+
+Comportamiento actual:
+
+- en `local` se muestra para facilitar desarrollo
+- en `production` queda oculta del header por defecto
+- en `production` la ruta devuelve `404` salvo que actives `POKEMON_PROJECT_ENABLE_OPS_UI=true`
+
+Importante:
+
+- ocultar la UI no sustituye la proteccion de API
+- las rutas `/api/ops/meta-refresh/*` siguen protegidas por `OPS_META_REFRESH_TOKEN`
+
+## Que deployment cuenta para Airflow
+
+Para este proyecto, Airflow no debe apuntar al preview de una rama `feature/*`.
+
+Los targets correctos son:
+
+- `Preview` estable de `develop`
+- `Production` estable de `main`
+
+Si una feature branch tiene un preview propio, sirve para probar UI o funcionalidad, pero no como endpoint estable del DAG.
+
 ### Antes de mergear a `develop`
 
 1. `npm run lint`
@@ -123,16 +179,37 @@ Usa los valores de `.env.production.vercel`, tambien con la URL directa y SSL `r
 2. comprobar variables de `Production` en Vercel
 3. comprobar migraciones en la base prod
 4. comprobar que la base prod este cargada con `npm run ingest:cloud` o `npm run ingest:all` segun capacidad
+5. comprobar que las rutas `/api/ops/meta-refresh/status` y `/api/ops/meta-refresh/apply` existen en el deployment
 
 ## Limitacion actual de cloud free
 
-Las bases gratuitas no cargan `usage_stat_monthly` completo.
+Las bases gratuitas no deberian cargar `usage_stat_monthly` completo en `develop`.
 
 Consecuencia:
 
 - las pantallas estructurales funcionan
 - la capa competitiva ligera funciona
-- el historico mensual de Smogon queda reservado para local o para un plan con mas capacidad
+- el historico mensual de Smogon queda reservado para `production`, local o un plan con mas capacidad
+
+## Estrategia recomendada desde ahora
+
+- `Preview / develop`
+  - `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
+  - refresca `formats`, `tiers`, `learnsets` y `sample sets`
+  - no refresca `showdown-usage`
+- `Production / main`
+  - `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
+  - refresca tambien `showdown-usage`
+
+Si `develop` ya se ha llenado por un intento anterior de usage, puedes podarla con:
+
+```bash
+npm run prune:cloud-dev -- --apply --vacuum
+```
+
+Eso borra `usage_stat_monthly`, limpia los flags de usage en `pokemon_format` e intenta recuperar storage con `VACUUM FULL`.
+
+Si aun asi Neon sigue marcando el proyecto demasiado lleno, la opcion mas tranquila es recrear la base cloud de `develop` y volver a cargar solo el dataset ligero (`npm run ingest:cloud-dev`).
 
 ## Recomendacion futura
 

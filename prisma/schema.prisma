@@ -564,6 +564,23 @@ model BanlistEntry {
   @@map("banlist_entry")
 }
 
+model IngestSourceCheckpoint {
+  id                  String   @id @default(cuid())
+  sourceKey           String   @unique
+  sourceType          String
+  description         String?
+  cadence             String?
+  lastObservedVersion String?
+  lastObservedAt      DateTime?
+  lastAppliedVersion  String?
+  lastAppliedAt       DateTime?
+  metadata            Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("ingest_source_checkpoint")
+}
+
 model CompetitiveLearnsetEntry {
   id                 String            @id @default(cuid())
   pokemonId          Int?

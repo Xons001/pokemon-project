@@ -25,15 +25,17 @@ export default function PokedexHub({
   filteredCount,
   isCatalogLoading,
   isPageLoading,
+  isVoiceSearchListening,
+  isVoiceSearchSupported,
   loadError,
   onFocusSearch,
   onNextPage,
   onPreviousPage,
-  onRandomSuggestion,
   onSearch,
   onSelectPokemon,
   onSuggestionClick,
   onViewCard,
+  onVoiceSearch,
   pokedexRef,
   query,
   searchInputRef,
@@ -41,6 +43,7 @@ export default function PokedexHub({
   setQuery,
   totalPages,
   catalogCount,
+  voiceSearchMessage,
 }) {
   const sectionClassName = [styles.pokedexHub, paletteClassMap[selectedPokemon.palette] || styles.pokedexHubNeutral]
     .filter(Boolean)
@@ -60,11 +63,14 @@ export default function PokedexHub({
         setQuery={setQuery}
         isCatalogLoading={isCatalogLoading}
         isPageLoading={isPageLoading}
+        isVoiceSearchListening={isVoiceSearchListening}
+        isVoiceSearchSupported={isVoiceSearchSupported}
         loadError={loadError}
-        onRandomSuggestion={onRandomSuggestion}
         onSearch={onSearch}
         onSuggestionClick={onSuggestionClick}
+        onVoiceSearch={onVoiceSearch}
         searchInputRef={searchInputRef}
+        voiceSearchMessage={voiceSearchMessage}
       />
 
       <GalleryToolbar

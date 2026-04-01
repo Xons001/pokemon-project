@@ -4,6 +4,17 @@ export type PokemonCatalogItem = {
   label: string
   image: string | null
   thumb: string | null
+  primaryType: string | null
+  secondaryType: string | null
+  primaryAbility: string | null
+  hp: number | null
+  attack: number | null
+  defense: number | null
+  specialAttack: number | null
+  specialDefense: number | null
+  speed: number | null
+  height: number | null
+  weight: number | null
 }
 
 export type PokemonLevelMove = {
@@ -14,6 +25,13 @@ export type PokemonLevelMove = {
 export type PokemonHeldItem = {
   name: string
   rarity: number | null
+}
+
+export type PokemonAbilityOption = {
+  slug: string
+  label: string
+  isHidden: boolean
+  slot: number
 }
 
 export type PokemonDetailDto = {
@@ -38,6 +56,7 @@ export type PokemonDetailDto = {
   palette: string
   height: number | null
   weight: number | null
+  abilities: PokemonAbilityOption[]
   levelMoves: PokemonLevelMove[]
   heldItems: PokemonHeldItem[]
 }
@@ -47,9 +66,15 @@ export type PokemonMoveLearnDto = {
   moveSlug: string
   type: string
   typeKey: string
-  method: string
-  methodKey: string
-  versionGroup: string
-  versionGroupKey: string
-  level: number
+  category: string
+  categoryKey: string | null
+  power: number | null
+  accuracy: number | null
+  pp: number | null
+  priority: number | null
+  learnMethods: string[]
+  learnMethodKeys: string[]
+  versionGroups: string[]
+  versionGroupKeys: string[]
+  level: number | null
 }

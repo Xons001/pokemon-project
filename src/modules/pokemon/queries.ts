@@ -1,11 +1,94 @@
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import { getPrismaClient } from '@/src/lib/prisma'
 
-import type { PokemonCatalogItem, PokemonDetailDto, PokemonHeldItem, PokemonLevelMove, PokemonMoveLearnDto } from './contracts'
-import { buildDescription, buildRole, formatDexNumber, formatName, getPalette, translateType } from './format'
+import type {
+  PokemonAbilityOption,
+  PokemonCatalogItem,
+  PokemonDetailDto,
+  PokemonHeldItem,
+  PokemonLevelMove,
+  PokemonMoveLearnDto,
+} from './contracts'
+import {
+  buildDescription,
+  buildRole,
+  formatDexNumber,
+  formatName,
+  getPalette,
+  translateDamageClass,
+  translateType,
+} from './format'
 
 type JsonObject = Record<string, any>
+
+type PokemonCatalogRecord = {
+  pokemon_id: number
+  pokemon_slug: string
+  primary_type: string | null
+  secondary_type: string | null
+  primary_ability: string | null
+  hp: number | null
+  attack: number | null
+  defense: number | null
+  special_attack: number | null
+  special_defense: number | null
+  speed: number | null
+  height_m: number | string | null
+  weight_kg: number | string | null
+  official_artwork_url: string | null
+  sprite_url: string | null
+}
+
+const pokemonCatalogFallbackSelect = {
+  id: true,
+  name: true,
+  heightDecimetres: true,
+  weightHectograms: true,
+  officialArtworkUrl: true,
+  spriteUrl: true,
+  types: {
+    select: {
+      slot: true,
+      type: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      slot: 'asc',
+    },
+  },
+  abilities: {
+    select: {
+      slot: true,
+      isHidden: true,
+      ability: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      slot: 'asc',
+    },
+  },
+  stats: {
+    select: {
+      baseStat: true,
+      stat: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.PokemonSelect
+
+type PokemonCatalogFallbackRecord = Prisma.PokemonGetPayload<{
+  select: typeof pokemonCatalogFallbackSelect
+}>
 
 const pokemonDetailSelect = {
   id: true,
@@ -88,6 +171,15 @@ function getStat(stats: Array<{ baseStat: number; stat: { name: string } }>, sta
   return stats.find((entry) => entry.stat.name === statName)?.baseStat ?? 0
 }
 
+function toNullableNumber(value: number | string | null): number | null {
+  if (value === null || typeof value === 'number') {
+    return value
+  }
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 function getRawPayloadStats(rawPayload: Prisma.JsonValue | null) {
   const payload = (rawPayload ?? {}) as JsonObject
   const stats = Array.isArray(payload.stats) ? payload.stats : []
@@ -132,6 +224,65 @@ function getPrimaryAbilityName(record: PokemonDetailRecord): string | null {
   return typeof visibleAbility === 'string' ? visibleAbility : null
 }
 
+function getCatalogTypeKeys(record: PokemonCatalogFallbackRecord): string[] {
+  return record.types.map((entry) => entry.type.name).filter(Boolean)
+}
+
+function getCatalogPrimaryAbilityName(record: PokemonCatalogFallbackRecord): string | null {
+  return (
+    record.abilities.find((entry) => !entry.isHidden)?.ability.name ??
+    record.abilities.find((entry) => entry.slot === 1)?.ability.name ??
+    record.abilities[0]?.ability.name ??
+    null
+  )
+}
+
+function serializePokemonCatalogFromView(entry: PokemonCatalogRecord): PokemonCatalogItem {
+  return {
+    id: entry.pokemon_id,
+    slug: entry.pokemon_slug,
+    label: formatName(entry.pokemon_slug),
+    image: entry.official_artwork_url,
+    thumb: entry.sprite_url,
+    primaryType: entry.primary_type,
+    secondaryType: entry.secondary_type,
+    primaryAbility: entry.primary_ability,
+    hp: entry.hp,
+    attack: entry.attack,
+    defense: entry.defense,
+    specialAttack: entry.special_attack,
+    specialDefense: entry.special_defense,
+    speed: entry.speed,
+    height: toNullableNumber(entry.height_m),
+    weight: toNullableNumber(entry.weight_kg),
+  }
+}
+
+function serializePokemonCatalogFromPokemon(record: PokemonCatalogFallbackRecord): PokemonCatalogItem {
+  const typeKeys = getCatalogTypeKeys(record)
+
+  return {
+    id: record.id,
+    slug: record.name,
+    label: formatName(record.name),
+    image: record.officialArtworkUrl,
+    thumb: record.spriteUrl,
+    primaryType: typeKeys[0] ?? null,
+    secondaryType: typeKeys[1] ?? null,
+    primaryAbility: getCatalogPrimaryAbilityName(record),
+    hp: getStat(record.stats, 'hp'),
+    attack: getStat(record.stats, 'attack'),
+    defense: getStat(record.stats, 'defense'),
+    specialAttack: getStat(record.stats, 'special-attack'),
+    specialDefense: getStat(record.stats, 'special-defense'),
+    speed: getStat(record.stats, 'speed'),
+    height:
+      typeof record.heightDecimetres === 'number' ? Number((record.heightDecimetres / 10).toFixed(1)) : null,
+    weight:
+      typeof record.weightHectograms === 'number' ? Number((record.weightHectograms / 10).toFixed(1)) : null,
+  }
+}
+
 function extractHeldItems(rawPayload: Prisma.JsonValue | null): PokemonHeldItem[] {
   const payload = (rawPayload ?? {}) as JsonObject
   const heldItems = Array.isArray(payload.held_items) ? payload.held_items : []
@@ -155,6 +306,30 @@ function extractHeldItems(rawPayload: Prisma.JsonValue | null): PokemonHeldItem[
 
       return (right.rarity ?? 0) - (left.rarity ?? 0)
     })
+}
+
+function extractAbilities(record: PokemonDetailRecord): PokemonAbilityOption[] {
+  if (record.abilities.length) {
+    return record.abilities.map((entry) => ({
+      slug: entry.ability.name,
+      label: formatName(entry.ability.name),
+      isHidden: entry.isHidden,
+      slot: entry.slot,
+    }))
+  }
+
+  const payload = (record.rawPayload ?? {}) as JsonObject
+  const rawAbilities = Array.isArray(payload.abilities) ? payload.abilities : []
+
+  return rawAbilities
+    .map((entry) => ({
+      slug: entry?.ability?.name,
+      label: entry?.ability?.name ? formatName(entry.ability.name) : null,
+      isHidden: Boolean(entry?.is_hidden),
+      slot: typeof entry?.slot === 'number' ? entry.slot : 0,
+    }))
+    .filter((entry): entry is PokemonAbilityOption => Boolean(entry.slug && entry.label))
+    .sort((left, right) => left.slot - right.slot)
 }
 
 function extractLevelMoves(record: PokemonDetailRecord): PokemonLevelMove[] {
@@ -271,6 +446,7 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
     palette: getPalette(primaryTypeKey),
     height: typeof record.heightDecimetres === 'number' ? Number((record.heightDecimetres / 10).toFixed(1)) : null,
     weight: typeof record.weightHectograms === 'number' ? Number((record.weightHectograms / 10).toFixed(1)) : null,
+    abilities: extractAbilities(record),
     levelMoves: extractLevelMoves(record),
     heldItems: extractHeldItems(record.rawPayload),
   }
@@ -278,25 +454,42 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
 
 export async function listPokemonCatalog(): Promise<PokemonCatalogItem[]> {
   const prisma = getPrismaClient()
-  const pokemon = await prisma.pokemon.findMany({
-    select: {
-      id: true,
-      name: true,
-      officialArtworkUrl: true,
-      spriteUrl: true,
-    },
-    orderBy: {
-      id: 'asc',
-    },
-  })
 
-  return pokemon.map((entry) => ({
-    id: entry.id,
-    slug: entry.name,
-    label: formatName(entry.name),
-    image: entry.officialArtworkUrl,
-    thumb: entry.spriteUrl,
-  }))
+  try {
+    const pokemon = await prisma.$queryRaw<PokemonCatalogRecord[]>(Prisma.sql`
+      SELECT
+        pokemon_id,
+        pokemon_slug,
+        primary_type,
+        secondary_type,
+        primary_ability,
+        hp,
+        attack,
+        defense,
+        special_attack,
+        special_defense,
+        speed,
+        height_m,
+        weight_kg,
+        official_artwork_url,
+        sprite_url
+      FROM pokemon_summary_view
+      ORDER BY pokemon_id ASC
+    `)
+
+    return pokemon.map(serializePokemonCatalogFromView)
+  } catch (error) {
+    console.warn('[pokemon] pokemon_summary_view unavailable, falling back to relational catalog query.', error)
+
+    const pokemon = await prisma.pokemon.findMany({
+      select: pokemonCatalogFallbackSelect,
+      orderBy: {
+        id: 'asc',
+      },
+    })
+
+    return pokemon.map(serializePokemonCatalogFromPokemon)
+  }
 }
 
 export async function getPokemonDetailByName(nameOrId: string): Promise<PokemonDetailDto | null> {
@@ -348,6 +541,11 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
           move: {
             select: {
               name: true,
+              power: true,
+              accuracy: true,
+              pp: true,
+              priority: true,
+              damageClassName: true,
               type: {
                 select: {
                   name: true,
@@ -365,15 +563,62 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
     return null
   }
 
-  return pokemon.moveLearns.map((entry) => ({
-    move: formatName(entry.move.name),
-    moveSlug: entry.move.name,
-    type: translateType(entry.move.type.name),
-    typeKey: entry.move.type.name,
-    method: formatName(entry.moveLearnMethod.name),
-    methodKey: entry.moveLearnMethod.name,
-    versionGroup: formatName(entry.versionGroup.name),
-    versionGroupKey: entry.versionGroup.name,
-    level: entry.levelLearnedAt,
-  }))
+  const moveMap = new Map<string, PokemonMoveLearnDto>()
+
+  pokemon.moveLearns.forEach((entry) => {
+    const existing = moveMap.get(entry.move.name)
+    const normalizedLevel = entry.levelLearnedAt > 0 ? entry.levelLearnedAt : null
+
+    if (!existing) {
+      moveMap.set(entry.move.name, {
+        move: formatName(entry.move.name),
+        moveSlug: entry.move.name,
+        type: translateType(entry.move.type.name),
+        typeKey: entry.move.type.name,
+        category: translateDamageClass(entry.move.damageClassName),
+        categoryKey: entry.move.damageClassName ?? null,
+        power: entry.move.power ?? null,
+        accuracy: entry.move.accuracy ?? null,
+        pp: entry.move.pp ?? null,
+        priority: entry.move.priority ?? null,
+        learnMethods: [formatName(entry.moveLearnMethod.name)],
+        learnMethodKeys: [entry.moveLearnMethod.name],
+        versionGroups: [formatName(entry.versionGroup.name)],
+        versionGroupKeys: [entry.versionGroup.name],
+        level: normalizedLevel,
+      })
+
+      return
+    }
+
+    if (!existing.learnMethodKeys.includes(entry.moveLearnMethod.name)) {
+      existing.learnMethodKeys.push(entry.moveLearnMethod.name)
+      existing.learnMethods.push(formatName(entry.moveLearnMethod.name))
+    }
+
+    if (!existing.versionGroupKeys.includes(entry.versionGroup.name)) {
+      existing.versionGroupKeys.push(entry.versionGroup.name)
+      existing.versionGroups.push(formatName(entry.versionGroup.name))
+    }
+
+    if (normalizedLevel !== null && (existing.level === null || normalizedLevel < existing.level)) {
+      existing.level = normalizedLevel
+    }
+  })
+
+  return Array.from(moveMap.values()).sort((left, right) => {
+    if (left.level === null && right.level !== null) {
+      return 1
+    }
+
+    if (left.level !== null && right.level === null) {
+      return -1
+    }
+
+    if (left.level !== null && right.level !== null && left.level !== right.level) {
+      return left.level - right.level
+    }
+
+    return left.move.localeCompare(right.move)
+  })
 }
