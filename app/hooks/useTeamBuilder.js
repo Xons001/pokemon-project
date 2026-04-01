@@ -138,6 +138,23 @@ export function useTeamBuilder() {
   }, [])
 
   useEffect(() => {
+    if (isFormatsLoading || !competitiveFormats.length) {
+      return
+    }
+
+    const hasSelectedFormat = competitiveFormats.some((format) => format.key === team.formatKey)
+
+    if (hasSelectedFormat) {
+      return
+    }
+
+    updateTeam((previous) => ({
+      ...previous,
+      formatKey: competitiveFormats[0].key,
+    }))
+  }, [competitiveFormats, isFormatsLoading, team.formatKey])
+
+  useEffect(() => {
     let isMounted = true
 
     async function loadTypeChart() {

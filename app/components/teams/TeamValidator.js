@@ -22,6 +22,14 @@ export default function TeamValidator({
   validationError,
   validationResult,
 }) {
+  const availableFormatKeys = new Set(competitiveFormats.map((format) => format.key))
+  const hasSelectedFormat = availableFormatKeys.has(selectedFormatKey)
+  const selectValue = competitiveFormats.length
+    ? hasSelectedFormat
+      ? selectedFormatKey
+      : competitiveFormats[0].key
+    : ''
+
   return (
     <section className={styles.validator}>
       <div className={styles.header}>
@@ -33,7 +41,11 @@ export default function TeamValidator({
         <div className={styles.actions}>
           <label className={styles.formatField}>
             <span>Formato</span>
-            <select value={selectedFormatKey} onChange={(event) => onSetFormatKey(event.target.value)} disabled={isFormatsLoading}>
+            <select
+              value={selectValue}
+              onChange={(event) => onSetFormatKey(event.target.value)}
+              disabled={isFormatsLoading || !competitiveFormats.length}
+            >
               {competitiveFormats.length ? (
                 competitiveFormats.map((format) => (
                   <option key={format.key} value={format.key}>
@@ -41,12 +53,17 @@ export default function TeamValidator({
                   </option>
                 ))
               ) : (
-                <option value={selectedFormatKey}>{selectedFormatKey.toUpperCase()}</option>
+                <option value="">Sin metas disponibles</option>
               )}
             </select>
           </label>
 
-          <button type="button" className={styles.validateButton} onClick={onValidateTeam} disabled={isValidationLoading}>
+          <button
+            type="button"
+            className={styles.validateButton}
+            onClick={onValidateTeam}
+            disabled={isValidationLoading || !competitiveFormats.length}
+          >
             {isValidationLoading ? 'Validando...' : 'Validar equipo'}
           </button>
         </div>

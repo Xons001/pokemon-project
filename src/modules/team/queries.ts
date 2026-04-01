@@ -642,6 +642,11 @@ export async function listCompetitiveFormats(): Promise<CompetitiveFormatOptionD
       section: {
         not: null,
       },
+      pokemonFormats: {
+        some: {
+          isUsageTracked: true,
+        },
+      },
       NOT: {
         formatKey: {
           startsWith: './',
