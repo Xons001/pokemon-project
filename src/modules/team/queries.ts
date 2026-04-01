@@ -433,6 +433,15 @@ function getUsageEntries(
   }))
 }
 
+function createStaticUsageEntry(label: string, showdownId: string): UsageDistributionEntryDto {
+  return {
+    label,
+    showdownId,
+    value: 1,
+    share: 1,
+  }
+}
+
 function getSingleTypeMultiplier(attackingType: string, defendingType: string, typeChart: Record<string, TypeChartEntryDto>): number {
   const relations = typeChart[defendingType]
 
@@ -1094,6 +1103,22 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     throw new Error(`Competitive format "${formatKey}" was not found.`)
   }
 
+  const relatedFormatKeys = Array.from(
+    new Set([format.formatKey, format.formatKey.startsWith('./') ? format.formatKey.slice(2) : `./${format.formatKey}`])
+  )
+  const relatedFormats = await prisma.competitiveFormat.findMany({
+    where: {
+      formatKey: {
+        in: relatedFormatKeys,
+      },
+    },
+    select: {
+      id: true,
+      formatKey: true,
+    },
+  })
+  const relatedFormatIds = Array.from(new Set(relatedFormats.map((entry) => entry.id)))
+
   const selectedPokemonSlugs = Array.from(
     new Set(normalizedSlots.map((slot) => slot.pokemonSlug).filter((value): value is string => Boolean(value)))
   )
@@ -1283,38 +1308,105 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
   })
 
   if (!candidateScoreMap.size) {
-    const fallbackRows = await prisma.pokemonFormat.findMany({
-      where: {
-        competitiveFormatId: format.id,
-        isUsageTracked: true,
-      },
-      orderBy: [
-        {
-          latestUsagePercent: 'desc',
+    const [fallbackRows, sampleSetCounts] = await Promise.all([
+      prisma.pokemonFormat.findMany({
+        where: {
+          competitiveFormatId: {
+            in: relatedFormatIds,
+          },
+          OR: [
+            {
+              isUsageTracked: true,
+            },
+            {
+              isSampleSetAvailable: true,
+            },
+          ],
         },
-        {
-          showdownPokemonId: 'asc',
+        orderBy: [
+          {
+            latestUsagePercent: 'desc',
+          },
+          {
+            showdownPokemonId: 'asc',
+          },
+        ],
+        take: limit * 12,
+        select: {
+          showdownPokemonId: true,
+          latestUsagePercent: true,
+          isSampleSetAvailable: true,
+          isUsageTracked: true,
         },
-      ],
-      take: limit * 6,
-      select: {
-        showdownPokemonId: true,
-        latestUsagePercent: true,
-      },
-    })
+      }),
+      prisma.sampleSet.groupBy({
+        by: ['showdownPokemonId'],
+        where: {
+          competitiveFormatId: {
+            in: relatedFormatIds,
+          },
+        },
+        _count: {
+          showdownPokemonId: true,
+        },
+      }),
+    ])
+    const sampleSetCountById = new Map(
+      sampleSetCounts.map((row) => [row.showdownPokemonId, row._count.showdownPokemonId])
+    )
+    const maxSampleSetCount = Math.max(
+      1,
+      ...sampleSetCounts.map((row) => row._count.showdownPokemonId)
+    )
 
     fallbackRows.forEach((row) => {
       if (exclusionIds.has(row.showdownPokemonId)) {
         return
       }
 
+      const sampleSetCount = sampleSetCountById.get(row.showdownPokemonId) ?? 0
+      const fallbackAffinity =
+        typeof row.latestUsagePercent === 'number'
+          ? row.latestUsagePercent
+          : sampleSetCount
+            ? sampleSetCount / maxSampleSetCount
+            : row.isSampleSetAvailable
+              ? 0.1
+              : 0
+      const existing = candidateScoreMap.get(row.showdownPokemonId)
+
+      if (existing) {
+        existing.affinityScore = Math.max(existing.affinityScore, fallbackAffinity)
+        existing.labels.add(row.showdownPokemonId)
+        candidateScoreMap.set(row.showdownPokemonId, existing)
+        return
+      }
+
       candidateScoreMap.set(row.showdownPokemonId, {
-        affinityScore: typeof row.latestUsagePercent === 'number' ? row.latestUsagePercent : 0,
+        affinityScore: fallbackAffinity,
         teammateCount: 0,
         labels: new Set<string>([row.showdownPokemonId]),
         contributors: new Set<string>(),
       })
     })
+
+    if (!candidateScoreMap.size && sampleSetCountById.size) {
+      Array.from(sampleSetCountById.entries())
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, limit * 6)
+        .forEach(([showdownPokemonId, sampleSetCount]) => {
+          if (exclusionIds.has(showdownPokemonId)) {
+            return
+          }
+
+          candidateScoreMap.set(showdownPokemonId, {
+            affinityScore: sampleSetCount / maxSampleSetCount,
+            teammateCount: 0,
+            labels: new Set<string>([showdownPokemonId]),
+            contributors: new Set<string>(),
+          })
+        })
+    }
   }
 
   const rankedCandidateIds = Array.from(candidateScoreMap.entries())
@@ -1341,7 +1433,7 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     }
   }
 
-  const [candidateUsageRows, directCandidateRows] = await Promise.all([
+  const [candidateUsageRows, directCandidateRows, candidateSampleSets] = await Promise.all([
     prisma.usageStatMonthly.findMany({
       where: {
         competitiveFormatId: format.id,
@@ -1377,10 +1469,39 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
       },
       select: POKEMON_SUGGESTION_SELECT,
     }),
+    prisma.sampleSet.findMany({
+      where: {
+        competitiveFormatId: {
+          in: relatedFormatIds,
+        },
+        showdownPokemonId: {
+          in: rankedCandidateIds,
+        },
+      },
+      orderBy: [
+        {
+          showdownPokemonId: 'asc',
+        },
+        {
+          setName: 'asc',
+        },
+      ],
+      select: {
+        showdownPokemonId: true,
+        setName: true,
+        abilityName: true,
+        itemName: true,
+        teraType: true,
+        nature: true,
+        moves: true,
+        evs: true,
+      },
+    }),
   ])
 
   const latestCandidateUsageRows = pickLatestUsageRows(candidateUsageRows)
   const candidatePokemonById = new Map<string, (typeof directCandidateRows)[number]>()
+  const candidateSampleSetById = new Map<string, (typeof candidateSampleSets)[number]>()
 
   directCandidateRows.forEach((pokemon) => {
     const keys = [pokemon.showdownId, pokemon.species?.showdownId]
@@ -1392,6 +1513,12 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
         candidatePokemonById.set(key, pokemon)
       }
     })
+  })
+
+  candidateSampleSets.forEach((sampleSet) => {
+    if (!candidateSampleSetById.has(sampleSet.showdownPokemonId)) {
+      candidateSampleSetById.set(sampleSet.showdownPokemonId, sampleSet)
+    }
   })
 
   for (const showdownPokemonId of rankedCandidateIds) {
@@ -1427,6 +1554,7 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
       const candidateScore = candidateScoreMap.get(showdownPokemonId)
       const usageRow = latestCandidateUsageRows.get(showdownPokemonId)
       const pokemon = candidatePokemonById.get(showdownPokemonId) ?? null
+      const sampleSet = candidateSampleSetById.get(showdownPokemonId) ?? null
 
       if (!candidateScore) {
         return null
@@ -1438,7 +1566,12 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
 
       const pokemonTypes = pokemon?.types.map((entry) => entry.type.name) ?? []
       const weaknessCoverage = getWorstCoveredWeaknesses(pokemonTypes, weaknessTargets, typeChart)
-      const moveSuggestions = getUsageEntries(usageRow?.moves, 6, (moveId) => moveLookup.get(moveId)?.label ?? formatName(moveId))
+      const sampleSetMoveIds = Array.isArray(sampleSet?.moves)
+        ? sampleSet.moves.map((moveName) => toShowdownId(String(moveName))).filter(Boolean)
+        : []
+      const moveSuggestions = usageRow
+        ? getUsageEntries(usageRow.moves, 6, (moveId) => moveLookup.get(moveId)?.label ?? formatName(moveId))
+        : sampleSetMoveIds.slice(0, 6).map((moveId) => createStaticUsageEntry(moveLookup.get(moveId)?.label ?? formatName(moveId), moveId))
       const candidateUtilities = new Set<SuggestionUtilityTag>()
 
       moveSuggestions.forEach((move) => {
@@ -1469,6 +1602,8 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
             ? `Encaja con ${candidateScore.contributors.size} miembros del equipo segun teammates del meta.`
             : `Aparece como pareja frecuente de ${Array.from(candidateScore.contributors)[0]}.`
         )
+      } else if (sampleSet) {
+        reasons.push(`Tiene sample sets disponibles en ${format.name}, aunque este entorno no cargue usage mensual completo.`)
       } else {
         reasons.push(`Se mantiene entre las opciones mas jugadas de ${format.name}.`)
       }
@@ -1493,15 +1628,29 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
         reasons.push(`Uso reciente aproximado de ${formatUsagePercent(usageRow.usagePercent)} en ${format.name}.`)
       }
 
-      const abilityEntries = getUsageEntries(
-        usageRow?.abilities,
-        2,
-        (abilityId) => abilityLookup.get(abilityId) ?? formatName(abilityId)
-      )
-      const itemEntries = getUsageEntries(usageRow?.items, 2, (itemId) => itemLookup.get(itemId) ?? formatName(itemId))
-      const teraEntry = getUsageEntries(usageRow?.teraTypes, 1, (typeId) => translateType(typeId))[0] ?? null
-      const spreadEntry =
-        getUsageEntries(usageRow?.spreads, 1, (value) => value, (value) => value.trim())[0] ?? null
+      const abilityEntries = usageRow
+        ? getUsageEntries(usageRow.abilities, 2, (abilityId) => abilityLookup.get(abilityId) ?? formatName(abilityId))
+        : sampleSet?.abilityName
+          ? [createStaticUsageEntry(formatName(sampleSet.abilityName), toShowdownId(sampleSet.abilityName))]
+          : []
+      const itemEntries = usageRow
+        ? getUsageEntries(usageRow.items, 2, (itemId) => itemLookup.get(itemId) ?? formatName(itemId))
+        : sampleSet?.itemName
+          ? [createStaticUsageEntry(formatName(sampleSet.itemName), toShowdownId(sampleSet.itemName))]
+          : []
+      const teraEntry = usageRow
+        ? getUsageEntries(usageRow.teraTypes, 1, (typeId) => translateType(typeId))[0] ?? null
+        : sampleSet?.teraType
+          ? createStaticUsageEntry(translateType(sampleSet.teraType), toShowdownId(sampleSet.teraType))
+          : null
+      const spreadEntry = usageRow
+        ? getUsageEntries(usageRow.spreads, 1, (value) => value, (value) => value.trim())[0] ?? null
+        : sampleSet?.nature
+          ? createStaticUsageEntry(
+              `${sampleSet.nature}${sampleSet.evs && typeof sampleSet.evs === 'object' ? ' / sample EVs' : ''}`,
+              `${showdownPokemonId}-sample-spread`
+            )
+          : null
       const enrichedMoves = moveSuggestions.slice(0, 4).map<SuggestedMoveDto>((move) => {
         const moveMeta = moveLookup.get(move.showdownId)
 

@@ -48,6 +48,7 @@ Variables relevantes:
 - `DIRECT_URL`
 - `OPS_META_REFRESH_TOKEN`
 - `POKEMON_PROJECT_ENV_NAME=preview`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
 
 Aplicadas en:
 
@@ -62,6 +63,7 @@ Variables relevantes:
 - `DIRECT_URL`
 - `OPS_META_REFRESH_TOKEN`
 - `POKEMON_PROJECT_ENV_NAME=production`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
 
 Aplicadas en:
 
@@ -181,13 +183,33 @@ Si una feature branch tiene un preview propio, sirve para probar UI o funcionali
 
 ## Limitacion actual de cloud free
 
-Las bases gratuitas no cargan `usage_stat_monthly` completo.
+Las bases gratuitas no deberian cargar `usage_stat_monthly` completo en `develop`.
 
 Consecuencia:
 
 - las pantallas estructurales funcionan
 - la capa competitiva ligera funciona
-- el historico mensual de Smogon queda reservado para local o para un plan con mas capacidad
+- el historico mensual de Smogon queda reservado para `production`, local o un plan con mas capacidad
+
+## Estrategia recomendada desde ahora
+
+- `Preview / develop`
+  - `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
+  - refresca `formats`, `tiers`, `learnsets` y `sample sets`
+  - no refresca `showdown-usage`
+- `Production / main`
+  - `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
+  - refresca tambien `showdown-usage`
+
+Si `develop` ya se ha llenado por un intento anterior de usage, puedes podarla con:
+
+```bash
+npm run prune:cloud-dev -- --apply --vacuum
+```
+
+Eso borra `usage_stat_monthly`, limpia los flags de usage en `pokemon_format` e intenta recuperar storage con `VACUUM FULL`.
+
+Si aun asi Neon sigue marcando el proyecto demasiado lleno, la opcion mas tranquila es recrear la base cloud de `develop` y volver a cargar solo el dataset ligero (`npm run ingest:cloud-dev`).
 
 ## Recomendacion futura
 

@@ -17,6 +17,7 @@ export type SmartIngestPlan = {
     showdownDataBaseUrl: string
     smogonStatsBaseUrl: string
     smogonStatsMonthOverride: string | null
+    metaRefreshProfile: 'full' | 'lean'
   }
   latestUsageMonthInDb: string | null
   recommendedSteps: IngestStepName[]
@@ -122,6 +123,7 @@ export async function buildSmartIngestPlan(options: {
 } = {}): Promise<SmartIngestPlan> {
   const prisma = getPrismaClient()
   const env = getAppEnv()
+  const usageSyncEnabled = env.metaRefreshProfile === 'full'
   const remoteInspection = await inspectRemoteSources(options.smogonStatsMonthOverride ?? env.smogonStatsMonth)
   const [
     latestUsageInDb,
@@ -190,6 +192,22 @@ export async function buildSmartIngestPlan(options: {
   } as const
 
   const decisions: SyncDecision[] = remoteInspection.sources.map((source) => {
+    if (source.key === 'smogon-usage-monthly' && !usageSyncEnabled) {
+      return {
+        source: {
+          ...source,
+          metadata: {
+            ...((source.metadata as Record<string, unknown>) ?? {}),
+            latestMonthInDb: latestUsageMonthInDb,
+            profile: env.metaRefreshProfile,
+          },
+        },
+        shouldRun: false,
+        reason: `El perfil ${env.metaRefreshProfile} desactiva la ingesta mensual de usage para mantener la base ligera en este entorno.`,
+        steps: [],
+      }
+    }
+
     const checkpoint = checkpoints.get(source.key)
     const fallbackAppliedAt =
       source.key in fallbackAppliedAtBySourceKey
@@ -266,6 +284,7 @@ export async function buildSmartIngestPlan(options: {
       showdownDataBaseUrl: env.showdownDataBaseUrl,
       smogonStatsBaseUrl: env.smogonStatsBaseUrl,
       smogonStatsMonthOverride: env.smogonStatsMonth,
+      metaRefreshProfile: env.metaRefreshProfile,
     },
     latestUsageMonthInDb,
     recommendedSteps: Array.from(new Set(decisions.flatMap((decision) => decision.steps))),

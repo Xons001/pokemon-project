@@ -178,11 +178,13 @@ Importante:
 
 - `OPS_META_REFRESH_TOKEN=<token preview>`
 - `POKEMON_PROJECT_ENV_NAME=preview`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
 
 #### Production
 
 - `OPS_META_REFRESH_TOKEN=<token production>`
 - `POKEMON_PROJECT_ENV_NAME=production`
+- `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
 
 Los tokens de preview y production deben ser distintos.
 
@@ -252,3 +254,16 @@ Para automatizar ese refresh tienes dos opciones:
 2. Ejecutar el script de ingesta directamente en un runner que cargue la `.env` de desarrollo.
 
 Para produccion, la opcion 1 suele ser la mas limpia.
+
+## Recomendacion operativa final
+
+- `Preview / develop`:
+  deja el DAG activo, pero con `POKEMON_PROJECT_META_REFRESH_PROFILE=lean` para que nunca meta `usage_stat_monthly`.
+- `Production / main`:
+  usa `POKEMON_PROJECT_META_REFRESH_PROFILE=full` para refrescar tambien la capa de usage de Smogon.
+
+Si la base cloud de `develop` ya se ha llenado por cargas antiguas, puedes podarla con:
+
+```bash
+npm run prune:cloud-dev -- --apply --vacuum
+```

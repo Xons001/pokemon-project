@@ -179,9 +179,11 @@ En general:
 1. Crear en `Preview`:
    - `OPS_META_REFRESH_TOKEN`
    - `POKEMON_PROJECT_ENV_NAME=preview`
+   - `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
 2. Crear en `Production`:
    - `OPS_META_REFRESH_TOKEN`
    - `POKEMON_PROJECT_ENV_NAME=production`
+   - `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
 3. Redeployar `develop` para el preview estable
 4. Redeployar `main` para production cuando el codigo ya este mergeado
 5. Copiar `ops/airflow/.env.vercel.example` a `ops/airflow/.env.vercel`
@@ -201,3 +203,17 @@ Si `production` responde `404` en `/api/ops/meta-refresh/status`, el problema no
   El script no falla por eso: simplemente no ve un mes nuevo y no ingiere usage.
 - Si fuerzas `SMOGON_STATS_MONTH`, el script usa ese mes como objetivo.
   Esto sirve para backfills, pero conviene desactivarlo despues.
+
+## Perfil recomendado por entorno
+
+Para no llenar la base cloud de `develop`, este proyecto soporta perfiles de refresco:
+
+- `full`
+  Ejecuta tambien `showdown-usage`.
+- `lean`
+  Nunca ejecuta `showdown-usage`, aunque exista un mes nuevo en Smogon.
+
+Regla recomendada:
+
+- `Preview / develop` -> `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`
+- `Production / main` -> `POKEMON_PROJECT_META_REFRESH_PROFILE=full`

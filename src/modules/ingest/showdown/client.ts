@@ -1,5 +1,8 @@
 import vm from 'node:vm'
 
+const SHOWDOWN_FETCH_TIMEOUT_MS = 30_000
+const SHOWDOWN_FETCH_RETRIES = 3
+
 function ensureTrailingSlash(value: string): string {
   return value.endsWith('/') ? value : `${value}/`
 }
@@ -73,22 +76,42 @@ export class ShowdownClient {
     this.statsBaseUrl = ensureTrailingSlash(statsBaseUrl)
   }
 
-  async fetchText(url: string): Promise<string> {
-    const response = await fetch(url)
+  async fetchWithRetry(url: string): Promise<Response> {
+    let lastError: unknown = null
 
-    if (!response.ok) {
-      throw new Error(`Showdown request failed (${response.status}) for ${url}`)
+    for (let attempt = 1; attempt <= SHOWDOWN_FETCH_RETRIES; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(SHOWDOWN_FETCH_TIMEOUT_MS),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Showdown request failed (${response.status}) for ${url}`)
+        }
+
+        return response
+      } catch (error) {
+        lastError = error
+
+        if (attempt === SHOWDOWN_FETCH_RETRIES) {
+          break
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 750 * attempt))
+      }
     }
+
+    throw lastError instanceof Error ? lastError : new Error(`Showdown request failed for ${url}`)
+  }
+
+  async fetchText(url: string): Promise<string> {
+    const response = await this.fetchWithRetry(url)
 
     return response.text()
   }
 
   async fetchJson<T>(url: string): Promise<T> {
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error(`Showdown request failed (${response.status}) for ${url}`)
-    }
+    const response = await this.fetchWithRetry(url)
 
     return response.json() as Promise<T>
   }
