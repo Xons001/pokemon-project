@@ -4,7 +4,7 @@ export const TEAM_STORAGE_KEY = 'pokemon-project-team-v2'
 export const LEGACY_TEAM_TEMPLATES_STORAGE_KEY = 'pokemon-project-team-templates-v1'
 export const TEAM_SIZE = 6
 export const TEAM_MOVE_SLOTS = 4
-export const TEAM_SEARCH_LIMIT = 18
+export const TEAM_SEARCH_PAGE_SIZE = 18
 export const DEFAULT_TEAM_FORMAT = 'gen9ou'
 export const TEAM_STAT_LEVEL = 50
 export const TEAM_MAX_EVS = 510
@@ -227,7 +227,7 @@ export function buildCatalogSearchResults(catalog, query) {
       })
     : catalog
 
-  return baseResults.slice(0, TEAM_SEARCH_LIMIT).map((entry) => createCatalogPokemon(entry))
+  return baseResults.map((entry) => createCatalogPokemon(entry))
 }
 
 export function normalizeTypeChartEntry(typeData) {

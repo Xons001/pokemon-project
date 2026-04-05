@@ -83,8 +83,11 @@ export default function TeamWorkspace({
   onResetStatSpread,
   onRenameTeam,
   onSelectSlot,
+  onSetSearchPage,
+  searchPage,
   searchQuery,
   searchResults,
+  searchResultsSummary,
   selectedPokemonDetail,
   selectedPokemonMoves,
   selectedSlot,
@@ -93,6 +96,8 @@ export default function TeamWorkspace({
   teamMembers,
 }) {
   const teamPanelRef = useRef(null)
+  const searchInputRef = useRef(null)
+  const searchResultsRef = useRef(null)
   const movePickerRefs = useRef([])
   const [openMovePickerIndex, setOpenMovePickerIndex] = useState(null)
   const [moveSearchQuery, setMoveSearchQuery] = useState('')
@@ -214,6 +219,40 @@ export default function TeamWorkspace({
     setMoveSearchQuery('')
   }
 
+  function clearSearchQuery() {
+    setSearchQuery('')
+    searchInputRef.current?.focus()
+  }
+
+  function buildVisibleSearchPages() {
+    const totalPages = searchResultsSummary?.totalPages ?? 1
+    const currentPage = searchPage ?? 1
+
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1)
+    }
+
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5]
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return Array.from({ length: 5 }, (_, index) => totalPages - 4 + index)
+    }
+
+    return Array.from({ length: 5 }, (_, index) => currentPage - 2 + index)
+  }
+
+  function handleSearchPageChange(nextPage) {
+    onSetSearchPage(nextPage)
+    searchResultsRef.current?.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
+
+  const visibleSearchPages = buildVisibleSearchPages()
+
   return (
     <section className={styles.workspace}>
       <div className={styles.topGrid}>
@@ -309,13 +348,27 @@ export default function TeamWorkspace({
           </div>
 
           <label className={styles.searchBar} htmlFor="team-search">
-            <input
-              id="team-search"
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Busca por nombre, numero o tipo"
-            />
+            <span className={styles.searchInputShell}>
+              <input
+                id="team-search"
+                ref={searchInputRef}
+                className={styles.searchInputField}
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Busca por nombre, numero o tipo"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  className={styles.searchClearButton}
+                  onClick={clearSearchQuery}
+                  aria-label="Limpiar busqueda"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              ) : null}
+            </span>
           </label>
 
           <p className={styles.helperText}>
@@ -324,7 +377,7 @@ export default function TeamWorkspace({
               : 'Haz clic en un resultado para colocarlo en el hueco seleccionado.'}
           </p>
 
-          <div className={styles.searchResults}>
+          <div className={styles.searchResults} ref={searchResultsRef}>
             {searchResults.length ? (
               searchResults.map((pokemon) => (
                 <button
@@ -346,6 +399,55 @@ export default function TeamWorkspace({
             ) : (
               <p className={styles.emptyResults}>No hemos encontrado Pokemon para esa busqueda.</p>
             )}
+          </div>
+
+          <div className={styles.searchFooter}>
+            <p className={styles.searchSummary}>
+              {searchResultsSummary.total
+                ? `Mostrando ${searchResultsSummary.from}-${searchResultsSummary.to} de ${searchResultsSummary.total} Pokemon`
+                : '0 Pokemon en esta busqueda'}
+            </p>
+
+            {searchResultsSummary.totalPages > 1 ? (
+              <nav className={styles.searchPagination} aria-label="Paginacion del buscador del equipo">
+                <button
+                  type="button"
+                  className={styles.searchPaginationButton}
+                  onClick={() => handleSearchPageChange(searchPage - 1)}
+                  disabled={searchPage <= 1}
+                >
+                  Anterior
+                </button>
+
+                <div className={styles.searchPaginationPages}>
+                  {visibleSearchPages.map((page) => (
+                    <button
+                      key={`search-page-${page}`}
+                      type="button"
+                      className={[
+                        styles.searchPaginationPage,
+                        page === searchPage ? styles.searchPaginationPageActive : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      onClick={() => handleSearchPageChange(page)}
+                      aria-current={page === searchPage ? 'page' : undefined}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.searchPaginationButton}
+                  onClick={() => handleSearchPageChange(searchPage + 1)}
+                  disabled={searchPage >= searchResultsSummary.totalPages}
+                >
+                  Siguiente
+                </button>
+              </nav>
+            ) : null}
           </div>
         </aside>
       </div>

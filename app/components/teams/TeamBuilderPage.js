@@ -32,15 +32,15 @@ export default function TeamBuilderPage() {
           </div>
 
           <div className={styles.heroStats}>
-            <div className={styles.statCard}>
+            <div className={[styles.statCard, styles.formatStatCard].join(' ')}>
               <span>Formato</span>
-              <strong>{teamBuilder.activeTeam.formatKey.toUpperCase()}</strong>
+              <strong className={styles.formatValue}>{teamBuilder.activeTeam.formatKey.toUpperCase()}</strong>
             </div>
-            <div className={styles.statCard}>
+            <div className={[styles.statCard, styles.compactStatCard].join(' ')}>
               <span>Huecos ocupados</span>
               <strong>{filledSlots}/6</strong>
             </div>
-            <div className={styles.statCard}>
+            <div className={[styles.statCard, styles.compactStatCard].join(' ')}>
               <span>Moveset</span>
               <strong>{configuredMoves}/24</strong>
             </div>
@@ -60,14 +60,17 @@ export default function TeamBuilderPage() {
             onAssignIndividualValue={teamBuilder.assignIndividualValue}
             onAssignAbilityToSlot={teamBuilder.assignAbilityToSlot}
             onAssignMoveToSlot={teamBuilder.assignMoveToSlot}
+            onSetSearchPage={teamBuilder.setSearchPage}
             onClearTeam={teamBuilder.clearTeam}
             onClearMovesFromSlot={teamBuilder.clearMovesFromSlot}
             onRemovePokemon={teamBuilder.removePokemonFromTeam}
             onResetStatSpread={teamBuilder.resetStatSpread}
             onRenameTeam={teamBuilder.renameTeam}
+            searchPage={teamBuilder.searchPage}
             onSelectSlot={teamBuilder.selectSlot}
             searchQuery={teamBuilder.searchQuery}
             searchResults={teamBuilder.searchResults}
+            searchResultsSummary={teamBuilder.searchResultsSummary}
             selectedPokemonDetail={teamBuilder.selectedPokemonDetail}
             selectedPokemonMoves={teamBuilder.selectedPokemonMoves}
             selectedSlot={teamBuilder.selectedSlot}

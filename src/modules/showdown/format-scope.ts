@@ -1,7 +1,7 @@
 import { toShowdownId } from '@/src/modules/showdown/id'
 
-// Mirrors the formats currently kept in main/production until the project decides the next target metas.
-export const ACTIVE_META_FORMAT_KEYS = ['gen9monotype', 'gen9ou', 'gen9uu'] as const
+// Temporary Champions-aligned scope: one usable Singles regulation proxy and one Doubles regulation proxy.
+export const ACTIVE_META_FORMAT_KEYS = ['gen9bssregi', 'gen9vgc2026regi'] as const
 
 function uniqueMetaFormatKeys(values: string[]) {
   return Array.from(new Set(values.filter(Boolean)))
