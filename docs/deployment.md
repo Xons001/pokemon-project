@@ -201,6 +201,14 @@ Consecuencia:
   - `POKEMON_PROJECT_META_REFRESH_PROFILE=full`
   - refresca tambien `showdown-usage`
 
+Si ademas quieres recortar el proyecto a un subconjunto fijo de metas, deja los `formatKey` activos en `src/modules/showdown/format-scope.ts`.
+
+Con esa lista configurada:
+
+- la ingesta de `showdown-format`, `showdown-sample-set` y `showdown-usage` ignora los formatos fuera del scope
+- `showdown-format` elimina de la base los formatos competitivos que ya no esten permitidos
+- el team builder solo expone los metas activos y ajusta el formato por defecto al primero disponible
+
 Si `develop` ya se ha llenado por un intento anterior de usage, puedes podarla con:
 
 ```bash

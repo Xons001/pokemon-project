@@ -33,6 +33,7 @@ export type IngestContext = {
   prisma: PrismaClient
   client: PokeApiClient
   showdownClient: ShowdownClient
+  allowedMetaFormats: string[]
   limit?: number
   concurrency: number
   showdownConcurrency: number

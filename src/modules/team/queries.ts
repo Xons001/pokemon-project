@@ -1,5 +1,6 @@
 import { getPrismaClient } from '@/src/lib/prisma'
 import { formatName, translateDamageClass, translateType } from '@/src/modules/pokemon/format'
+import { getActiveMetaFormatKeys, isActiveMetaFormat } from '@/src/modules/showdown/format-scope'
 import { toShowdownId } from '@/src/modules/showdown/id'
 
 type JsonObject = Record<string, any>
@@ -292,6 +293,107 @@ export async function getTypeChart(): Promise<Record<string, TypeChartEntryDto>>
 function normalizeFormatKey(value?: string | null): string {
   const normalized = value?.trim().toLowerCase()
   return normalized || DEFAULT_COMPETITIVE_FORMAT
+}
+
+function buildVisibleFormatWhere() {
+  const activeFormatKeys = getActiveMetaFormatKeys()
+
+  return {
+    searchShow: true,
+    section: {
+      not: null,
+    },
+    NOT: {
+      formatKey: {
+        startsWith: './',
+      },
+    },
+    ...(activeFormatKeys.length
+      ? {
+          formatKey: {
+            in: activeFormatKeys,
+          },
+        }
+      : {}),
+  }
+}
+
+function buildScopedFormatWhere() {
+  const activeFormatKeys = getActiveMetaFormatKeys()
+
+  if (!activeFormatKeys.length) {
+    return {}
+  }
+
+  return {
+    formatKey: {
+      in: activeFormatKeys,
+    },
+  }
+}
+
+async function resolveCompetitiveFormatKey(
+  prisma: ReturnType<typeof getPrismaClient>,
+  requestedFormatKey?: string | null
+) {
+  const requestedKey = normalizeFormatKey(requestedFormatKey)
+  const preferredKeys = Array.from(new Set([requestedKey, DEFAULT_COMPETITIVE_FORMAT]))
+
+  for (const candidateKey of preferredKeys) {
+    if (!candidateKey || !isActiveMetaFormat(candidateKey)) {
+      continue
+    }
+
+    const candidate = await prisma.competitiveFormat.findUnique({
+      where: {
+        formatKey: candidateKey,
+      },
+      select: {
+        formatKey: true,
+      },
+    })
+
+    if (candidate) {
+      return candidate.formatKey
+    }
+  }
+
+  const visibleFallback = await prisma.competitiveFormat.findFirst({
+    where: buildVisibleFormatWhere(),
+    orderBy: [
+      {
+        section: 'asc',
+      },
+      {
+        name: 'asc',
+      },
+    ],
+    select: {
+      formatKey: true,
+    },
+  })
+
+  if (visibleFallback) {
+    return visibleFallback.formatKey
+  }
+
+  const scopedFallback = await prisma.competitiveFormat.findFirst({
+    where: buildScopedFormatWhere(),
+    orderBy: [
+      {
+        name: 'asc',
+      },
+    ],
+    select: {
+      formatKey: true,
+    },
+  })
+
+  if (scopedFallback) {
+    return scopedFallback.formatKey
+  }
+
+  throw new Error('No hay formatos competitivos disponibles en la base de datos.')
 }
 
 function normalizeSlug(value?: string | null): string | null {
@@ -637,22 +739,7 @@ function extractStatMap(
 export async function listCompetitiveFormats(): Promise<CompetitiveFormatOptionDto[]> {
   const prisma = getPrismaClient()
   const formats = await prisma.competitiveFormat.findMany({
-    where: {
-      searchShow: true,
-      section: {
-        not: null,
-      },
-      pokemonFormats: {
-        some: {
-          isUsageTracked: true,
-        },
-      },
-      NOT: {
-        formatKey: {
-          startsWith: './',
-        },
-      },
-    },
+    where: buildVisibleFormatWhere(),
     select: {
       formatKey: true,
       name: true,
@@ -679,7 +766,7 @@ export async function listCompetitiveFormats(): Promise<CompetitiveFormatOptionD
 
 export async function validateTeamBuild(input: TeamValidationInput): Promise<TeamValidationResultDto> {
   const prisma = getPrismaClient()
-  const formatKey = normalizeFormatKey(input.formatKey)
+  const formatKey = await resolveCompetitiveFormatKey(prisma, input.formatKey)
   const normalizedSlots = Array.from({ length: TEAM_VALIDATION_SIZE }, (_, index) => {
     const slot = input.slots?.[index]
 
@@ -1079,7 +1166,7 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
 
 export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<TeamSuggestionsResultDto> {
   const prisma = getPrismaClient()
-  const formatKey = normalizeFormatKey(input.formatKey)
+  const formatKey = await resolveCompetitiveFormatKey(prisma, input.formatKey)
   const limit = normalizeSuggestionLimit(input.limit)
   const normalizedSlots = Array.from({ length: TEAM_VALIDATION_SIZE }, (_, index) => {
     const slot = input.slots?.[index]

@@ -41,8 +41,8 @@
 }
 
 .heroStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.9rem;
   min-width: 360px;
   align-self: start;
@@ -51,6 +51,7 @@
 .statCard {
   display: grid;
   gap: 0.35rem;
+  min-width: 120px;
   padding: 1rem 1.1rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.86);
@@ -67,6 +68,23 @@
 
 .statCard strong {
   font-size: 1.3rem;
+}
+
+.formatStatCard {
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 170px;
+  max-width: 100%;
+}
+
+.compactStatCard {
+  flex: 1 1 120px;
+}
+
+.formatValue {
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .layout {
@@ -119,6 +137,11 @@
   }
 
   .heroStats {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .formatStatCard,
+  .compactStatCard {
+    width: 100%;
   }
 }

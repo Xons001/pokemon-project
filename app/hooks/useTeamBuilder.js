@@ -16,6 +16,7 @@ import {
   DEFAULT_TEAM_FORMAT,
   LEGACY_TEAM_TEMPLATES_STORAGE_KEY,
   TEAM_STORAGE_KEY,
+  TEAM_SEARCH_PAGE_SIZE,
   buildUpdatedEffortValues,
   buildUpdatedIndividualValues,
   buildCatalogSearchResults,
@@ -35,6 +36,7 @@ export function useTeamBuilder() {
   const [team, setTeam] = useState(createDefaultTeam)
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchPage, setSearchPage] = useState(1)
   const [typeChart, setTypeChart] = useState({})
   const [isCatalogLoading, setIsCatalogLoading] = useState(true)
   const [isTypeChartLoading, setIsTypeChartLoading] = useState(true)
@@ -80,6 +82,10 @@ export function useTeamBuilder() {
     window.localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(team))
   }, [isStorageReady, team])
 
+  function getDefaultFormatKey() {
+    return competitiveFormats[0]?.key ?? DEFAULT_TEAM_FORMAT
+  }
+
   const selectedSlot = team.slots[selectedSlotIndex] ?? createEmptyTeamSlot()
   const selectedPokemonSlug = selectedSlot.pokemonSlug
 
@@ -109,6 +115,24 @@ export function useTeamBuilder() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!competitiveFormats.length) {
+      return
+    }
+
+    const availableFormatKeys = new Set(competitiveFormats.map((entry) => entry.key))
+
+    if (availableFormatKeys.has(team.formatKey)) {
+      return
+    }
+
+    setTeam((previous) => ({
+      ...previous,
+      formatKey: competitiveFormats[0].key,
+    }))
+    setNotice('El formato del equipo se ha ajustado al meta disponible en este entorno.')
+  }, [competitiveFormats, team.formatKey])
 
   useEffect(() => {
     let isMounted = true
@@ -284,6 +308,40 @@ export function useTeamBuilder() {
     return buildCatalogSearchResults(catalog, searchQuery)
   }, [catalog, searchQuery])
 
+  const totalSearchPages = useMemo(() => {
+    return Math.max(1, Math.ceil(searchResults.length / TEAM_SEARCH_PAGE_SIZE))
+  }, [searchResults.length])
+
+  const paginatedSearchResults = useMemo(() => {
+    const safePage = Math.min(searchPage, totalSearchPages)
+    const startIndex = (safePage - 1) * TEAM_SEARCH_PAGE_SIZE
+    return searchResults.slice(startIndex, startIndex + TEAM_SEARCH_PAGE_SIZE)
+  }, [searchPage, searchResults, totalSearchPages])
+
+  const searchResultsSummary = useMemo(() => {
+    if (!searchResults.length) {
+      return {
+        total: 0,
+        currentPage: 1,
+        totalPages: 1,
+        from: 0,
+        to: 0,
+      }
+    }
+
+    const currentPage = Math.min(searchPage, totalSearchPages)
+    const from = (currentPage - 1) * TEAM_SEARCH_PAGE_SIZE + 1
+    const to = Math.min(currentPage * TEAM_SEARCH_PAGE_SIZE, searchResults.length)
+
+    return {
+      total: searchResults.length,
+      currentPage,
+      totalPages: totalSearchPages,
+      from,
+      to,
+    }
+  }, [searchPage, searchResults.length, totalSearchPages])
+
   const teamSummary = useMemo(() => {
     return summarizeTeam(teamMembers, typeChart)
   }, [teamMembers, typeChart])
@@ -327,6 +385,14 @@ export function useTeamBuilder() {
 
     return detailCache[selectedPokemonSlug] ?? null
   }, [detailCache, selectedPokemonSlug])
+
+  useEffect(() => {
+    setSearchPage(1)
+  }, [searchQuery])
+
+  useEffect(() => {
+    setSearchPage((previous) => Math.min(previous, totalSearchPages))
+  }, [totalSearchPages])
 
   useEffect(() => {
     if (!selectedPokemonSlug || selectedSlot.abilitySlug || !selectedPokemonDetail?.abilities?.length) {
@@ -403,7 +469,7 @@ export function useTeamBuilder() {
   }
 
   function setFormatKey(value) {
-    const nextFormatKey = typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : DEFAULT_TEAM_FORMAT
+    const nextFormatKey = typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : getDefaultFormatKey()
 
     updateTeam((previous) => ({
       ...previous,
@@ -415,6 +481,13 @@ export function useTeamBuilder() {
 
   function selectSlot(index) {
     setSelectedSlotIndex(index)
+  }
+
+  function changeSearchPage(nextPage) {
+    setSearchPage((previous) => {
+      const safeNextPage = Number.isFinite(Number(nextPage)) ? Math.round(Number(nextPage)) : previous
+      return Math.min(Math.max(safeNextPage, 1), totalSearchPages)
+    })
   }
 
   function addPokemonToTeam(slug) {
@@ -611,7 +684,7 @@ export function useTeamBuilder() {
   }
 
   function clearTeam() {
-    updateTeam(() => createDefaultTeam())
+    updateTeam(() => createDefaultTeam(getDefaultFormatKey()))
     setSelectedSlotIndex(0)
     setNotice('Equipo vaciado. Puedes reconstruirlo desde cero.')
   }
@@ -665,11 +738,14 @@ export function useTeamBuilder() {
     isMovesLoading,
     notice,
     searchQuery,
-    searchResults,
+    searchPage: searchResultsSummary.currentPage,
+    searchResults: paginatedSearchResults,
+    searchResultsSummary,
     selectedPokemonDetail,
     selectedPokemonMoves,
     selectedSlot,
     selectedSlotIndex,
+    setSearchPage: changeSearchPage,
     setSearchQuery,
     setFormatKey,
     selectSlot,
