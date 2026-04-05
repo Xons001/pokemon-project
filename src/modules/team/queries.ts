@@ -38,6 +38,7 @@ const RECOVERY_MOVE_IDS = new Set([
   'lifedew',
   'leechseed',
 ])
+const RESERVED_COMPETITIVE_ITEM_CATEGORIES = new Set(['mega-stones'])
 const STATUS_MOVE_IDS = new Set([
   'toxic',
   'thunderwave',
@@ -810,11 +811,20 @@ async function resolveScopedFormats(
   })
 }
 
+function shouldIncludeReservedCompetitiveItems(scopedFormats: Array<{ formatKey: string }>) {
+  return scopedFormats.some((format) => isActiveMetaFormat(format.formatKey))
+}
+
+function isReservedCompetitiveItemCategory(categoryName?: string | null) {
+  return RESERVED_COMPETITIVE_ITEM_CATEGORIES.has(categoryName ?? '')
+}
+
 export async function listItemOptions(requestedFormatKey?: string | null): Promise<TeamItemOptionDto[]> {
   const prisma = getPrismaClient()
 
   const scopedFormats = await resolveScopedFormats(prisma, requestedFormatKey)
   const scopedFormatIds = scopedFormats.map((format) => format.id)
+  const includeReservedCompetitiveItems = shouldIncludeReservedCompetitiveItems(scopedFormats)
 
   if (!scopedFormatIds.length) {
     return []
@@ -901,17 +911,29 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
       label: formatName(item.name),
       category: item.categoryName,
       score: itemScoreByShowdownId.get(toShowdownId(item.name)) ?? 0,
+      isReserved: includeReservedCompetitiveItems && isReservedCompetitiveItemCategory(item.categoryName),
     }))
-    .filter((item) => item.score > 0)
+    .filter((item) => item.score > 0 || item.isReserved)
     .sort((left, right) => {
+      const leftHasDirectMetaUsage = left.score > 0
+      const rightHasDirectMetaUsage = right.score > 0
+
+      if (leftHasDirectMetaUsage !== rightHasDirectMetaUsage) {
+        return rightHasDirectMetaUsage ? 1 : -1
+      }
+
       if (right.score !== left.score) {
         return right.score - left.score
+      }
+
+      if (left.isReserved !== right.isReserved) {
+        return left.isReserved ? 1 : -1
       }
 
       return left.label.localeCompare(right.label, 'es')
     })
 
-  return scopedItems.map(({ score: _score, ...item }) => item)
+  return scopedItems.map(({ score: _score, isReserved: _isReserved, ...item }) => item)
 }
 
 export async function validateTeamBuild(input: TeamValidationInput): Promise<TeamValidationResultDto> {

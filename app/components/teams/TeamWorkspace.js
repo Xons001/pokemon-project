@@ -646,14 +646,14 @@ export default function TeamWorkspace({
                   options={itemPickerOptions}
                   disabled={isItemsLoading}
                   placeholderTitle={isItemsLoading ? 'Cargando items...' : 'Selecciona un item'}
-                  placeholderMeta="Busca y elige un item del meta actual."
+                  placeholderMeta="Prioriza el meta actual y conserva las megapiedras del scope competitivo."
                   searchPlaceholder="Filtra por nombre o categoria"
                   emptyMessage="No encontramos items que coincidan con ese filtro."
                 />
                 <small>
                   {isItemsLoading
                     ? 'Sincronizando el catalogo de items...'
-                    : 'Solo se aceptan items detectados en el meta actual; el autocompletado ya viene filtrado por formato.'}
+                    : 'El catalogo prioriza items vistos en el meta actual y mantiene tambien las megapiedras del scope competitivo activo.'}
                 </small>
               </div>
 
