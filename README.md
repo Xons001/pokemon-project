@@ -402,6 +402,29 @@ Notas importantes:
 - Usa `POKEMON_PROJECT_META_REFRESH_PROFILE="lean"` en `Preview / develop` y `POKEMON_PROJECT_META_REFRESH_PROFILE="full"` en `Production / main`.
 - Si una base cloud de `develop` ya se lleno por usage parcial, puedes podarla con `npm run prune:cloud-dev -- --apply --vacuum`.
 
+### Limitar metas activos
+
+Si quieres que todos los entornos trabajen solo con 3 metas, deja la lista versionada en:
+
+```ts
+src/modules/showdown/format-scope.ts
+```
+
+La constante `ACTIVE_META_FORMAT_KEYS` manda sobre:
+
+- la ingesta manual (`npm run ingest ...`)
+- el refresh inteligente (`npm run ingest:smart -- --apply`)
+- los endpoints de formatos del team builder
+- el fallback del formato por defecto en la UI
+
+Flujo recomendado cuando cambies la lista:
+
+```bash
+npm run ingest -- --steps=showdown-format,showdown-sample-set
+```
+
+Si ese entorno tambien mantiene `usage_stat_monthly`, anade `showdown-usage` al comando.
+
 ### Main / produccion
 
 Para `main`, la recomendacion es crear una segunda base gestionada y separada de la de `develop`.

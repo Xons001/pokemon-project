@@ -2,6 +2,7 @@ import { getAppEnv } from '@/src/lib/env'
 import { getPrismaClient } from '@/src/lib/prisma'
 import { getIngestCheckpointMap, type IngestCheckpointSource } from '@/src/modules/ingest/checkpoints'
 import { ShowdownClient } from '@/src/modules/ingest/showdown/client'
+import { getActiveMetaFormatKeys, isActiveMetaFormat } from '@/src/modules/showdown/format-scope'
 import type { IngestStepName } from '@/src/modules/ingest/types'
 
 export type SyncDecision = {
@@ -18,6 +19,7 @@ export type SmartIngestPlan = {
     smogonStatsBaseUrl: string
     smogonStatsMonthOverride: string | null
     metaRefreshProfile: 'full' | 'lean'
+    allowedMetaFormats: string[]
   }
   latestUsageMonthInDb: string | null
   recommendedSteps: IngestStepName[]
@@ -45,6 +47,7 @@ function stringifyDate(date: Date | null): string {
 async function inspectRemoteSources(targetStatsMonth: string | null) {
   const env = getAppEnv()
   const client = new ShowdownClient(env.showdownDataBaseUrl, env.smogonStatsBaseUrl)
+  const activeFormatKeys = getActiveMetaFormatKeys()
   const [dataEntries, setEntries, latestRemoteStatsMonth] = await Promise.all([
     client.listDataDirectoryEntries(''),
     client.listDataDirectoryEntries('sets/'),
@@ -60,6 +63,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
   const latestSampleSetsUpdatedAt = getLatestDate(
     setEntries
       .filter((entry) => entry.name.endsWith('.json'))
+      .filter((entry) => isActiveMetaFormat(entry.name.replace(/\.json$/, '')))
       .map((entry) => entry.lastModified)
   )
 
@@ -76,6 +80,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
         metadata: {
           files: ['formats.js', 'formats-data.js'],
           upstreamUpdatedAt: stringifyDate(latestFormatsUpdatedAt),
+          selectedFormats: activeFormatKeys,
         },
       },
       {
@@ -88,6 +93,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
         metadata: {
           files: ['learnsets.json'],
           upstreamUpdatedAt: stringifyDate(latestLearnsetsUpdatedAt),
+          selectedFormats: activeFormatKeys,
         },
       },
       {
@@ -100,6 +106,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
         metadata: {
           directory: 'sets/',
           upstreamUpdatedAt: stringifyDate(latestSampleSetsUpdatedAt),
+          selectedFormats: activeFormatKeys,
         },
       },
       {
@@ -111,6 +118,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
         observedAt: new Date(),
         metadata: {
           targetMonth: latestRemoteStatsMonth,
+          selectedFormats: activeFormatKeys,
         },
       },
     ] satisfies IngestCheckpointSource[],
@@ -285,6 +293,7 @@ export async function buildSmartIngestPlan(options: {
       smogonStatsBaseUrl: env.smogonStatsBaseUrl,
       smogonStatsMonthOverride: env.smogonStatsMonth,
       metaRefreshProfile: env.metaRefreshProfile,
+      allowedMetaFormats: getActiveMetaFormatKeys(),
     },
     latestUsageMonthInDb,
     recommendedSteps: Array.from(new Set(decisions.flatMap((decision) => decision.steps))),

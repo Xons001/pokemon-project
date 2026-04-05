@@ -4,6 +4,7 @@ import { processInBatches } from '@/src/modules/ingest/pokeapi/client'
 import { buildShowdownLookups } from '@/src/modules/ingest/showdown/lookups'
 import type { ShowdownEntityMatch } from '@/src/modules/ingest/showdown/lookups'
 import type { IngestContext } from '@/src/modules/ingest/types'
+import { isActiveMetaFormat } from '@/src/modules/showdown/format-scope'
 import { toShowdownId } from '@/src/modules/showdown/id'
 
 type ShowdownFormat = {
@@ -154,10 +155,36 @@ function getEntityMatch(
   )
 }
 
+function isAllowedMetaFormat(context: IngestContext, formatKey: string) {
+  if (!context.allowedMetaFormats.length) {
+    return true
+  }
+
+  return isActiveMetaFormat(formatKey)
+}
+
+async function deleteDisallowedCompetitiveFormats(context: IngestContext) {
+  if (!context.allowedMetaFormats.length) {
+    return
+  }
+
+  await context.prisma.competitiveFormat.deleteMany({
+    where: {
+      formatKey: {
+        notIn: context.allowedMetaFormats,
+      },
+    },
+  })
+}
+
 export async function ingestShowdownFormats(context: IngestContext) {
   const formats = await context.showdownClient.fetchExportedData<ShowdownFormat[]>('formats.js', 'Formats')
 
   let currentSection: string | null = null
+
+  if (context.allowedMetaFormats.length) {
+    context.log(`[ingest:showdown-format] active scope: ${context.allowedMetaFormats.join(', ')}`)
+  }
 
   for (const [index, format] of formats.entries()) {
     if (format.section && !format.name) {
@@ -171,6 +198,10 @@ export async function ingestShowdownFormats(context: IngestContext) {
 
     const formatName = format.name
     const formatKey = toShowdownId(formatName)
+
+    if (!isAllowedMetaFormat(context, formatKey)) {
+      continue
+    }
 
     await context.prisma.$transaction(async (transaction) => {
       const competitiveFormat = await transaction.competitiveFormat.upsert({
@@ -244,6 +275,8 @@ export async function ingestShowdownFormats(context: IngestContext) {
       context.log(`[ingest:showdown-format] ${index + 1}/${formats.length}`)
     }
   }
+
+  await deleteDisallowedCompetitiveFormats(context)
 }
 
 export async function ingestShowdownTiers(context: IngestContext) {
@@ -352,6 +385,8 @@ export async function ingestShowdownLearnsets(context: IngestContext) {
 }
 
 export async function ingestShowdownSampleSets(context: IngestContext) {
+  await deleteDisallowedCompetitiveFormats(context)
+
   const [files, lookups] = await Promise.all([
     context.showdownClient.listDataDirectory('sets/'),
     buildShowdownLookups(context.prisma),
@@ -360,6 +395,7 @@ export async function ingestShowdownSampleSets(context: IngestContext) {
   const jsonFiles = files
     .filter((file) => file.endsWith('.json'))
     .filter((file) => file !== 'package.json' && file !== 'index.d.ts')
+    .filter((file) => isAllowedMetaFormat(context, file.replace(/\.json$/, '')))
     .sort()
 
   const limitedFiles = typeof context.limit === 'number' ? jsonFiles.slice(0, context.limit) : jsonFiles
@@ -447,6 +483,8 @@ export async function ingestShowdownSampleSets(context: IngestContext) {
 }
 
 export async function ingestShowdownUsageStats(context: IngestContext) {
+  await deleteDisallowedCompetitiveFormats(context)
+
   const useSequentialInserts = context.showdownUsageInsertMode === 'sequential'
   const month = context.smogonStatsMonth ?? (await context.showdownClient.getLatestStatsMonth())
 
@@ -462,6 +500,7 @@ export async function ingestShowdownUsageStats(context: IngestContext) {
   const jsonFiles = files
     .filter((file) => file.endsWith('.json'))
     .filter((file) => !file.endsWith('.json.gz'))
+    .filter((file) => isAllowedMetaFormat(context, file.replace(/\.json$/, '').replace(/-\d+$/, '')))
     .sort()
 
   const limitedFiles = typeof context.limit === 'number' ? jsonFiles.slice(0, context.limit) : jsonFiles
@@ -617,7 +656,7 @@ export async function ingestShowdownUsageStats(context: IngestContext) {
         }
       }
     })
-    
+
     if ((index + 1) % 20 === 0 || index === limitedFiles.length - 1) {
       context.log(`[ingest:showdown-usage] ${index + 1}/${limitedFiles.length}`)
     }

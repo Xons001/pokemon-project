@@ -29,6 +29,7 @@ import {
   ingestShowdownTiers,
   ingestShowdownUsageStats,
 } from '@/src/modules/ingest/steps/showdown'
+import { getActiveMetaFormatKeys } from '@/src/modules/showdown/format-scope'
 import { INGESTION_ORDER } from '@/src/modules/ingest/types'
 import type { IngestContext, IngestStepName, RunIngestionOptions } from '@/src/modules/ingest/types'
 
@@ -69,6 +70,7 @@ export async function runIngestion(options: RunIngestionOptions = {}) {
     prisma,
     client: new PokeApiClient(env.pokeApiBaseUrl, env.pokeApiConcurrency),
     showdownClient: new ShowdownClient(env.showdownDataBaseUrl, env.smogonStatsBaseUrl),
+    allowedMetaFormats: getActiveMetaFormatKeys(),
     limit: options.limit,
     concurrency: env.pokeApiConcurrency,
     showdownConcurrency: env.showdownConcurrency,
