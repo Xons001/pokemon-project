@@ -86,6 +86,7 @@ type ValidationStatus = keyof typeof VALIDATOR_PRIORITY
 type TeamValidationSlotInput = {
   pokemonSlug?: string | null
   abilitySlug?: string | null
+  itemSlug?: string | null
   moveSlugs?: Array<string | null> | null
 }
 
@@ -120,6 +121,12 @@ export type CompetitiveFormatOptionDto = {
   name: string
   section: string | null
   gameType: string | null
+}
+
+export type TeamItemOptionDto = {
+  slug: string
+  label: string
+  category: string | null
 }
 
 export type TeamValidationResultDto = {
@@ -764,6 +771,149 @@ export async function listCompetitiveFormats(): Promise<CompetitiveFormatOptionD
   }))
 }
 
+async function resolveScopedFormats(
+  prisma: ReturnType<typeof getPrismaClient>,
+  requestedFormatKey?: string | null
+) {
+  if (requestedFormatKey) {
+    const resolvedFormatKey = await resolveCompetitiveFormatKey(prisma, requestedFormatKey)
+    const selectedFormat = await prisma.competitiveFormat.findUnique({
+      where: {
+        formatKey: resolvedFormatKey,
+      },
+      select: {
+        id: true,
+        formatKey: true,
+      },
+    })
+
+    return selectedFormat ? [selectedFormat] : []
+  }
+
+  const activeFormatKeys = getActiveMetaFormatKeys()
+
+  return prisma.competitiveFormat.findMany({
+    where: activeFormatKeys.length
+      ? {
+          formatKey: {
+            in: activeFormatKeys,
+          },
+        }
+      : buildVisibleFormatWhere(),
+    select: {
+      id: true,
+      formatKey: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  })
+}
+
+export async function listItemOptions(requestedFormatKey?: string | null): Promise<TeamItemOptionDto[]> {
+  const prisma = getPrismaClient()
+
+  const scopedFormats = await resolveScopedFormats(prisma, requestedFormatKey)
+  const scopedFormatIds = scopedFormats.map((format) => format.id)
+
+  if (!scopedFormatIds.length) {
+    return []
+  }
+
+  const [latestUsageMonths, sampleSetRows, canonicalItems] = await Promise.all([
+    prisma.usageStatMonthly.groupBy({
+      by: ['competitiveFormatId'],
+      where: {
+        competitiveFormatId: {
+          in: scopedFormatIds,
+        },
+      },
+      _max: {
+        month: true,
+      },
+    }),
+    prisma.sampleSet.findMany({
+      where: {
+        competitiveFormatId: {
+          in: scopedFormatIds,
+        },
+        itemName: {
+          not: null,
+        },
+      },
+      select: {
+        itemName: true,
+      },
+    }),
+    prisma.item.findMany({
+      select: {
+        name: true,
+        categoryName: true,
+      },
+    }),
+  ])
+
+  const latestUsageClauses = latestUsageMonths
+    .map((entry) => ({
+      competitiveFormatId: entry.competitiveFormatId,
+      month: entry._max.month,
+    }))
+    .filter((entry): entry is { competitiveFormatId: string; month: string } => Boolean(entry.month))
+
+  const usageRows = latestUsageClauses.length
+    ? await prisma.usageStatMonthly.findMany({
+        where: {
+          OR: latestUsageClauses,
+        },
+        select: {
+          items: true,
+        },
+      })
+    : []
+
+  const itemScoreByShowdownId = new Map<string, number>()
+
+  function registerItemUsage(value: string, amount: number) {
+    const showdownId = toShowdownId(value)
+
+    if (!showdownId || showdownId === 'nothing') {
+      return
+    }
+
+    itemScoreByShowdownId.set(showdownId, (itemScoreByShowdownId.get(showdownId) ?? 0) + amount)
+  }
+
+  usageRows.forEach((row) => {
+    coerceUsageDistribution(row.items).forEach((entry) => {
+      registerItemUsage(entry.key, entry.value)
+    })
+  })
+
+  sampleSetRows.forEach((sampleSet) => {
+    if (sampleSet.itemName) {
+      registerItemUsage(sampleSet.itemName, 1)
+    }
+  })
+
+  const scopedItems = canonicalItems
+    .map((item) => ({
+      slug: item.name,
+      label: formatName(item.name),
+      category: item.categoryName,
+      score: itemScoreByShowdownId.get(toShowdownId(item.name)) ?? 0,
+    }))
+    .filter((item) => item.score > 0)
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score
+      }
+
+      return left.label.localeCompare(right.label, 'es')
+    })
+
+  return scopedItems.map(({ score: _score, ...item }) => item)
+}
+
 export async function validateTeamBuild(input: TeamValidationInput): Promise<TeamValidationResultDto> {
   const prisma = getPrismaClient()
   const formatKey = await resolveCompetitiveFormatKey(prisma, input.formatKey)
@@ -773,6 +923,7 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
     return {
       pokemonSlug: normalizeSlug(slot?.pokemonSlug),
       abilitySlug: normalizeSlug(slot?.abilitySlug),
+      itemSlug: normalizeSlug(slot?.itemSlug),
       moveSlugs: normalizeMoveSlugs(slot?.moveSlugs),
     }
   })
@@ -852,6 +1003,9 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
   })
 
   const pokemonBySlug = new Map(pokemonRecords.map((record) => [record.name, record]))
+  const selectedItemSlugs = Array.from(
+    new Set(normalizedSlots.map((slot) => slot.itemSlug).filter((value): value is string => Boolean(value)))
+  )
   const showdownIds = Array.from(
     new Set(
       pokemonRecords.flatMap((record) => {
@@ -861,8 +1015,22 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
       })
     )
   )
+  const alternateActiveFormatKeys = getActiveMetaFormatKeys().filter((activeFormatKey) => activeFormatKey !== format.formatKey)
+  const alternateActiveFormats = alternateActiveFormatKeys.length
+    ? await prisma.competitiveFormat.findMany({
+        where: {
+          formatKey: {
+            in: alternateActiveFormatKeys,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+    : []
 
-  const [pokemonFormatRows, learnsetRows] = await Promise.all([
+  const [pokemonFormatRows, alternatePokemonFormatRows, learnsetRows, itemRows] = await Promise.all([
     showdownIds.length
       ? prisma.pokemonFormat.findMany({
           where: {
@@ -876,6 +1044,24 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
             isSampleSetAvailable: true,
             isUsageTracked: true,
             latestUsagePercent: true,
+          },
+        })
+      : Promise.resolve([]),
+    showdownIds.length && alternateActiveFormats.length
+      ? prisma.pokemonFormat.findMany({
+          where: {
+            competitiveFormatId: {
+              in: alternateActiveFormats.map((entry) => entry.id),
+            },
+            showdownPokemonId: {
+              in: showdownIds,
+            },
+          },
+          select: {
+            showdownPokemonId: true,
+            competitiveFormatId: true,
+            isSampleSetAvailable: true,
+            isUsageTracked: true,
           },
         })
       : Promise.resolve([]),
@@ -903,10 +1089,40 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
           },
         })
       : Promise.resolve([]),
+    selectedItemSlugs.length
+      ? prisma.item.findMany({
+          where: {
+            name: {
+              in: selectedItemSlugs,
+            },
+          },
+          select: {
+            name: true,
+          },
+        })
+      : Promise.resolve([]),
   ])
 
   const pokemonFormatById = new Map(pokemonFormatRows.map((row) => [row.showdownPokemonId, row]))
+  const alternateFormatNameById = new Map(alternateActiveFormats.map((entry) => [entry.id, entry.name]))
+  const alternateFormatsByPokemonId = alternatePokemonFormatRows.reduce<Map<string, Set<string>>>((accumulator, row) => {
+    if (!row.isSampleSetAvailable && !row.isUsageTracked) {
+      return accumulator
+    }
+
+    const formatName = alternateFormatNameById.get(row.competitiveFormatId)
+
+    if (!formatName) {
+      return accumulator
+    }
+
+    const existing = accumulator.get(row.showdownPokemonId) ?? new Set<string>()
+    existing.add(formatName)
+    accumulator.set(row.showdownPokemonId, existing)
+    return accumulator
+  }, new Map<string, Set<string>>())
   const learnsetKeys = new Set(learnsetRows.map((row) => `${row.showdownPokemonId}:${row.showdownMoveId}`))
+  const itemNames = new Set(itemRows.map((row) => row.name))
   const normalizedBanlist = new Set(
     format.banlistEntries
       .map((entry) => entry.value)
@@ -1011,12 +1227,19 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
         )
       )
     } else {
+      const alternateFormatNames = Array.from(
+        new Set(
+          pokemonShowdownIds.flatMap((value) => Array.from(alternateFormatsByPokemonId.get(value) ?? []))
+        )
+      )
       checks.push(
         buildValidationCheck(
           `slot-${index + 1}-meta`,
           'Meta',
           'warning',
-          `${pokemonName} no aparece en usage ni en sample sets de ${format.name}. Puede ser niche o simplemente faltar cobertura competitiva en la base.`
+          alternateFormatNames.length
+            ? `${pokemonName} no tiene datos directos en ${format.name}, pero si aparece en ${alternateFormatNames.join(', ')}.`
+            : `${pokemonName} no aparece en usage ni en sample sets de ${format.name}. Puede ser niche o simplemente faltar cobertura competitiva en la base.`
         )
       )
     }
@@ -1055,6 +1278,46 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
           'Habilidad',
           'valid',
           `${formatName(selectedAbility)} es una habilidad valida para ${pokemonName} en esta configuracion.`
+        )
+      )
+    }
+
+    const selectedItem = slot.itemSlug
+
+    if (!selectedItem) {
+      checks.push(
+        buildValidationCheck(
+          `slot-${index + 1}-item`,
+          'Item',
+          'pending',
+          'Selecciona un item si quieres comprobar tambien su legalidad competitiva.'
+        )
+      )
+    } else if (!itemNames.has(selectedItem)) {
+      checks.push(
+        buildValidationCheck(
+          `slot-${index + 1}-item`,
+          'Item',
+          'invalid',
+          `${formatName(selectedItem)} no existe en el catalogo local de items.`
+        )
+      )
+    } else if (normalizedBanlist.has(toShowdownId(selectedItem))) {
+      checks.push(
+        buildValidationCheck(
+          `slot-${index + 1}-item`,
+          'Item',
+          'invalid',
+          `${formatName(selectedItem)} aparece en la banlist directa de ${format.name}.`
+        )
+      )
+    } else {
+      checks.push(
+        buildValidationCheck(
+          `slot-${index + 1}-item`,
+          'Item',
+          'valid',
+          `${formatName(selectedItem)} no aparece vetado de forma directa en ${format.name}.`
         )
       )
     }

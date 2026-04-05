@@ -7,6 +7,8 @@ import {
   TEAM_STAT_LEVEL,
   calculateBattleStat,
   getEffortValueTotal,
+  getNatureModifier,
+  getNatureSummary,
 } from '../../lib/team-builder'
 import styles from './TeamStatEditor.module.css'
 
@@ -49,6 +51,7 @@ export default function TeamStatEditor({
 
   const evs = selectedSlot?.evs ?? {}
   const ivs = selectedSlot?.ivs ?? {}
+  const natureKey = selectedSlot?.natureKey ?? null
   const effortTotal = getEffortValueTotal(evs)
   const radarCenter = 130
   const radarRadius = 96
@@ -62,19 +65,23 @@ export default function TeamStatEditor({
       iv: 0,
       ev: 0,
       statKey: stat.key,
+      natureKey,
     })
     const total = calculateBattleStat({
       base,
       iv,
       ev,
       statKey: stat.key,
+      natureKey,
     })
     const maxTotal = calculateBattleStat({
       base,
       iv: TEAM_MAX_IVS_PER_STAT,
       ev: TEAM_MAX_EVS_PER_STAT,
       statKey: stat.key,
+      natureKey,
     })
+    const natureModifier = getNatureModifier(natureKey, stat.key)
 
     return {
       ...stat,
@@ -84,6 +91,7 @@ export default function TeamStatEditor({
       baseTotal,
       total,
       maxTotal,
+      natureModifier,
     }
   })
 
@@ -113,6 +121,7 @@ export default function TeamStatEditor({
         <div className={styles.headerActions}>
           <span className={styles.summaryBadge}>EV total {effortTotal}/{TEAM_MAX_EVS}</span>
           <span className={styles.summaryBadge}>Totales Lv.{TEAM_STAT_LEVEL}</span>
+          <span className={[styles.summaryBadge, styles.natureBadge].join(' ')}>{getNatureSummary(natureKey)}</span>
           <button type="button" className={styles.resetButton} onClick={onResetStatSpread}>
             Reset stats
           </button>
@@ -202,7 +211,18 @@ export default function TeamStatEditor({
           {statRows.map((stat) => (
             <article key={stat.key} className={styles.statRow} style={{ '--stat-accent': stat.color }}>
               <div className={styles.statLabelCell}>
-                <span className={styles.statKey}>{stat.label}</span>
+                <span
+                  className={[
+                    styles.statKey,
+                    stat.natureModifier > 1 ? styles.statKeyBoost : null,
+                    stat.natureModifier < 1 ? styles.statKeyDrop : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  {stat.label}
+                  {stat.natureModifier > 1 ? ' +' : stat.natureModifier < 1 ? ' -' : ''}
+                </span>
               </div>
 
               <div className={styles.baseCell}>
