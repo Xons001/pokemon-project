@@ -80,6 +80,10 @@ export function useTeamBuilder() {
     window.localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(team))
   }, [isStorageReady, team])
 
+  function getDefaultFormatKey() {
+    return competitiveFormats[0]?.key ?? DEFAULT_TEAM_FORMAT
+  }
+
   const selectedSlot = team.slots[selectedSlotIndex] ?? createEmptyTeamSlot()
   const selectedPokemonSlug = selectedSlot.pokemonSlug
 
@@ -109,6 +113,24 @@ export function useTeamBuilder() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!competitiveFormats.length) {
+      return
+    }
+
+    const availableFormatKeys = new Set(competitiveFormats.map((entry) => entry.key))
+
+    if (availableFormatKeys.has(team.formatKey)) {
+      return
+    }
+
+    setTeam((previous) => ({
+      ...previous,
+      formatKey: competitiveFormats[0].key,
+    }))
+    setNotice('El formato del equipo se ha ajustado al meta disponible en este entorno.')
+  }, [competitiveFormats, team.formatKey])
 
   useEffect(() => {
     let isMounted = true
@@ -386,7 +408,7 @@ export function useTeamBuilder() {
   }
 
   function setFormatKey(value) {
-    const nextFormatKey = typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : DEFAULT_TEAM_FORMAT
+    const nextFormatKey = typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : getDefaultFormatKey()
 
     updateTeam((previous) => ({
       ...previous,
@@ -594,7 +616,7 @@ export function useTeamBuilder() {
   }
 
   function clearTeam() {
-    updateTeam(() => createDefaultTeam())
+    updateTeam(() => createDefaultTeam(getDefaultFormatKey()))
     setSelectedSlotIndex(0)
     setNotice('Equipo vaciado. Puedes reconstruirlo desde cero.')
   }

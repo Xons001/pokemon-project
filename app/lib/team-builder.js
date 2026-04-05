@@ -129,10 +129,10 @@ export function createTeamSlot(pokemonSlug, abilitySlug = null) {
   }
 }
 
-export function createDefaultTeam() {
+export function createDefaultTeam(formatKey = DEFAULT_TEAM_FORMAT) {
   return {
     name: 'Equipo principal',
-    formatKey: DEFAULT_TEAM_FORMAT,
+    formatKey,
     slots: Array.from({ length: TEAM_SIZE }, () => createEmptyTeamSlot()),
     leaderSlot: 0,
   }
