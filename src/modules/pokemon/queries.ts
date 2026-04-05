@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client'
 
 import { getPrismaClient } from '@/src/lib/prisma'
+import {
+  getActiveMetaFormatKeys,
+  hasActiveMetaFormatLimit,
+  isActiveMetaFormat,
+  normalizeMetaFormatKey,
+} from '@/src/modules/showdown/format-scope'
 
 import type {
   PokemonAbilityOption,
@@ -89,6 +95,20 @@ const pokemonCatalogFallbackSelect = {
 type PokemonCatalogFallbackRecord = Prisma.PokemonGetPayload<{
   select: typeof pokemonCatalogFallbackSelect
 }>
+
+type ListPokemonCatalogOptions = {
+  competitiveOnly?: boolean
+  formatKey?: string | null
+  query?: string | null
+  page?: number | null
+  pageSize?: number | null
+}
+
+type ListPokemonCatalogResult = {
+  total: number
+  catalogTotal: number
+  items: PokemonCatalogItem[]
+}
 
 const pokemonDetailSelect = {
   id: true,
@@ -283,6 +303,276 @@ function serializePokemonCatalogFromPokemon(record: PokemonCatalogFallbackRecord
   }
 }
 
+function normalizeCatalogPage(value?: number | null): number | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (!Number.isFinite(Number(value))) {
+    return null
+  }
+
+  return Math.max(1, Math.round(Number(value)))
+}
+
+function normalizeCatalogPageSize(value?: number | null): number | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (!Number.isFinite(Number(value))) {
+    return null
+  }
+
+  return Math.min(Math.max(Math.round(Number(value)), 1), 96)
+}
+
+function filterPokemonCatalogItems(items: PokemonCatalogItem[], query?: string | null) {
+  const normalizedQuery = query?.trim().toLowerCase()
+
+  if (!normalizedQuery) {
+    return items
+  }
+
+  return items.filter((entry) => {
+    const haystack = [
+      entry.label,
+      entry.slug,
+      formatDexNumber(entry.id),
+      entry.primaryAbility,
+      entry.primaryAbility ? formatName(entry.primaryAbility) : null,
+      entry.primaryType,
+      entry.secondaryType,
+      entry.primaryType ? translateType(entry.primaryType) : null,
+      entry.secondaryType ? translateType(entry.secondaryType) : null,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return haystack.includes(normalizedQuery)
+  })
+}
+
+function paginatePokemonCatalogItems(
+  items: PokemonCatalogItem[],
+  page?: number | null,
+  pageSize?: number | null
+) {
+  const normalizedPageSize = normalizeCatalogPageSize(pageSize)
+
+  if (!normalizedPageSize) {
+    return items
+  }
+
+  const normalizedPage = normalizeCatalogPage(page) ?? 1
+  const offset = (normalizedPage - 1) * normalizedPageSize
+
+  return items.slice(offset, offset + normalizedPageSize)
+}
+
+async function listPokemonCatalogFromView(
+  prisma: ReturnType<typeof getPrismaClient>,
+  options: {
+    page?: number | null
+    pageSize?: number | null
+  } = {}
+) {
+  const normalizedPageSize = normalizeCatalogPageSize(options.pageSize)
+  const normalizedPage = normalizeCatalogPage(options.page) ?? 1
+
+  if (normalizedPageSize) {
+    const offset = (normalizedPage - 1) * normalizedPageSize
+    const [countRows, pokemon] = await Promise.all([
+      prisma.$queryRaw<Array<{ count: bigint | number }>>(Prisma.sql`
+        SELECT COUNT(*) AS count
+        FROM pokemon_summary_view
+      `),
+      prisma.$queryRaw<PokemonCatalogRecord[]>(Prisma.sql`
+        SELECT
+          pokemon_id,
+          pokemon_slug,
+          primary_type,
+          secondary_type,
+          primary_ability,
+          hp,
+          attack,
+          defense,
+          special_attack,
+          special_defense,
+          speed,
+          height_m,
+          weight_kg,
+          official_artwork_url,
+          sprite_url
+        FROM pokemon_summary_view
+        ORDER BY pokemon_id ASC
+        LIMIT ${normalizedPageSize}
+        OFFSET ${offset}
+      `),
+    ])
+
+    return {
+      total: Number(countRows[0]?.count ?? 0),
+      items: pokemon.map(serializePokemonCatalogFromView),
+    }
+  }
+
+  const pokemon = await prisma.$queryRaw<PokemonCatalogRecord[]>(Prisma.sql`
+    SELECT
+      pokemon_id,
+      pokemon_slug,
+      primary_type,
+      secondary_type,
+      primary_ability,
+      hp,
+      attack,
+      defense,
+      special_attack,
+      special_defense,
+      speed,
+      height_m,
+      weight_kg,
+      official_artwork_url,
+      sprite_url
+    FROM pokemon_summary_view
+    ORDER BY pokemon_id ASC
+  `)
+
+  return {
+    total: pokemon.length,
+    items: pokemon.map(serializePokemonCatalogFromView),
+  }
+}
+
+async function listPokemonCatalogFromRelations(
+  prisma: ReturnType<typeof getPrismaClient>,
+  options: {
+    page?: number | null
+    pageSize?: number | null
+  } = {}
+) {
+  const normalizedPageSize = normalizeCatalogPageSize(options.pageSize)
+  const normalizedPage = normalizeCatalogPage(options.page) ?? 1
+  const [total, pokemon] = await Promise.all([
+    prisma.pokemon.count(),
+    prisma.pokemon.findMany({
+      select: pokemonCatalogFallbackSelect,
+      orderBy: {
+        id: 'asc',
+      },
+      ...(normalizedPageSize
+        ? {
+            skip: (normalizedPage - 1) * normalizedPageSize,
+            take: normalizedPageSize,
+          }
+        : {}),
+    }),
+  ])
+
+  return {
+    total,
+    items: pokemon.map(serializePokemonCatalogFromPokemon),
+  }
+}
+
+function resolveScopedCatalogFormatKeys(requestedFormatKey?: string | null) {
+  const normalizedRequestedFormatKey = requestedFormatKey ? normalizeMetaFormatKey(requestedFormatKey) : null
+
+  if (normalizedRequestedFormatKey) {
+    if (!hasActiveMetaFormatLimit() || isActiveMetaFormat(normalizedRequestedFormatKey)) {
+      return [normalizedRequestedFormatKey]
+    }
+  }
+
+  return getActiveMetaFormatKeys()
+}
+
+async function resolveCompetitiveCatalogScope(
+  prisma: ReturnType<typeof getPrismaClient>,
+  formatKeys: string[]
+) {
+  const scopedRows = await prisma.pokemonFormat.findMany({
+    where: formatKeys.length
+      ? {
+          competitiveFormat: {
+            is: {
+              formatKey: {
+                in: formatKeys,
+              },
+            },
+          },
+        }
+      : undefined,
+    select: {
+      pokemonId: true,
+      speciesId: true,
+      showdownPokemonId: true,
+    },
+  })
+
+  return {
+    pokemonIds: Array.from(
+      new Set(
+        scopedRows
+          .map((entry) => entry.pokemonId)
+          .filter((value): value is number => Number.isInteger(value))
+      )
+    ),
+    speciesIds: Array.from(
+      new Set(
+        scopedRows
+          .map((entry) => entry.speciesId)
+          .filter((value): value is number => Number.isInteger(value))
+      )
+    ),
+    showdownIds: Array.from(
+      new Set(scopedRows.map((entry) => entry.showdownPokemonId).filter(Boolean))
+    ),
+  }
+}
+
+function buildCompetitiveCatalogWhere(scope: {
+  pokemonIds: number[]
+  speciesIds: number[]
+  showdownIds: string[]
+}): Prisma.PokemonWhereInput {
+  const orClauses: Prisma.PokemonWhereInput[] = []
+
+  if (scope.pokemonIds.length) {
+    orClauses.push({
+      id: {
+        in: scope.pokemonIds,
+      },
+    })
+  }
+
+  if (scope.showdownIds.length) {
+    orClauses.push({
+      showdownId: {
+        in: scope.showdownIds,
+      },
+    })
+  }
+
+  if (scope.speciesIds.length) {
+    orClauses.push({
+      isDefault: true,
+      speciesId: {
+        in: scope.speciesIds,
+      },
+    })
+  }
+
+  return orClauses.length
+    ? {
+        OR: orClauses,
+      }
+    : {
+        id: -1,
+      }
+}
+
 function extractHeldItems(rawPayload: Prisma.JsonValue | null): PokemonHeldItem[] {
   const payload = (rawPayload ?? {}) as JsonObject
   const heldItems = Array.isArray(payload.held_items) ? payload.held_items : []
@@ -452,43 +742,79 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
   }
 }
 
-export async function listPokemonCatalog(): Promise<PokemonCatalogItem[]> {
+export async function listPokemonCatalog(options: ListPokemonCatalogOptions = {}): Promise<ListPokemonCatalogResult> {
   const prisma = getPrismaClient()
+  const competitiveOnly = Boolean(options.competitiveOnly)
+  const normalizedQuery = options.query?.trim() ?? ''
+  const normalizedPage = normalizeCatalogPage(options.page)
+  const normalizedPageSize = normalizeCatalogPageSize(options.pageSize)
 
-  try {
-    const pokemon = await prisma.$queryRaw<PokemonCatalogRecord[]>(Prisma.sql`
-      SELECT
-        pokemon_id,
-        pokemon_slug,
-        primary_type,
-        secondary_type,
-        primary_ability,
-        hp,
-        attack,
-        defense,
-        special_attack,
-        special_defense,
-        speed,
-        height_m,
-        weight_kg,
-        official_artwork_url,
-        sprite_url
-      FROM pokemon_summary_view
-      ORDER BY pokemon_id ASC
-    `)
-
-    return pokemon.map(serializePokemonCatalogFromView)
-  } catch (error) {
-    console.warn('[pokemon] pokemon_summary_view unavailable, falling back to relational catalog query.', error)
-
+  if (competitiveOnly) {
+    const competitiveScope = await resolveCompetitiveCatalogScope(prisma, resolveScopedCatalogFormatKeys(options.formatKey))
     const pokemon = await prisma.pokemon.findMany({
+      where: buildCompetitiveCatalogWhere(competitiveScope),
       select: pokemonCatalogFallbackSelect,
       orderBy: {
         id: 'asc',
       },
     })
 
-    return pokemon.map(serializePokemonCatalogFromPokemon)
+    const catalogItems = pokemon.map(serializePokemonCatalogFromPokemon)
+    const filteredItems = filterPokemonCatalogItems(catalogItems, normalizedQuery)
+
+    return {
+      total: filteredItems.length,
+      catalogTotal: catalogItems.length,
+      items: paginatePokemonCatalogItems(filteredItems, normalizedPage, normalizedPageSize),
+    }
+  }
+
+  try {
+    if (normalizedQuery) {
+      const baseCatalog = await listPokemonCatalogFromView(prisma)
+      const filteredItems = filterPokemonCatalogItems(baseCatalog.items, normalizedQuery)
+
+      return {
+        total: filteredItems.length,
+        catalogTotal: baseCatalog.total,
+        items: paginatePokemonCatalogItems(filteredItems, normalizedPage, normalizedPageSize),
+      }
+    }
+
+    const paginatedCatalog = await listPokemonCatalogFromView(prisma, {
+      page: normalizedPage,
+      pageSize: normalizedPageSize,
+    })
+
+    return {
+      total: paginatedCatalog.total,
+      catalogTotal: paginatedCatalog.total,
+      items: paginatedCatalog.items,
+    }
+  } catch (error) {
+    console.warn('[pokemon] pokemon_summary_view unavailable, falling back to relational catalog query.', error)
+
+    if (normalizedQuery) {
+      const baseCatalog = await listPokemonCatalogFromRelations(prisma)
+      const filteredItems = filterPokemonCatalogItems(baseCatalog.items, normalizedQuery)
+
+      return {
+        total: filteredItems.length,
+        catalogTotal: baseCatalog.total,
+        items: paginatePokemonCatalogItems(filteredItems, normalizedPage, normalizedPageSize),
+      }
+    }
+
+    const paginatedCatalog = await listPokemonCatalogFromRelations(prisma, {
+      page: normalizedPage,
+      pageSize: normalizedPageSize,
+    })
+
+    return {
+      total: paginatedCatalog.total,
+      catalogTotal: paginatedCatalog.total,
+      items: paginatedCatalog.items,
+    }
   }
 }
 

@@ -55,7 +55,7 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.8rem;
   margin-top: 1rem;
 }
@@ -99,6 +99,56 @@
   background: #f8fbff;
   border: 1px solid #dce6f4;
   border-radius: 20px;
+}
+
+.coverageList,
+.roleList {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.coverageCard,
+.roleCard,
+.archetypeCard {
+  padding: 0.95rem 1rem;
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 18px;
+}
+
+.coverageTop,
+.roleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.coverageTop small,
+.roleHeader small {
+  color: #6d7f96;
+}
+
+.coverageMoves,
+.archetypeReason {
+  margin: 0.7rem 0 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.archetypeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.roleTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
 }
 
 .chipWrap {
@@ -476,7 +526,8 @@
 
 @media (max-width: 960px) {
   .summaryGrid,
-  .highlightGrid {
+  .highlightGrid,
+  .archetypeGrid {
     grid-template-columns: 1fr;
   }
 

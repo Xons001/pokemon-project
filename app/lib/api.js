@@ -26,11 +26,27 @@ async function sendJson(url, method, body) {
   return payload
 }
 
-export function fetchPokemonCatalog(query = '') {
+export function fetchPokemonCatalog(query = '', options = {}) {
   const searchParams = new URLSearchParams()
 
   if (query) {
     searchParams.set('query', query)
+  }
+
+  if (options.scope) {
+    searchParams.set('scope', options.scope)
+  }
+
+  if (options.formatKey) {
+    searchParams.set('formatKey', options.formatKey)
+  }
+
+  if (Number.isFinite(Number(options.page))) {
+    searchParams.set('page', String(Math.max(1, Math.round(Number(options.page)))))
+  }
+
+  if (Number.isFinite(Number(options.pageSize))) {
+    searchParams.set('pageSize', String(Math.max(1, Math.round(Number(options.pageSize)))))
   }
 
   const suffix = searchParams.toString() ? `?${searchParams.toString()}` : ''
@@ -51,6 +67,17 @@ export function fetchTypeChart() {
 
 export function fetchCompetitiveFormats() {
   return requestJson('/api/team/formats')
+}
+
+export function fetchItemCatalog(options = {}) {
+  const searchParams = new URLSearchParams()
+
+  if (options.formatKey) {
+    searchParams.set('formatKey', options.formatKey)
+  }
+
+  const suffix = searchParams.toString() ? `?${searchParams.toString()}` : ''
+  return requestJson(`/api/team/items${suffix}`)
 }
 
 export function validateTeamBuild(payload) {

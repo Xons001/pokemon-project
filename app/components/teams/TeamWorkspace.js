@@ -1,7 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 
-import { formatDexNumber } from '../../lib/pokemon'
+import { formatDexNumber, formatResourceName } from '../../lib/pokemon'
+import {
+  TEAM_NATURES,
+  createFallbackMoveEntry,
+  getNatureSummary,
+  normalizeTeamResourceId,
+} from '../../lib/team-builder'
+import TeamSelectPicker from './TeamSelectPicker'
 import TeamStatEditor from './TeamStatEditor'
 import styles from './TeamWorkspace.module.css'
 
@@ -65,20 +72,34 @@ function getMoveCardStyle(move) {
   }
 }
 
+function getNatureMetaLabel(nature) {
+  if (!nature?.increasedStat || !nature?.decreasedStat) {
+    return 'Neutral'
+  }
+
+  return nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '')
+}
+
 export default function TeamWorkspace({
   activeTeam,
   catalogCount,
   isCatalogLoading,
+  itemCatalog,
+  isItemsLoading,
   isMovesLoading,
   isPokemonLoading,
   notice,
   onAddPokemon,
   onAssignAbilityToSlot,
+  onAssignItemToSlot,
+  onAssignNatureToSlot,
   onAssignEffortValue,
   onAssignIndividualValue,
   onAssignMoveToSlot,
   onClearTeam,
   onClearMovesFromSlot,
+  onGenerateTeamExportText,
+  onImportTeamText,
   onRemovePokemon,
   onResetStatSpread,
   onRenameTeam,
@@ -102,15 +123,74 @@ export default function TeamWorkspace({
   const [openMovePickerIndex, setOpenMovePickerIndex] = useState(null)
   const [moveSearchQuery, setMoveSearchQuery] = useState('')
   const [searchPanelHeight, setSearchPanelHeight] = useState(null)
+  const [transferText, setTransferText] = useState('')
+  const [transferMessage, setTransferMessage] = useState('')
 
   const activePokemon = teamMembers[selectedSlotIndex] ?? null
   const activeMoveSlugs = selectedSlot?.moveSlugs ?? []
   const selectedAbilitySlug = selectedSlot?.abilitySlug ?? ''
+  const selectedNatureKey = selectedSlot?.natureKey ?? ''
   const selectedMovesCount = activeMoveSlugs.filter(Boolean).length
-  const selectedMoveEntries = activeMoveSlugs.map(
-    (moveSlug) => selectedPokemonMoves.find((entry) => entry.moveSlug === moveSlug) ?? null
-  )
-  const selectedAbilityOptions = selectedPokemonDetail?.abilities ?? []
+  const selectedMoveEntries = activeMoveSlugs.map((moveSlug) => {
+    if (!moveSlug) {
+      return null
+    }
+
+    return selectedPokemonMoves.find((entry) => entry.moveSlug === moveSlug) ?? createFallbackMoveEntry(moveSlug)
+  })
+  const selectedAbilityOptions = useMemo(() => {
+    return selectedPokemonDetail?.abilities ?? []
+  }, [selectedPokemonDetail?.abilities])
+  const abilityPickerOptions = useMemo(() => {
+    return selectedAbilityOptions.map((ability) => ({
+      value: ability.slug,
+      label: ability.label,
+      meta: ability.isHidden ? 'Oculta' : 'Base',
+      keywords: [ability.slug],
+    }))
+  }, [selectedAbilityOptions])
+  const itemLookup = useMemo(() => {
+    const lookup = new Map()
+
+    itemCatalog.forEach((item) => {
+      const itemSlug = normalizeTeamResourceId(item.slug)
+      const itemLabelKey = normalizeTeamResourceId(item.label)
+
+      if (itemSlug) {
+        lookup.set(itemSlug, item)
+      }
+
+      if (itemLabelKey) {
+        lookup.set(itemLabelKey, item)
+      }
+    })
+
+    return lookup
+  }, [itemCatalog])
+  const itemPickerOptions = useMemo(() => {
+    return itemCatalog.map((item) => ({
+      value: item.slug,
+      label: item.label,
+      meta: formatResourceName(item.category ?? 'item'),
+      keywords: [item.slug, item.category ?? 'item'],
+    }))
+  }, [itemCatalog])
+  const naturePickerOptions = useMemo(() => {
+    return TEAM_NATURES.map((nature) => ({
+      value: nature.key,
+      label: nature.label,
+      meta: getNatureMetaLabel(nature),
+      keywords: [nature.summary],
+    }))
+  }, [])
+
+  function getItemLabel(itemSlug) {
+    if (!itemSlug) {
+      return ''
+    }
+
+    return itemLookup.get(itemSlug)?.label ?? formatResourceName(itemSlug)
+  }
 
   useEffect(() => {
     if (openMovePickerIndex === null) {
@@ -205,7 +285,7 @@ export default function TeamWorkspace({
   }
 
   function formatMoveStats(move) {
-    return [move.type, move.category, ...formatMoveMetrics(move)]
+    return [move.type, move.category, ...formatMoveMetrics(move)].filter(Boolean)
   }
 
   function toggleMovePicker(index) {
@@ -251,6 +331,39 @@ export default function TeamWorkspace({
     })
   }
 
+  async function handleCopyExport() {
+    const nextText = onGenerateTeamExportText()
+
+    if (!nextText.trim()) {
+      setTransferMessage('Todavia no hay sets completos que exportar.')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(nextText)
+      setTransferText(nextText)
+      setTransferMessage('Equipo copiado al portapapeles en formato Showdown.')
+    } catch {
+      setTransferText(nextText)
+      setTransferMessage('No se pudo copiar automaticamente, pero ya tienes el texto preparado.')
+    }
+  }
+
+  function handleGenerateExport() {
+    const nextText = onGenerateTeamExportText()
+    setTransferText(nextText)
+    setTransferMessage(nextText.trim() ? 'Texto de exportacion actualizado.' : 'Todavia no hay sets completos que exportar.')
+  }
+
+  function handleImport() {
+    try {
+      onImportTeamText(transferText)
+      setTransferMessage('Equipo importado correctamente.')
+    } catch (error) {
+      setTransferMessage(error instanceof Error ? error.message : 'No se pudo importar el texto.')
+    }
+  }
+
   const visibleSearchPages = buildVisibleSearchPages()
 
   return (
@@ -281,6 +394,7 @@ export default function TeamWorkspace({
             {teamMembers.map((pokemon, index) => {
               const isActive = index === selectedSlotIndex
               const movesConfigured = activeTeam.slots[index]?.moveSlugs?.filter(Boolean).length ?? 0
+              const itemLabel = getItemLabel(activeTeam.slots[index]?.itemSlug)
 
               if (!pokemon) {
                 return (
@@ -319,7 +433,10 @@ export default function TeamWorkspace({
                       <div className={styles.slotCopy}>
                         <strong>{pokemon.name}</strong>
                         <p>{pokemon.types.length ? pokemon.types.join(' / ') : 'Cargando tipos'}</p>
-                        <small className={styles.slotMeta}>{movesConfigured}/4 movimientos</small>
+                        <small className={styles.slotMeta}>
+                          {movesConfigured}/4 movimientos
+                          {itemLabel ? ` | ${itemLabel}` : ''}
+                        </small>
                       </div>
                     </div>
                   </button>
@@ -472,7 +589,6 @@ export default function TeamWorkspace({
             ) : null}
           </div>
         </div>
-
         {activePokemon ? (
           <>
             <div className={styles.buildSummary}>
@@ -486,6 +602,8 @@ export default function TeamWorkspace({
                 <div className={styles.buildTags}>
                   <span>{activePokemon.role}</span>
                   <span>{selectedPokemonMoves.length} opciones de movimiento</span>
+                  <span>{selectedSlot?.itemSlug ? getItemLabel(selectedSlot.itemSlug) : 'Sin item'}</span>
+                  <span>{getNatureSummary(selectedSlot?.natureKey)}</span>
                 </div>
               </div>
             </div>
@@ -493,25 +611,23 @@ export default function TeamWorkspace({
             <p className={styles.buildHelperText}>
               {isMovesLoading
                 ? 'Cargando learnset competitivo para este Pokemon...'
-                : 'Elige una habilidad y un moveset base. Esto alimentara despues el checklist y el validador.'}
+                : 'Ahora puedes fijar habilidad, item, naturaleza y moveset base para alimentar el analisis del equipo y el validador.'}
             </p>
 
             <div className={styles.buildConfigGrid}>
-              <label className={styles.configField}>
+              <div className={styles.configField}>
                 <span>Habilidad</span>
-                <select
+                <TeamSelectPicker
+                  ariaLabel="Opciones de habilidad"
                   value={selectedAbilitySlug}
-                  onChange={(event) => onAssignAbilityToSlot(event.target.value)}
+                  onChange={onAssignAbilityToSlot}
+                  options={abilityPickerOptions}
                   disabled={!selectedAbilityOptions.length && isPokemonLoading}
-                >
-                  <option value="">Selecciona una habilidad</option>
-                  {selectedAbilityOptions.map((ability) => (
-                    <option key={ability.slug} value={ability.slug}>
-                      {ability.label}
-                      {ability.isHidden ? ' (Oculta)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  placeholderTitle={isPokemonLoading ? 'Cargando habilidades...' : 'Selecciona una habilidad'}
+                  placeholderMeta="La habilidad influye en la validacion del set."
+                  searchPlaceholder="Filtra por nombre de habilidad"
+                  emptyMessage="No encontramos habilidades que coincidan con ese filtro."
+                />
                 <small>
                   {selectedAbilityOptions.length
                     ? 'La habilidad seleccionada se validara contra el meta elegido.'
@@ -519,7 +635,42 @@ export default function TeamWorkspace({
                       ? 'Cargando habilidades disponibles...'
                       : 'Todavia no tenemos habilidades cargadas para este Pokemon.'}
                 </small>
-              </label>
+              </div>
+
+              <div className={styles.configField}>
+                <span>Item</span>
+                <TeamSelectPicker
+                  ariaLabel="Opciones de item"
+                  value={selectedSlot?.itemSlug ?? ''}
+                  onChange={onAssignItemToSlot}
+                  options={itemPickerOptions}
+                  disabled={isItemsLoading}
+                  placeholderTitle={isItemsLoading ? 'Cargando items...' : 'Selecciona un item'}
+                  placeholderMeta="Busca y elige un item del meta actual."
+                  searchPlaceholder="Filtra por nombre o categoria"
+                  emptyMessage="No encontramos items que coincidan con ese filtro."
+                />
+                <small>
+                  {isItemsLoading
+                    ? 'Sincronizando el catalogo de items...'
+                    : 'Solo se aceptan items detectados en el meta actual; el autocompletado ya viene filtrado por formato.'}
+                </small>
+              </div>
+
+              <div className={styles.configField}>
+                <span>Naturaleza</span>
+                <TeamSelectPicker
+                  ariaLabel="Opciones de naturaleza"
+                  value={selectedNatureKey}
+                  onChange={onAssignNatureToSlot}
+                  options={naturePickerOptions}
+                  placeholderTitle="Sin naturaleza"
+                  placeholderMeta="Ajusta el boost y el drop del set."
+                  searchPlaceholder="Filtra por naturaleza o stat"
+                  emptyMessage="No encontramos naturalezas que coincidan con ese filtro."
+                />
+                <small>La naturaleza afecta los totales del radar y la tabla de stats en este mismo panel.</small>
+              </div>
             </div>
 
             <div className={styles.moveGrid}>
@@ -576,9 +727,11 @@ export default function TeamWorkspace({
                           <span className={styles.moveSelectMeta}>
                             {selectedMove ? (
                               <>
-                                <span className={styles.moveTypeChip} style={getMoveTypeStyle(selectedMove.typeKey)}>
-                                  {selectedMove.type}
-                                </span>
+                                {selectedMove.typeKey ? (
+                                  <span className={styles.moveTypeChip} style={getMoveTypeStyle(selectedMove.typeKey)}>
+                                    {selectedMove.type}
+                                  </span>
+                                ) : null}
                                 <span
                                   className={[
                                     styles.moveCategoryChip,
@@ -687,7 +840,7 @@ export default function TeamWorkspace({
                         <p className={styles.moveHint}>
                           {selectedMove.learnMethods.length
                             ? `Aprendizaje: ${selectedMove.learnMethods.join(', ')}`
-                            : 'Movimiento listo para el analisis del equipo.'}
+                            : 'Movimiento importado o pendiente de sincronizar en el learnset local.'}
                         </p>
                       </>
                     ) : (
@@ -705,9 +858,44 @@ export default function TeamWorkspace({
         ) : (
           <div className={styles.emptyBuildState}>
             <strong>Selecciona un Pokemon en este hueco</strong>
-            <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar habilidad y cuatro movimientos base.</p>
+            <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar habilidad, item, naturaleza y cuatro movimientos base.</p>
           </div>
         )}
+
+        <section className={styles.transferPanel}>
+          <div className={styles.transferHeader}>
+            <div>
+              <p className={styles.kicker}>Importar y exportar</p>
+              <h3>Texto Showdown / Pokepaste</h3>
+            </div>
+
+            <div className={styles.transferActions}>
+              <button type="button" className={styles.transferButton} onClick={handleGenerateExport}>
+                Generar
+              </button>
+              <button type="button" className={styles.transferButton} onClick={handleCopyExport}>
+                Copiar
+              </button>
+              <button type="button" className={[styles.transferButton, styles.transferButtonPrimary].join(' ')} onClick={handleImport}>
+                Importar
+              </button>
+            </div>
+          </div>
+
+          <p className={styles.transferHelper}>
+            Pega aqui un equipo en formato Showdown para reemplazar el actual, o genera el texto desde tu build para llevartelo fuera.
+          </p>
+
+          <textarea
+            className={styles.transferTextarea}
+            value={transferText}
+            onChange={(event) => setTransferText(event.target.value)}
+            placeholder="Dragapult @ Choice Specs&#10;Ability: Infiltrator&#10;Timid Nature&#10;EVs: 4 Def / 252 SpA / 252 Spe&#10;- Draco Meteor&#10;- Shadow Ball"
+            spellCheck="false"
+          />
+
+          {transferMessage ? <p className={styles.transferMessage}>{transferMessage}</p> : null}
+        </section>
 
         <TeamStatEditor
           pokemon={activePokemon}

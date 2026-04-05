@@ -6,6 +6,18 @@ function createPaginatedResponseSchema(itemSchema: Record<string, unknown>) {
         type: 'integer',
         example: 50,
       },
+      catalogTotal: {
+        type: 'integer',
+        example: 1350,
+      },
+      page: {
+        type: ['integer', 'null'],
+        example: 1,
+      },
+      pageSize: {
+        type: ['integer', 'null'],
+        example: 20,
+      },
       items: {
         type: 'array',
         items: itemSchema,
@@ -492,7 +504,13 @@ export function buildOpenApiSpec(baseUrl: string) {
           tags: ['Pokemon'],
           summary: 'List pokemon catalog',
           description: 'Devuelve el catalogo de Pokemon disponible en la base de datos local.',
-          parameters: [createStringQueryParameter('query', 'Filtra por nombre, slug o id textual.')],
+          parameters: [
+            createStringQueryParameter('query', 'Filtra por nombre, slug, id textual, habilidad o tipo.'),
+            createIntegerQueryParameter('page', 'Pagina a devolver cuando quieras paginacion desde servidor.'),
+            createIntegerQueryParameter('pageSize', 'Numero de Pokemon por pagina.'),
+            createStringQueryParameter('scope', 'Usa "competitive" para limitar el catalogo al meta activo.'),
+            createStringQueryParameter('formatKey', 'Formato competitivo usado para acotar el catalogo cuando scope=competitive.'),
+          ],
           responses: {
             200: {
               description: 'Pokemon catalog',

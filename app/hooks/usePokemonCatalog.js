@@ -1,32 +1,112 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchPokemonCatalog } from '../lib/api'
+import { fetchPokemonCatalog, fetchPokemonDetail } from '../lib/api'
 import {
+  DESKTOP_PAGE_SIZE,
   INITIAL_SELECTED_SLUG,
   createCatalogPokemon,
-  formatAbility,
-  formatDexNumber,
   getResponsivePageSize,
   quickSuggestions,
-  translateType,
 } from '../lib/pokemon'
 
+const catalogPageCache = new Map()
+const catalogPageRequestCache = new Map()
+const pokemonDetailCache = new Map()
+const pokemonDetailRequestCache = new Map()
+
+function buildCatalogRequestKey(query, page, pageSize) {
+  return `${query.trim().toLowerCase()}::${page}::${pageSize}`
+}
+
+function getCachedCatalogPage(query, page, pageSize) {
+  const requestKey = buildCatalogRequestKey(query, page, pageSize)
+  return catalogPageCache.get(requestKey) ?? null
+}
+
+async function loadCatalogPage(query, page, pageSize) {
+  const requestKey = buildCatalogRequestKey(query, page, pageSize)
+  const cachedPayload = catalogPageCache.get(requestKey)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = catalogPageRequestCache.get(requestKey)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchPokemonCatalog(query, {
+    page,
+    pageSize,
+  })
+    .then((payload) => {
+      catalogPageCache.set(requestKey, payload)
+      return payload
+    })
+    .finally(() => {
+      catalogPageRequestCache.delete(requestKey)
+    })
+
+  catalogPageRequestCache.set(requestKey, request)
+
+  return request
+}
+
+function getCachedPokemonDetail(slug) {
+  return pokemonDetailCache.get(slug) ?? null
+}
+
+async function loadCachedPokemonDetail(slug) {
+  const cachedPayload = pokemonDetailCache.get(slug)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = pokemonDetailRequestCache.get(slug)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchPokemonDetail(slug)
+    .then((payload) => {
+      pokemonDetailCache.set(slug, payload)
+      return payload
+    })
+    .finally(() => {
+      pokemonDetailRequestCache.delete(slug)
+    })
+
+  pokemonDetailRequestCache.set(slug, request)
+
+  return request
+}
+
 export function usePokemonCatalog() {
-  const [query, setQuery] = useState('')
+  const [query, setQueryValue] = useState('')
   const [selectedSlug, setSelectedSlug] = useState(INITIAL_SELECTED_SLUG)
   const [currentPage, setCurrentPage] = useState(1)
-  const [catalog, setCatalog] = useState([])
-  const [pageSize, setPageSize] = useState(() => getResponsivePageSize(undefined))
+  const [catalogPage, setCatalogPage] = useState([])
+  const [catalogCount, setCatalogCount] = useState(0)
+  const [filteredCount, setFilteredCount] = useState(0)
+  const [pageSize, setPageSize] = useState(null)
   const [isCatalogLoading, setIsCatalogLoading] = useState(true)
+  const [isPageLoading, setIsPageLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [detailCache, setDetailCache] = useState({})
   const previousPageSizeRef = useRef(pageSize)
+  const isInitialCatalogLoadRef = useRef(true)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
     function syncPageSize() {
-      setPageSize(getResponsivePageSize(window.innerWidth))
+      const nextPageSize = getResponsivePageSize(window.innerWidth)
+      setPageSize((previousPageSize) => (previousPageSize === nextPageSize ? previousPageSize : nextPageSize))
     }
 
     syncPageSize()
@@ -38,21 +118,35 @@ export function usePokemonCatalog() {
   }, [])
 
   useEffect(() => {
+    if (!pageSize) {
+      return
+    }
+
     let isMounted = true
+    const isInitialLoad = isInitialCatalogLoadRef.current
+    const hasCachedCatalog = Boolean(getCachedCatalogPage(query, currentPage, pageSize))
+
+    if (!isInitialLoad && !hasCachedCatalog) {
+      setIsPageLoading(true)
+    }
 
     async function loadCatalog() {
       try {
-        const catalogData = await fetchPokemonCatalog()
+        const catalogData = await loadCatalogPage(query, currentPage, pageSize)
         if (!isMounted) return
 
-        setCatalog(catalogData.items)
+        setCatalogPage(Array.isArray(catalogData.items) ? catalogData.items : [])
+        setCatalogCount(Number(catalogData.catalogTotal ?? catalogData.total ?? 0))
+        setFilteredCount(Number(catalogData.total ?? 0))
         setLoadError('')
-      } catch (error) {
+      } catch {
         if (!isMounted) return
         setLoadError('No se pudo cargar el catalogo desde la API interna.')
       } finally {
         if (isMounted) {
+          isInitialCatalogLoadRef.current = false
           setIsCatalogLoading(false)
+          setIsPageLoading(false)
         }
       }
     }
@@ -62,84 +156,98 @@ export function usePokemonCatalog() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [currentPage, pageSize, query])
 
-  const filteredEntries = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
-    if (!normalized) return catalog
-
-    return catalog.filter((entry) => {
-      const haystack = [
-        entry.label,
-        entry.slug,
-        formatDexNumber(entry.id),
-        entry.primaryAbility,
-        entry.primaryAbility ? formatAbility(entry.primaryAbility) : null,
-        entry.primaryType,
-        entry.secondaryType,
-        entry.primaryType ? translateType(entry.primaryType) : null,
-        entry.secondaryType ? translateType(entry.secondaryType) : null,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(normalized)
-    })
-  }, [catalog, query])
-
-  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / pageSize))
+  const effectivePageSize = pageSize ?? DESKTOP_PAGE_SIZE
+  const totalPages = Math.max(1, Math.ceil(filteredCount / effectivePageSize))
   const safeCurrentPage = Math.min(currentPage, totalPages)
-  const pageStart = (safeCurrentPage - 1) * pageSize
-  const currentPageEntries = useMemo(() => {
-    return filteredEntries.slice(pageStart, pageStart + pageSize)
-  }, [filteredEntries, pageSize, pageStart])
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [query])
+    if (!pageSize) {
+      return
+    }
 
-  useEffect(() => {
     if (previousPageSizeRef.current === pageSize) {
       return
     }
 
     previousPageSizeRef.current = pageSize
+    setCurrentPage((previous) => Math.min(previous, Math.max(1, Math.ceil(filteredCount / pageSize))))
+  }, [filteredCount, pageSize])
 
-    if (!filteredEntries.length) return
+  useEffect(() => {
+    if (!catalogPage.length) return
 
-    const selectedIndex = filteredEntries.findIndex((entry) => entry.slug === selectedSlug)
+    if (!catalogPage.some((entry) => entry.slug === selectedSlug)) {
+      setSelectedSlug(catalogPage[0].slug)
+    }
+  }, [catalogPage, selectedSlug])
 
-    if (selectedIndex === -1) {
+  useEffect(() => {
+    if (!selectedSlug || detailCache[selectedSlug]) {
       return
     }
 
-    const pageForSelected = Math.floor(selectedIndex / pageSize) + 1
-    setCurrentPage((previous) => (previous === pageForSelected ? previous : pageForSelected))
-  }, [filteredEntries, pageSize, selectedSlug])
+    const cachedDetail = getCachedPokemonDetail(selectedSlug)
 
-  useEffect(() => {
-    if (!filteredEntries.length) return
+    if (cachedDetail) {
+      setDetailCache((previous) => {
+        if (previous[selectedSlug]) {
+          return previous
+        }
 
-    const exists = filteredEntries.some((entry) => entry.slug === selectedSlug)
-    if (!exists) {
-      setSelectedSlug(filteredEntries[0].slug)
+        return {
+          ...previous,
+          [selectedSlug]: cachedDetail,
+        }
+      })
+      return
     }
-  }, [filteredEntries, selectedSlug])
 
-  const displayedPokemon = currentPageEntries.map((entry) => {
-    return createCatalogPokemon(entry)
-  })
+    let isMounted = true
 
-  const selectedEntry =
-    catalog.find((entry) => entry.slug === selectedSlug) ??
-    filteredEntries[0] ??
-    currentPageEntries[0]
+    async function syncPokemonDetail() {
+      try {
+        const payload = await loadCachedPokemonDetail(selectedSlug)
+        if (!isMounted) return
 
-  const selectedPokemon = selectedEntry ? createCatalogPokemon(selectedEntry) : null
+        setDetailCache((previous) => ({
+          ...previous,
+          [selectedSlug]: payload,
+        }))
+      } catch {
+        if (!isMounted) return
+      }
+    }
+
+    syncPokemonDetail()
+
+    return () => {
+      isMounted = false
+    }
+  }, [detailCache, selectedSlug])
+
+  const displayedPokemon = useMemo(() => {
+    return catalogPage.map((entry) => createCatalogPokemon(entry))
+  }, [catalogPage])
+
+  const selectedEntry = useMemo(() => {
+    return catalogPage.find((entry) => entry.slug === selectedSlug) ?? catalogPage[0] ?? null
+  }, [catalogPage, selectedSlug])
+
+  const selectedPokemon = selectedSlug
+    ? detailCache[selectedSlug] ??
+      getCachedPokemonDetail(selectedSlug) ??
+      (selectedEntry ? createCatalogPokemon(selectedEntry) : null)
+    : null
 
   function selectPokemon(slug) {
     setSelectedSlug(slug)
+  }
+
+  function setQuery(value) {
+    setCurrentPage(1)
+    setQueryValue(value)
   }
 
   function moveToPage(page) {
@@ -147,31 +255,31 @@ export function usePokemonCatalog() {
   }
 
   function searchFirstMatch() {
-    if (!filteredEntries.length) return false
+    if (!catalogPage.length) return false
 
-    const firstMatch = filteredEntries[0]
-    setSelectedSlug(firstMatch.slug)
-    setCurrentPage(Math.floor(filteredEntries.indexOf(firstMatch) / pageSize) + 1)
+    setSelectedSlug(catalogPage[0].slug)
     return true
   }
 
   function applySuggestion(value) {
-    setQuery(value)
+    setQueryValue(value)
+    setCurrentPage(1)
   }
 
   function pickRandomSuggestion() {
     const next = quickSuggestions[Math.floor(Math.random() * quickSuggestions.length)]
-    setQuery(next)
+    setQueryValue(next)
+    setCurrentPage(1)
     return next
   }
 
   return {
-    catalogCount: catalog.length,
+    catalogCount,
     currentPage: safeCurrentPage,
     displayedPokemon,
-    filteredCount: filteredEntries.length,
+    filteredCount,
     isCatalogLoading,
-    isPageLoading: false,
+    isPageLoading,
     loadError,
     query,
     selectedPokemon,

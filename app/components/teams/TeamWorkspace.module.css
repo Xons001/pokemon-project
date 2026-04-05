@@ -524,7 +524,7 @@
 
 .buildConfigGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
   margin-top: 1rem;
 }
@@ -538,22 +538,12 @@
   border-radius: 20px;
 }
 
-.configField span {
+.configField > span {
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #6d7f96;
-}
-
-.configField select {
-  width: 100%;
-  padding: 0.85rem 0.95rem;
-  font: inherit;
-  color: #18212f;
-  background: #ffffff;
-  border: 1px solid #d6deeb;
-  border-radius: 16px;
 }
 
 .configField small {
@@ -823,6 +813,64 @@
   margin: 0;
 }
 
+.transferPanel {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid #e6edf8;
+}
+
+.transferHeader,
+.transferActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.transferActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.transferHelper,
+.transferMessage {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.transferTextarea {
+  width: 100%;
+  min-height: 220px;
+  padding: 1rem;
+  font: inherit;
+  line-height: 1.55;
+  color: #18212f;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  resize: vertical;
+}
+
+.transferButton {
+  min-height: 44px;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  color: #324962;
+  background: #f8fbff;
+  border: 1px solid #dce6f4;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.transferButtonPrimary {
+  color: #ffffff;
+  background: #3d5a80;
+  border-color: #3d5a80;
+}
+
 @media (max-width: 1200px) {
   .topGrid {
     grid-template-columns: 1fr;
@@ -861,7 +909,9 @@
   .buildSummary,
   .searchPagination,
   .movePickerToolbar,
-  .moveOptionTop {
+  .moveOptionTop,
+  .transferHeader,
+  .transferActions {
     flex-direction: column;
   }
 

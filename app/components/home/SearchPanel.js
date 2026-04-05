@@ -26,7 +26,7 @@ export default function SearchPanel({
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar Pokemon por nombre, numero o tipo ya cargado"
+          placeholder="Buscar Pokemon por nombre, numero o tipo"
         />
 
         <div className={styles.searchActions}>
