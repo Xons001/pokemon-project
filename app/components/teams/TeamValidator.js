@@ -70,8 +70,8 @@ export default function TeamValidator({
       </div>
 
       <p className={styles.helperText}>
-        Esta v1 valida Pokemon, habilidad y movimientos con datos locales de Showdown. Item, teratipo y reglas mas complejas
-        iran despues para no mentirte con falsos positivos.
+        Esta version valida Pokemon, habilidad, item y movimientos con datos locales de Showdown. Teratipo y reglas mas
+        complejas iran despues para no mentirte con falsos positivos.
       </p>
 
       <div className={styles.contentStack}>

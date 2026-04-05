@@ -21,7 +21,10 @@
     "ingest:cloud-dev": "tsx scripts/ingest.ts --steps=generation,version-group,version,type,stat,ability,move-learn-method,item,move,evolution-chain,pokemon-species,pokemon,pokemon-form,machine,pokemon-bridges,pokedex,showdown-format,showdown-tier,showdown-learnset,showdown-sample-set",
     "ingest:all": "tsx scripts/ingest.ts",
     "prune:competitive": "tsx scripts/prune-competitive-data.ts",
-    "prune:cloud-dev": "tsx scripts/prune-competitive-data.ts --env-file=.env.development.vercel"
+    "prune:active-meta": "tsx scripts/prune-active-meta-data.ts",
+    "prune:cloud-dev": "tsx scripts/prune-competitive-data.ts --env-file=.env.development.vercel",
+    "prune:active-meta:cloud-dev": "tsx scripts/prune-active-meta-data.ts --env-file=.env.development.vercel",
+    "report:meta-scope": "tsx scripts/report-meta-scope.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

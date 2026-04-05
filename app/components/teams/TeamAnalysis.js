@@ -178,6 +178,57 @@ function getTeamTypeVerdict(entry) {
   }
 }
 
+function formatCoverageMultiplier(multiplier) {
+  if (multiplier === 0.25) {
+    return 'x1/4'
+  }
+
+  if (multiplier === 0.5) {
+    return 'x1/2'
+  }
+
+  if (multiplier === 0) {
+    return 'x0'
+  }
+
+  return `x${multiplier}`
+}
+
+function getCoverageVerdict(moveCoverage) {
+  if (!moveCoverage.damagingMoveCount) {
+    return {
+      label: 'Sin dano',
+      className: styles.verdictNeutral,
+    }
+  }
+
+  if (moveCoverage.coverageScore >= 28) {
+    return {
+      label: 'Muy amplia',
+      className: styles.verdictSafe,
+    }
+  }
+
+  if (moveCoverage.coverageScore >= 14) {
+    return {
+      label: 'Solida',
+      className: styles.verdictSafe,
+    }
+  }
+
+  if (moveCoverage.coverageScore >= 4) {
+    return {
+      label: 'Parcial',
+      className: styles.verdictNeutral,
+    }
+  }
+
+  return {
+    label: 'Corta',
+    className: styles.verdictRisk,
+  }
+}
+
 export default function TeamAnalysis({
   isTypeChartLoading,
   teamMembers,
@@ -189,6 +240,12 @@ export default function TeamAnalysis({
   const hasSelectedMembers = teamSummary.filledSlots > 0
   const leadingWeaknesses = teamSummary.weaknesses.slice(0, 4)
   const leadingResistances = teamSummary.resistances.slice(0, 4)
+  const moveCoverage = teamSummary.moveCoverage
+  const archetypeAnalysis = teamSummary.archetypeAnalysis
+  const coverageVerdict = getCoverageVerdict(moveCoverage)
+  const offensiveAnalysisReady = typeChartReady && moveCoverage.damagingMoveCount > 0
+  const strongCoverage = moveCoverage.strongCoverage.slice(0, 4)
+  const limitedCoverage = moveCoverage.limitedCoverage.slice(0, 4)
   const readyTeamMembers = teamMembers.filter(Boolean)
   const longestPokemonNameLength = readyTeamMembers.reduce((maximum, pokemon) => {
     return Math.max(maximum, pokemon.name.length)
@@ -227,6 +284,14 @@ export default function TeamAnalysis({
         <div className={styles.summaryCard}>
           <span>Balance</span>
           <strong>{getBalanceLabel(teamSummary.balanceScore)}</strong>
+        </div>
+        <div className={styles.summaryCard}>
+          <span>Cobertura ofensiva</span>
+          <strong>{coverageVerdict.label}</strong>
+        </div>
+        <div className={styles.summaryCard}>
+          <span>Arquetipo</span>
+          <strong>{archetypeAnalysis.styleLabel}</strong>
         </div>
       </div>
 
@@ -279,6 +344,146 @@ export default function TeamAnalysis({
                 {hasSelectedMembers
                   ? 'Cuando termine la sincronizacion veras aqui las resistencias clave del equipo.'
                   : 'Cuando carguen tipos y miembros, aqui veras las resistencias clave del equipo.'}
+              </p>
+            )}
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.block}>
+        <div className={styles.blockHeading}>
+          <h4>Coberturas y arquetipos</h4>
+          <span>{moveCoverage.damagingMoveCount} moves</span>
+        </div>
+
+        <div className={styles.highlightGrid}>
+          <article className={styles.highlightPanel}>
+            <div className={styles.panelHeading}>
+              <h5>Tipos que ya cubres</h5>
+              <span>{strongCoverage.length}</span>
+            </div>
+
+            {offensiveAnalysisReady && strongCoverage.length ? (
+              <div className={styles.coverageList}>
+                {strongCoverage.map((entry) => (
+                  <article key={`coverage-strong-${entry.type}`} className={styles.coverageCard}>
+                    <div className={styles.coverageTop}>
+                      <span className={[styles.verdictBadge, styles.verdictSafe].join(' ')}>
+                        {entry.label} {formatCoverageMultiplier(entry.bestMultiplier)}
+                      </span>
+                      <small>{entry.superEffectiveCount} respuestas</small>
+                    </div>
+                    <p className={styles.coverageMoves}>
+                      {entry.bestMoves.length
+                        ? entry.bestMoves.map((move) => move.label).join(', ')
+                        : 'Sin datos de moves ofensivos todavia.'}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyMessage}>
+                {!typeChartReady
+                  ? 'Estamos cargando la tabla de tipos para medir la cobertura ofensiva real.'
+                  : hasSelectedMembers
+                  ? 'Cuando hayas elegido movimientos ofensivos veremos aqui que tipos rivales ya castigas bien.'
+                  : 'Anade miembros y movimientos para medir la cobertura ofensiva del equipo.'}
+              </p>
+            )}
+          </article>
+
+          <article className={styles.highlightPanel}>
+            <div className={styles.panelHeading}>
+              <h5>Tipos por reforzar</h5>
+              <span>{limitedCoverage.length}</span>
+            </div>
+
+            {offensiveAnalysisReady && limitedCoverage.length ? (
+              <div className={styles.coverageList}>
+                {limitedCoverage.map((entry) => (
+                  <article key={`coverage-limited-${entry.type}`} className={styles.coverageCard}>
+                    <div className={styles.coverageTop}>
+                      <span
+                        className={[
+                          styles.verdictBadge,
+                          entry.bestMultiplier <= 0.5 ? styles.verdictRisk : styles.verdictNeutral,
+                        ].join(' ')}
+                      >
+                        {entry.label} {formatCoverageMultiplier(entry.bestMultiplier)}
+                      </span>
+                      <small>{entry.damagingMoveCount} moves de dano</small>
+                    </div>
+                    <p className={styles.coverageMoves}>
+                      {entry.bestMoves.length
+                        ? `Lo mejor ahora mismo es ${entry.bestMoves.map((move) => move.label).join(', ')}.`
+                        : 'Todavia no hay moves ofensivos suficientes para cubrir este tipo.'}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyMessage}>
+                {!typeChartReady
+                  ? 'En cuanto cargue la tabla de tipos podremos detectar mejor los huecos ofensivos.'
+                  : hasSelectedMembers
+                  ? 'La lectura de huecos ofensivos aparecera al fijar moves de dano en el equipo.'
+                  : 'Cuando cargues miembros y moves, aqui veras los tipos que aun no cubres bien.'}
+              </p>
+            )}
+          </article>
+        </div>
+
+        <div className={styles.archetypeGrid}>
+          <article className={styles.archetypeCard}>
+            <div className={styles.panelHeading}>
+              <h5>Plan de equipo</h5>
+              <span className={[styles.verdictBadge, coverageVerdict.className].join(' ')}>
+                {archetypeAnalysis.styleLabel}
+              </span>
+            </div>
+            <p className={styles.archetypeReason}>{archetypeAnalysis.styleReason}</p>
+            <div className={styles.chipWrap}>
+              {archetypeAnalysis.topTraits.length ? (
+                archetypeAnalysis.topTraits.map((trait) => (
+                  <span key={trait.key} className={[styles.statChip, styles.chipSafe].join(' ')}>
+                    {trait.label} x{trait.count}
+                  </span>
+                ))
+              ) : (
+                <span className={[styles.statChip, styles.chipRisk].join(' ')}>
+                  Faltan moves para perfilar el arquetipo
+                </span>
+              )}
+            </div>
+          </article>
+
+          <article className={styles.archetypeCard}>
+            <div className={styles.panelHeading}>
+              <h5>Roles por miembro</h5>
+              <span>{archetypeAnalysis.memberRoles.length}</span>
+            </div>
+
+            {archetypeAnalysis.memberRoles.length ? (
+              <div className={styles.roleList}>
+                {archetypeAnalysis.memberRoles.map((entry) => (
+                  <article key={`role-${entry.pokemonSlug}-${entry.slotIndex}`} className={styles.roleCard}>
+                    <div className={styles.roleHeader}>
+                      <strong>{entry.pokemonName}</strong>
+                      <small>{entry.natureSummary}</small>
+                    </div>
+                    <div className={styles.roleTags}>
+                      {entry.labels.map((label) => (
+                        <span key={`${entry.pokemonSlug}-${label}`} className={[styles.statChip, styles.chipSafe].join(' ')}>
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyMessage}>
+                Completa miembros y moves para detectar a que arquetipo se acerca cada hueco del equipo.
               </p>
             )}
           </article>

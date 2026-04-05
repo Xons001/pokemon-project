@@ -52,6 +52,8 @@ export default function TeamBuilderPage() {
             activeTeam={teamBuilder.activeTeam}
             catalogCount={teamBuilder.catalogCount}
             isCatalogLoading={teamBuilder.isCatalogLoading}
+            itemCatalog={teamBuilder.itemCatalog}
+            isItemsLoading={teamBuilder.isItemsLoading}
             isMovesLoading={teamBuilder.isMovesLoading}
             isPokemonLoading={teamBuilder.isPokemonLoading}
             notice={teamBuilder.notice}
@@ -59,10 +61,14 @@ export default function TeamBuilderPage() {
             onAssignEffortValue={teamBuilder.assignEffortValue}
             onAssignIndividualValue={teamBuilder.assignIndividualValue}
             onAssignAbilityToSlot={teamBuilder.assignAbilityToSlot}
+            onAssignItemToSlot={teamBuilder.assignItemToSlot}
+            onAssignNatureToSlot={teamBuilder.assignNatureToSlot}
             onAssignMoveToSlot={teamBuilder.assignMoveToSlot}
             onSetSearchPage={teamBuilder.setSearchPage}
             onClearTeam={teamBuilder.clearTeam}
             onClearMovesFromSlot={teamBuilder.clearMovesFromSlot}
+            onGenerateTeamExportText={teamBuilder.generateTeamExportText}
+            onImportTeamText={teamBuilder.importTeamFromText}
             onRemovePokemon={teamBuilder.removePokemonFromTeam}
             onResetStatSpread={teamBuilder.resetStatSpread}
             onRenameTeam={teamBuilder.renameTeam}
