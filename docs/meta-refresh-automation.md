@@ -213,6 +213,22 @@ Para no llenar la base cloud de `develop`, este proyecto soporta perfiles de ref
 - `lean`
   Nunca ejecuta `showdown-usage`, aunque exista un mes nuevo en Smogon.
 
+Ademas, si quieres limitar `showdown-usage` a unos pocos metas concretos, puedes usar:
+
+- `SHOWDOWN_USAGE_TARGET_FORMATS=gen9ou,gen9uu,gen9monotype`
+
+Cuando esta variable existe:
+
+- solo se ingieren snapshots mensuales de esos formatos
+- `usage_stat_monthly` elimina cualquier usage de formatos fuera de esa lista
+- `pokemon_format` desmarca `isUsageTracked` fuera de esos formatos, pero conserva los sample sets
+
+En este proyecto, si `production` no define `SHOWDOWN_USAGE_TARGET_FORMATS`, se aplica por defecto:
+
+- `gen9ou`
+- `gen9uu`
+- `gen9monotype`
+
 Regla recomendada:
 
 - `Preview / develop` -> `POKEMON_PROJECT_META_REFRESH_PROFILE=lean`

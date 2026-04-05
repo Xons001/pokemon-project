@@ -15,9 +15,11 @@ export type SyncDecision = {
 export type SmartIngestPlan = {
   generatedAt: string
   env: {
+    environmentName: string
     showdownDataBaseUrl: string
     smogonStatsBaseUrl: string
     smogonStatsMonthOverride: string | null
+    showdownUsageTargetFormats: string[]
     metaRefreshProfile: 'full' | 'lean'
     allowedMetaFormats: string[]
   }
@@ -118,7 +120,7 @@ async function inspectRemoteSources(targetStatsMonth: string | null) {
         observedAt: new Date(),
         metadata: {
           targetMonth: latestRemoteStatsMonth,
-          selectedFormats: activeFormatKeys,
+          selectedFormats: env.showdownUsageTargetFormats.length ? env.showdownUsageTargetFormats : activeFormatKeys,
         },
       },
     ] satisfies IngestCheckpointSource[],
@@ -207,6 +209,7 @@ export async function buildSmartIngestPlan(options: {
           metadata: {
             ...((source.metadata as Record<string, unknown>) ?? {}),
             latestMonthInDb: latestUsageMonthInDb,
+            selectedFormats: env.showdownUsageTargetFormats,
             profile: env.metaRefreshProfile,
           },
         },
@@ -255,11 +258,12 @@ export async function buildSmartIngestPlan(options: {
           metadata: {
             ...((source.metadata as Record<string, unknown>) ?? {}),
             latestMonthInDb: latestUsageMonthInDb,
+            selectedFormats: env.showdownUsageTargetFormats,
           },
         },
         shouldRun,
         reason: shouldRun
-          ? `Hay un snapshot nuevo (${usageTargetMonth}) y la base sigue en ${latestUsageMonthInDb ?? 'sin datos'}.`
+          ? `Hay un snapshot nuevo (${usageTargetMonth}) y la base sigue en ${latestUsageMonthInDb ?? 'sin datos'}${env.showdownUsageTargetFormats.length ? `. Se limitara a ${env.showdownUsageTargetFormats.join(', ')}.` : '.'}`
           : `La base ya esta alineada con el ultimo snapshot mensual disponible (${usageTargetMonth ?? 'sin dato remoto'}).`,
         steps: shouldRun ? ['showdown-usage'] : [],
       }
@@ -289,9 +293,11 @@ export async function buildSmartIngestPlan(options: {
   return {
     generatedAt: new Date().toISOString(),
     env: {
+      environmentName: env.environmentName,
       showdownDataBaseUrl: env.showdownDataBaseUrl,
       smogonStatsBaseUrl: env.smogonStatsBaseUrl,
       smogonStatsMonthOverride: env.smogonStatsMonth,
+      showdownUsageTargetFormats: env.showdownUsageTargetFormats,
       metaRefreshProfile: env.metaRefreshProfile,
       allowedMetaFormats: getActiveMetaFormatKeys(),
     },

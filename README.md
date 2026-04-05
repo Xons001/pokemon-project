@@ -276,10 +276,13 @@ SHOWDOWN_CONCURRENCY="4"
 SMOGON_STATS_BASE_URL="https://www.smogon.com/stats"
 SMOGON_STATS_MONTH=""
 SHOWDOWN_USAGE_INSERT_MODE="bulk"
+SHOWDOWN_USAGE_TARGET_FORMATS=""
 POKEMON_PROJECT_META_REFRESH_PROFILE="full"
 ```
 
 Si `SMOGON_STATS_MONTH` esta vacio, la ingestion intentara usar el ultimo snapshot mensual disponible.
+
+Si `SHOWDOWN_USAGE_TARGET_FORMATS` esta vacio, local seguira cargando todo el usage disponible. En `production`, si no se define nada, el proyecto limita por defecto la carga mensual a `gen9ou,gen9uu,gen9monotype` para no llenar la base cloud gratuita.
 
 ### 3. Levantar PostgreSQL en local
 

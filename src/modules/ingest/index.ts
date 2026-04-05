@@ -76,6 +76,9 @@ export async function runIngestion(options: RunIngestionOptions = {}) {
     showdownConcurrency: env.showdownConcurrency,
     smogonStatsMonth: env.smogonStatsMonth,
     showdownUsageInsertMode: env.showdownUsageInsertMode,
+    showdownUsageTargetFormats: env.showdownUsageTargetFormats,
+    environmentName: env.environmentName,
+    metaRefreshProfile: env.metaRefreshProfile,
     log,
   }
 
