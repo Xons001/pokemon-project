@@ -166,6 +166,10 @@ function normalizePage(value?: number | null) {
 }
 
 function normalizePageSize(value?: number | null) {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
+
   if (!Number.isFinite(Number(value))) {
     return null
   }
@@ -520,28 +524,33 @@ export async function listFallbackPokemonCatalog(options: {
   page?: number | null
   pageSize?: number | null
 }): Promise<FallbackPokemonCatalogResult> {
-  const normalizedQuery = options.query?.trim() ?? ''
+  const normalizedQuery = normalizeQuery(options.query)
   const normalizedPage = normalizePage(options.page)
   const normalizedPageSize = normalizePageSize(options.pageSize)
   const pokemonIndex = await getPokemonIndex()
   const resolvedTypeKey = resolveTypeQueryKey(normalizedQuery)
   const filteredEntries =
-    resolvedTypeKey ? await getPokemonTypeEntries(resolvedTypeKey) : filterIndexEntries(pokemonIndex, normalizedQuery) ?? []
+    !normalizedQuery
+      ? pokemonIndex
+      : resolvedTypeKey
+        ? await getPokemonTypeEntries(resolvedTypeKey)
+        : filterIndexEntries(pokemonIndex, normalizedQuery)
   const catalogTotal = pokemonIndex.length
+  const safeEntries = Array.isArray(filteredEntries) ? [...filteredEntries] : []
 
   if (!normalizedPageSize) {
     return {
-      total: filteredEntries.length,
+      total: safeEntries.length,
       catalogTotal,
-      items: filteredEntries.map(buildCatalogItemFromEntry),
+      items: safeEntries.map((entry) => buildCatalogItemFromEntry(entry)),
     }
   }
 
   const offset = (normalizedPage - 1) * normalizedPageSize
-  const pageEntries = filteredEntries.slice(offset, offset + normalizedPageSize)
+  const pageEntries = safeEntries.slice(offset, offset + normalizedPageSize)
 
   return {
-    total: filteredEntries.length,
+    total: safeEntries.length,
     catalogTotal,
     items: await buildDetailedCatalogPage(pageEntries),
   }

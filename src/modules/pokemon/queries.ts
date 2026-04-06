@@ -359,7 +359,7 @@ function normalizeCatalogPage(value?: number | null): number | null {
 }
 
 function normalizeCatalogPageSize(value?: number | null): number | null {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || value === '') {
     return null
   }
 
