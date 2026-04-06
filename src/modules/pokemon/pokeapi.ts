@@ -166,7 +166,7 @@ function normalizePage(value?: number | null) {
 }
 
 function normalizePageSize(value?: number | null) {
-  if (value === null || value === undefined || value === '') {
+  if (value === null || value === undefined) {
     return null
   }
 
