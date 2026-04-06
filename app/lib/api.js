@@ -69,6 +69,17 @@ export function fetchCompetitiveFormats() {
   return requestJson('/api/team/formats')
 }
 
+export function fetchTeamBuilderBootstrap(options = {}) {
+  const searchParams = new URLSearchParams()
+
+  if (options.formatKey) {
+    searchParams.set('formatKey', options.formatKey)
+  }
+
+  const suffix = searchParams.toString() ? `?${searchParams.toString()}` : ''
+  return requestJson(`/api/team/bootstrap${suffix}`)
+}
+
 export function fetchItemCatalog(options = {}) {
   const searchParams = new URLSearchParams()
 

@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../components/i18n/LanguageProvider'
 import {
-  fetchCompetitiveFormats,
   fetchItemCatalog,
-  fetchPokemonCatalog,
   fetchPokemonDetail,
   fetchPokemonMoves,
+  fetchTeamBuilderBootstrap,
   fetchTeamSuggestions,
-  fetchTypeChart,
   validateTeamBuild,
 } from '../lib/api'
 import {
@@ -38,6 +36,177 @@ import {
 } from '../lib/team-builder'
 import { exportTeamToShowdownText, importTeamFromShowdownText } from '../lib/team-io'
 
+const TEAM_SUGGESTIONS_DEBOUNCE_MS = 250
+
+const teamBuilderBootstrapCache = new Map()
+const teamBuilderBootstrapRequestCache = new Map()
+const itemCatalogCache = new Map()
+const pokemonDetailCache = new Map()
+const pokemonDetailRequestCache = new Map()
+const pokemonMoveCache = new Map()
+const pokemonMoveRequestCache = new Map()
+const teamSuggestionsCache = new Map()
+const teamSuggestionsRequestCache = new Map()
+
+function buildFormatRequestKey(value) {
+  return typeof value === 'string' && value.trim() ? value.trim().toLowerCase() : DEFAULT_TEAM_FORMAT
+}
+
+function getCachedTeamBuilderBootstrap(formatKey) {
+  return teamBuilderBootstrapCache.get(buildFormatRequestKey(formatKey)) ?? null
+}
+
+async function loadTeamBuilderBootstrap(formatKey) {
+  const requestKey = buildFormatRequestKey(formatKey)
+  const cachedPayload = teamBuilderBootstrapCache.get(requestKey)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = teamBuilderBootstrapRequestCache.get(requestKey)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchTeamBuilderBootstrap({
+    formatKey,
+  })
+    .then((payload) => {
+      teamBuilderBootstrapCache.set(requestKey, payload)
+      teamBuilderBootstrapCache.set(buildFormatRequestKey(payload?.resolvedFormatKey ?? requestKey), payload)
+
+      if (payload?.resolvedFormatKey && Array.isArray(payload?.items?.items)) {
+        itemCatalogCache.set(buildFormatRequestKey(payload.resolvedFormatKey), payload.items.items)
+      }
+
+      return payload
+    })
+    .finally(() => {
+      teamBuilderBootstrapRequestCache.delete(requestKey)
+    })
+
+  teamBuilderBootstrapRequestCache.set(requestKey, request)
+
+  return request
+}
+
+function getCachedItemCatalog(formatKey) {
+  return itemCatalogCache.get(buildFormatRequestKey(formatKey)) ?? null
+}
+
+async function loadItemCatalogCached(formatKey) {
+  const items = getCachedItemCatalog(formatKey)
+
+  if (items) {
+    return items
+  }
+
+  const payload = await fetchItemCatalog({
+    formatKey,
+  })
+
+  const nextItems = Array.isArray(payload?.items) ? payload.items : []
+  itemCatalogCache.set(buildFormatRequestKey(formatKey), nextItems)
+
+  return nextItems
+}
+
+function getCachedPokemonDetail(slug) {
+  return pokemonDetailCache.get(slug) ?? null
+}
+
+async function loadPokemonDetailCached(slug) {
+  const cachedPayload = pokemonDetailCache.get(slug)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = pokemonDetailRequestCache.get(slug)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchPokemonDetail(slug)
+    .then((payload) => {
+      pokemonDetailCache.set(slug, payload)
+      return payload
+    })
+    .finally(() => {
+      pokemonDetailRequestCache.delete(slug)
+    })
+
+  pokemonDetailRequestCache.set(slug, request)
+
+  return request
+}
+
+function getCachedPokemonMoves(slug) {
+  return pokemonMoveCache.get(slug) ?? null
+}
+
+async function loadPokemonMovesCached(slug) {
+  const cachedPayload = pokemonMoveCache.get(slug)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = pokemonMoveRequestCache.get(slug)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchPokemonMoves(slug)
+    .then((payload) => {
+      const items = Array.isArray(payload?.items) ? payload.items : []
+      pokemonMoveCache.set(slug, items)
+      return items
+    })
+    .finally(() => {
+      pokemonMoveRequestCache.delete(slug)
+    })
+
+  pokemonMoveRequestCache.set(slug, request)
+
+  return request
+}
+
+function getCachedTeamSuggestions(requestKey) {
+  return teamSuggestionsCache.get(requestKey) ?? null
+}
+
+async function loadTeamSuggestionsCached(requestKey, payload) {
+  const cachedPayload = teamSuggestionsCache.get(requestKey)
+
+  if (cachedPayload) {
+    return cachedPayload
+  }
+
+  const inFlightRequest = teamSuggestionsRequestCache.get(requestKey)
+
+  if (inFlightRequest) {
+    return inFlightRequest
+  }
+
+  const request = fetchTeamSuggestions(payload)
+    .then((response) => {
+      teamSuggestionsCache.set(requestKey, response)
+      return response
+    })
+    .finally(() => {
+      teamSuggestionsRequestCache.delete(requestKey)
+    })
+
+  teamSuggestionsRequestCache.set(requestKey, request)
+
+  return request
+}
+
 export function useTeamBuilder() {
   const { locale } = useI18n()
   const [catalog, setCatalog] = useState([])
@@ -59,6 +228,7 @@ export function useTeamBuilder() {
   const [isValidationLoading, setIsValidationLoading] = useState(false)
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false)
   const [isStorageReady, setIsStorageReady] = useState(false)
+  const [isBootstrapReady, setIsBootstrapReady] = useState(false)
   const [validationError, setValidationError] = useState('')
   const [validationResult, setValidationResult] = useState(null)
   const [suggestionsError, setSuggestionsError] = useState('')
@@ -105,53 +275,98 @@ export function useTeamBuilder() {
   const selectedPokemonSlug = selectedSlot.pokemonSlug
 
   useEffect(() => {
+    if (!isStorageReady) {
+      return
+    }
+
     let isMounted = true
 
-    async function loadCatalog() {
-      if (isMounted) {
-        setIsCatalogLoading(true)
+    function applyBootstrapPayload(payload) {
+      setCatalog(Array.isArray(payload?.catalog?.items) ? payload.catalog.items : [])
+      setCompetitiveFormats(Array.isArray(payload?.formats?.items) ? payload.formats.items : [])
+      setItemCatalog(Array.isArray(payload?.items?.items) ? payload.items.items : [])
+
+      setTypeChart(payload?.typeChart && typeof payload.typeChart === 'object' ? payload.typeChart : {})
+      setLoadError('')
+
+      if (payload?.resolvedFormatKey && payload.resolvedFormatKey !== team.formatKey) {
+        setTeam((previous) => ({
+          ...previous,
+          formatKey: payload.resolvedFormatKey,
+        }))
+        setNotice('El formato del equipo se ha ajustado al meta disponible en este entorno.')
+      }
+    }
+
+    async function loadBootstrap() {
+      const cachedPayload = getCachedTeamBuilderBootstrap(team.formatKey)
+
+      if (cachedPayload) {
+        applyBootstrapPayload(cachedPayload)
+        setIsCatalogLoading(false)
+        setIsItemsLoading(false)
+        setIsFormatsLoading(false)
+        setIsTypeChartLoading(false)
+        setIsBootstrapReady(true)
+        return
       }
 
+      setIsBootstrapReady(false)
+      setIsCatalogLoading(true)
+      setIsItemsLoading(true)
+      setIsFormatsLoading(true)
+      setIsTypeChartLoading(true)
+
       try {
-        const catalogData = await fetchPokemonCatalog('', {
-          scope: 'competitive',
-        })
+        const payload = await loadTeamBuilderBootstrap(team.formatKey)
         if (!isMounted) return
 
-        setCatalog(catalogData.items)
-        setLoadError('')
+        applyBootstrapPayload(payload)
       } catch {
         if (!isMounted) return
+        setLoadError('No se pudieron cargar los datos base del team builder desde la API interna.')
         setLoadError('No se pudo cargar el catálogo desde la API interna.')
       } finally {
         if (isMounted) {
           setIsCatalogLoading(false)
+          setIsItemsLoading(false)
+          setIsFormatsLoading(false)
+          setIsTypeChartLoading(false)
+          setIsBootstrapReady(true)
         }
       }
     }
 
-    loadCatalog()
+    loadBootstrap()
 
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [isStorageReady, team.formatKey])
 
   useEffect(() => {
+    if (!isStorageReady || !isBootstrapReady || !team.formatKey) {
+      return
+    }
+
+    const cachedItems = getCachedItemCatalog(team.formatKey)
+
+    if (cachedItems) {
+      setItemCatalog(cachedItems)
+      setIsItemsLoading(false)
+      return
+    }
+
     let isMounted = true
 
-    async function loadItemCatalog() {
-      if (isMounted) {
-        setIsItemsLoading(true)
-      }
+    async function syncItemCatalog() {
+      setIsItemsLoading(true)
 
       try {
-        const itemData = await fetchItemCatalog({
-          formatKey: team.formatKey,
-        })
+        const items = await loadItemCatalogCached(team.formatKey)
         if (!isMounted) return
 
-        setItemCatalog(itemData.items)
+        setItemCatalog(items)
         setLoadError('')
       } catch {
         if (!isMounted) return
@@ -163,103 +378,32 @@ export function useTeamBuilder() {
       }
     }
 
-    loadItemCatalog()
+    syncItemCatalog()
 
     return () => {
       isMounted = false
     }
-  }, [team.formatKey])
-
-  useEffect(() => {
-    if (!competitiveFormats.length) {
-      return
-    }
-
-    const availableFormatKeys = new Set(competitiveFormats.map((entry) => entry.key))
-
-    if (availableFormatKeys.has(team.formatKey)) {
-      return
-    }
-
-    setTeam((previous) => ({
-      ...previous,
-      formatKey: competitiveFormats[0].key,
-    }))
-    setNotice('El formato del equipo se ha ajustado al meta disponible en este entorno.')
-  }, [competitiveFormats, team.formatKey])
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function loadFormats() {
-      try {
-        const formatData = await fetchCompetitiveFormats()
-        if (!isMounted) return
-
-        setCompetitiveFormats(formatData.items)
-        setLoadError('')
-      } catch {
-        if (!isMounted) return
-        setLoadError('No se pudieron cargar los formatos competitivos desde la API interna.')
-      } finally {
-        if (isMounted) {
-          setIsFormatsLoading(false)
-        }
-      }
-    }
-
-    loadFormats()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (isFormatsLoading || !competitiveFormats.length) {
-      return
-    }
-
-    const hasSelectedFormat = competitiveFormats.some((format) => format.key === team.formatKey)
-
-    if (hasSelectedFormat) {
-      return
-    }
-
-    updateTeam((previous) => ({
-      ...previous,
-      formatKey: competitiveFormats[0].key,
-    }))
-  }, [competitiveFormats, isFormatsLoading, team.formatKey])
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function loadTypeChart() {
-      try {
-        const chart = await fetchTypeChart()
-        if (!isMounted) return
-        setTypeChart(chart)
-        setLoadError('')
-      } catch {
-        if (!isMounted) return
-        setLoadError('No se pudo cargar la tabla de compatibilidades de tipos desde la API interna.')
-      } finally {
-        if (isMounted) {
-          setIsTypeChartLoading(false)
-        }
-      }
-    }
-
-    loadTypeChart()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  }, [isBootstrapReady, isStorageReady, team.formatKey])
 
   useEffect(() => {
     if (!selectedPokemonSlug || detailCache[selectedPokemonSlug]) {
+      setIsPokemonLoading(false)
+      return
+    }
+
+    const cachedDetail = getCachedPokemonDetail(selectedPokemonSlug)
+
+    if (cachedDetail) {
+      setDetailCache((previous) => {
+        if (previous[selectedPokemonSlug]) {
+          return previous
+        }
+
+        return {
+          ...previous,
+          [selectedPokemonSlug]: cachedDetail,
+        }
+      })
       setIsPokemonLoading(false)
       return
     }
@@ -275,7 +419,7 @@ export function useTeamBuilder() {
 
     async function loadPokemonDetail() {
       try {
-        const payload = await fetchPokemonDetail(selectedPokemonSlug)
+        const payload = await loadPokemonDetailCached(selectedPokemonSlug)
 
         if (cancelled) return
 
@@ -309,6 +453,23 @@ export function useTeamBuilder() {
       return
     }
 
+    const cachedMoves = getCachedPokemonMoves(selectedPokemonSlug)
+
+    if (cachedMoves) {
+      setMoveCache((previous) => {
+        if (previous[selectedPokemonSlug]) {
+          return previous
+        }
+
+        return {
+          ...previous,
+          [selectedPokemonSlug]: cachedMoves,
+        }
+      })
+      setIsMovesLoading(false)
+      return
+    }
+
     if (!selectedPokemonSlug || moveCache[selectedPokemonSlug] || loadingMovesRef.current.has(selectedPokemonSlug)) {
       return
     }
@@ -320,13 +481,13 @@ export function useTeamBuilder() {
 
     async function loadPokemonMoves() {
       try {
-        const payload = await fetchPokemonMoves(selectedPokemonSlug)
+        const items = await loadPokemonMovesCached(selectedPokemonSlug)
 
         if (cancelled) return
 
         setMoveCache((previous) => ({
           ...previous,
-          [selectedPokemonSlug]: payload.items,
+          [selectedPokemonSlug]: items,
         }))
         setLoadError('')
       } catch {
@@ -347,53 +508,6 @@ export function useTeamBuilder() {
       cancelled = true
     }
   }, [moveCache, selectedPokemonSlug])
-
-  useEffect(() => {
-    const pendingTeamSlugs = Array.from(
-      new Set(team.slots.map((slot) => slot.pokemonSlug).filter((value) => Boolean(value)))
-    ).filter((slug) => !moveCache[slug] && !loadingMovesRef.current.has(slug))
-
-    if (!pendingTeamSlugs.length) {
-      return
-    }
-
-    let cancelled = false
-
-    async function preloadTeamMoves() {
-      for (const pokemonSlug of pendingTeamSlugs) {
-        if (cancelled || moveCache[pokemonSlug] || loadingMovesRef.current.has(pokemonSlug)) {
-          continue
-        }
-
-        loadingMovesRef.current.add(pokemonSlug)
-
-        try {
-          const payload = await fetchPokemonMoves(pokemonSlug)
-
-          if (cancelled) {
-            return
-          }
-
-          setMoveCache((previous) => ({
-            ...previous,
-            [pokemonSlug]: payload.items,
-          }))
-        } catch {
-          if (!cancelled) {
-            setLoadError('No se pudo sincronizar por completo el learnset del equipo.')
-          }
-        } finally {
-          loadingMovesRef.current.delete(pokemonSlug)
-        }
-      }
-    }
-
-    preloadTeamMoves()
-
-    return () => {
-      cancelled = true
-    }
-  }, [moveCache, team.slots])
 
   const teamMembers = useMemo(() => {
     return team.slots.map((slot) => {
@@ -550,8 +664,17 @@ export function useTeamBuilder() {
   }, [team])
 
   useEffect(() => {
-    if (!hasSelectedPokemon) {
+    if (!isBootstrapReady || !hasSelectedPokemon) {
       setSuggestionsResult(null)
+      setSuggestionsError('')
+      setIsSuggestionsLoading(false)
+      return
+    }
+
+    const cachedSuggestions = getCachedTeamSuggestions(suggestionsRequestKey)
+
+    if (cachedSuggestions) {
+      setSuggestionsResult(cachedSuggestions)
       setSuggestionsError('')
       setIsSuggestionsLoading(false)
       return
@@ -564,7 +687,7 @@ export function useTeamBuilder() {
       setSuggestionsError('')
 
       try {
-        const result = await fetchTeamSuggestions({
+        const result = await loadTeamSuggestionsCached(suggestionsRequestKey, {
           ...suggestionsRequestPayload,
         })
 
@@ -580,12 +703,15 @@ export function useTeamBuilder() {
       }
     }
 
-    loadSuggestions()
+    const timeoutId = window.setTimeout(() => {
+      loadSuggestions()
+    }, TEAM_SUGGESTIONS_DEBOUNCE_MS)
 
     return () => {
       cancelled = true
+      window.clearTimeout(timeoutId)
     }
-  }, [hasSelectedPokemon, suggestionsRequestKey, suggestionsRequestPayload])
+  }, [hasSelectedPokemon, isBootstrapReady, suggestionsRequestKey, suggestionsRequestPayload])
 
   function updateTeam(updater) {
     setTeam((previous) => updater(previous))

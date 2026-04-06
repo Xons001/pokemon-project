@@ -19,7 +19,7 @@ export default function SiteHeaderClient({ showOps = false }) {
 
   return (
     <header className={styles.siteHeader}>
-      <Link className={styles.siteLogo} href="/" aria-label={t('header.logoAriaLabel')}>
+      <Link className={styles.siteLogo} href="/" prefetch={false} aria-label={t('header.logoAriaLabel')}>
         <span className={styles.pokeballMark} aria-hidden="true" />
         <div>
           <span className={styles.siteLogoKicker}>{t('header.logoKicker')}</span>
@@ -29,7 +29,7 @@ export default function SiteHeaderClient({ showOps = false }) {
 
       <nav className={styles.siteNav} aria-label={t('header.navigationAriaLabel')}>
         {resolvedNavItems.map((item) => (
-          <Link key={item.key} href={item.href}>
+          <Link key={item.key} href={item.href} prefetch={false}>
             {t(`header.nav.${item.key}`)}
           </Link>
         ))}
