@@ -1,9 +1,30 @@
 import type { PokemonAbilityOption, PokemonCatalogItem, PokemonDetailDto, PokemonHeldItem, PokemonMoveLearnDto, PokemonLevelMove } from './contracts'
+import type { TypeChartEntryDto } from '@/src/modules/team/queries'
 import { buildDescription, buildRole, formatDexNumber, formatName, getPalette, translateDamageClass, translateType } from './format'
 
 const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2'
 const POKEAPI_INDEX_LIMIT = 1500
 const POKEAPI_TIMEOUT_MS = 12000
+const POKEAPI_BATTLE_TYPE_KEYS = [
+  'normal',
+  'fire',
+  'water',
+  'electric',
+  'grass',
+  'ice',
+  'fighting',
+  'poison',
+  'ground',
+  'flying',
+  'psychic',
+  'bug',
+  'rock',
+  'ghost',
+  'dragon',
+  'dark',
+  'steel',
+  'fairy',
+] as const
 
 const TYPE_QUERY_ALIASES: Record<string, string> = {
   acero: 'steel',
@@ -103,6 +124,15 @@ type PokeApiPokemonResponse = {
   }
 }
 
+type PokeApiTypeResponse = {
+  name: string
+  damage_relations: {
+    double_damage_from: PokeApiNamedResource[]
+    half_damage_from: PokeApiNamedResource[]
+    no_damage_from: PokeApiNamedResource[]
+  }
+}
+
 type FallbackPokemonCatalogResult = {
   total: number
   catalogTotal: number
@@ -110,6 +140,7 @@ type FallbackPokemonCatalogResult = {
 }
 
 let pokemonIndexPromise: Promise<PokeApiNamedResource[]> | null = null
+let typeChartPromise: Promise<Record<string, TypeChartEntryDto>> | null = null
 const typeCatalogPromiseCache = new Map<string, Promise<PokeApiNamedResource[]>>()
 
 function createAbortSignal() {
@@ -437,6 +468,15 @@ function buildPokemonMoveLearnsFromPokeApi(pokemon: PokeApiPokemonResponse): Pok
     })
 }
 
+function buildTypeChartEntryFromPokeApi(typeData: PokeApiTypeResponse): TypeChartEntryDto {
+  return {
+    name: typeData.name,
+    doubleDamageFrom: typeData.damage_relations.double_damage_from.map((entry) => entry.name),
+    halfDamageFrom: typeData.damage_relations.half_damage_from.map((entry) => entry.name),
+    noDamageFrom: typeData.damage_relations.no_damage_from.map((entry) => entry.name),
+  }
+}
+
 function resolveTypeQueryKey(query: string) {
   return TYPE_QUERY_ALIASES[normalizeQuery(query)] ?? null
 }
@@ -515,4 +555,17 @@ export async function getFallbackPokemonDetail(nameOrId: string) {
 export async function getFallbackPokemonMoveLearns(nameOrId: string) {
   const pokemon = await fetchPokeApiPokemon(nameOrId)
   return pokemon ? buildPokemonMoveLearnsFromPokeApi(pokemon) : null
+}
+
+export async function getFallbackTypeChart(): Promise<Record<string, TypeChartEntryDto>> {
+  if (!typeChartPromise) {
+    typeChartPromise = Promise.all(
+      POKEAPI_BATTLE_TYPE_KEYS.map(async (typeKey) => {
+        const payload = await fetchPokeApiJson<PokeApiTypeResponse>(`type/${typeKey}`)
+        return [typeKey, buildTypeChartEntryFromPokeApi(payload)] as const
+      })
+    ).then((entries) => Object.fromEntries(entries))
+  }
+
+  return typeChartPromise
 }
