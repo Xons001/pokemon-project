@@ -1,9 +1,12 @@
 import Image from 'next/image'
+import { useI18n } from '../i18n/LanguageProvider'
 import styles from './PokedexHub.module.css'
 
 export default function PokemonGallery({ displayedPokemon, selectedPokemon, onSelectPokemon, pokedexRef }) {
+  const { t } = useI18n()
+
   return (
-    <div className={styles.galleryStrip} ref={pokedexRef} id="equipo" aria-label="Seleccion de Pokemon">
+    <div className={styles.galleryStrip} ref={pokedexRef} id="equipo" aria-label={t('home.gallery.ariaLabel')}>
       {displayedPokemon.length ? (
         displayedPokemon.map((pokemon) => (
           <button
@@ -26,8 +29,8 @@ export default function PokemonGallery({ displayedPokemon, selectedPokemon, onSe
         ))
       ) : (
         <div className={styles.emptyState}>
-          <strong>No hay resultados</strong>
-          <p>Prueba con otro nombre o numero.</p>
+          <strong>{t('home.gallery.emptyTitle')}</strong>
+          <p>{t('home.gallery.emptyDescription')}</p>
         </div>
       )}
     </div>

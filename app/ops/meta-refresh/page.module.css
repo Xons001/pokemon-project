@@ -5,8 +5,8 @@
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
 }
 
 .hero {
@@ -22,7 +22,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .hero h2,
@@ -50,7 +50,7 @@
   justify-content: center;
   padding: 0.8rem 1rem;
   font-weight: 700;
-  color: #18212f;
+  color: var(--text);
   text-decoration: none;
   background: #ffd24d;
   border: 1px solid #f6c437;
@@ -60,9 +60,9 @@
 .command {
   padding: 0.75rem 0.9rem;
   font-size: 0.82rem;
-  color: #324962;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  color: var(--text-subtle);
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 14px;
 }
 
@@ -108,9 +108,9 @@
 }
 
 .badgeNeutral {
-  color: #324962;
-  background: #f8fbff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--chip-bg);
+  border-color: var(--chip-border);
 }
 
 .infoList,
@@ -131,7 +131,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .infoList strong,
@@ -176,9 +176,9 @@
 .tableWrap {
   margin-top: 1rem;
   overflow-x: auto;
-  border: 1px solid #dce6f4;
+  border: 1px solid var(--border-strong);
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--table-bg);
 }
 
 .table {
@@ -191,7 +191,7 @@
 .table td {
   padding: 0.85rem 0.9rem;
   text-align: left;
-  border-bottom: 1px solid #eef3fb;
+  border-bottom: 1px solid var(--table-divider);
 }
 
 .table thead th {
@@ -199,8 +199,8 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6d7f96;
-  background: #f8fbff;
+  color: var(--muted-strong);
+  background: var(--table-head-bg);
 }
 
 .table tbody tr:last-child td {

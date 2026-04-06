@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { useI18n } from '../i18n/LanguageProvider'
 import sharedStyles from './shared.module.css'
 import styles from './PokedexHub.module.css'
 
@@ -18,6 +19,7 @@ const paletteClassMap = {
 }
 
 export default function PokemonDetail({ pokemon, onViewCard, onFocusSearch }) {
+  const { t } = useI18n()
   const visualClassName = [styles.hubVisual, paletteClassMap[pokemon.palette] || styles.hubVisualNeutral]
     .filter(Boolean)
     .join(' ')
@@ -28,7 +30,7 @@ export default function PokemonDetail({ pokemon, onViewCard, onFocusSearch }) {
     <article className={styles.hubDetail}>
       <div className={visualClassName}>
         <div className={styles.hubVisualTop}>
-          <span className={styles.featuredChip}>Destacado</span>
+          <span className={styles.featuredChip}>{t('home.detail.featured')}</span>
           <span className={styles.featuredId}>{pokemon.id}</span>
         </div>
 
@@ -37,72 +39,72 @@ export default function PokemonDetail({ pokemon, onViewCard, onFocusSearch }) {
         </div>
 
         <div className={styles.hubTypeList}>
-          {pokemon.types.length ? pokemon.types.map((type) => <span key={type}>{type}</span>) : <span>Cargando</span>}
+          {pokemon.types.length ? pokemon.types.map((type) => <span key={type}>{type}</span>) : <span>{t('home.detail.loading')}</span>}
         </div>
       </div>
 
       <div className={styles.hubInfo}>
-        <p className={sharedStyles.eyebrow}>Pokemon activo</p>
+        <p className={sharedStyles.eyebrow}>{t('home.detail.activePokemon')}</p>
         <h3>{pokemon.name}</h3>
         <p className={styles.hubRole}>{pokemon.role}</p>
         <p className={styles.hubDescription}>{pokemon.description}</p>
 
         <div className={styles.hubMeta}>
           <div>
-            <span>HP</span>
+            <span>{t('home.detail.stats.hp')}</span>
             <strong>{pokemon.hp}</strong>
           </div>
           <div>
-            <span>Ataque</span>
+            <span>{t('home.detail.stats.attack')}</span>
             <strong>{pokemon.attack}</strong>
           </div>
           <div>
-            <span>Velocidad</span>
+            <span>{t('home.detail.stats.speed')}</span>
             <strong>{pokemon.speed}</strong>
           </div>
           <div>
-            <span>Defensa</span>
+            <span>{t('home.detail.stats.defense')}</span>
             <strong>{pokemon.defense}</strong>
           </div>
           <div>
-            <span>Bonus</span>
+            <span>{t('home.detail.stats.bonus')}</span>
             <strong>{pokemon.bonus}</strong>
           </div>
         </div>
 
         <div className={styles.hubDetailsGrid}>
           <div className={styles.detailBox}>
-            <span>Altura</span>
+            <span>{t('home.detail.meta.height')}</span>
             <strong>{pokemon.height} m</strong>
           </div>
           <div className={styles.detailBox}>
-            <span>Peso</span>
+            <span>{t('home.detail.meta.weight')}</span>
             <strong>{pokemon.weight} kg</strong>
           </div>
           <div className={styles.detailBox}>
-            <span>Tipo principal</span>
+            <span>{t('home.detail.meta.primaryType')}</span>
             <strong>{pokemon.type}</strong>
           </div>
           <div className={styles.detailBox}>
-            <span>Id Pokedex</span>
+            <span>{t('home.detail.meta.pokedexId')}</span>
             <strong>{pokemon.id}</strong>
           </div>
           <div className={styles.detailBox}>
-            <span>Ataque especial</span>
+            <span>{t('home.detail.meta.specialAttack')}</span>
             <strong>{pokemon.specialAttack}</strong>
           </div>
           <div className={styles.detailBox}>
-            <span>Defensa especial</span>
+            <span>{t('home.detail.meta.specialDefense')}</span>
             <strong>{pokemon.specialDefense}</strong>
           </div>
         </div>
 
         <div className={styles.hubActions}>
           <button type="button" className={primaryButtonClassName} onClick={onViewCard}>
-            Ir a equipos
+            {t('home.detail.actions.goToTeams')}
           </button>
           <button type="button" className={secondaryButtonClassName} onClick={onFocusSearch}>
-            Buscar otro
+            {t('home.detail.actions.searchAnother')}
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import styles from './PokedexHub.module.css'
 
 export default function GalleryToolbar({
@@ -8,19 +9,21 @@ export default function GalleryToolbar({
   onPreviousPage,
   onNextPage,
 }) {
+  const { t } = useI18n()
+
   return (
     <div className={styles.galleryToolbar}>
       <p className={styles.galleryCount}>
-        {filteredCount} resultados
-        {query ? ` para "${query}"` : ''}
+        {t('home.gallery.results', { count: filteredCount })}
+        {query ? t('home.gallery.resultsFor', { query }) : ''}
       </p>
 
       <div className={styles.galleryPagination}>
         <button type="button" className={styles.pageButton} disabled={currentPage === 1} onClick={onPreviousPage}>
-          Anterior
+          {t('home.gallery.previous')}
         </button>
         <span className={styles.pageIndicator}>
-          Pagina {currentPage} de {totalPages}
+          {t('home.gallery.page', { current: currentPage, total: totalPages })}
         </span>
         <button
           type="button"
@@ -28,7 +31,7 @@ export default function GalleryToolbar({
           disabled={currentPage === totalPages}
           onClick={onNextPage}
         >
-          Siguiente
+          {t('home.gallery.next')}
         </button>
       </div>
     </div>

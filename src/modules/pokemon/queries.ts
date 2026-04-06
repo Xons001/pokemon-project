@@ -113,6 +113,8 @@ type ListPokemonCatalogResult = {
 const pokemonDetailSelect = {
   id: true,
   name: true,
+  speciesId: true,
+  isDefault: true,
   heightDecimetres: true,
   weightHectograms: true,
   officialArtworkUrl: true,
@@ -185,6 +187,47 @@ const pokemonDetailSelect = {
 
 type PokemonDetailRecord = Prisma.PokemonGetPayload<{
   select: typeof pokemonDetailSelect
+}>
+
+const pokemonMoveLearnSelect = {
+  id: true,
+  speciesId: true,
+  isDefault: true,
+  moveLearns: {
+    select: {
+      levelLearnedAt: true,
+      moveLearnMethod: {
+        select: {
+          name: true,
+        },
+      },
+      versionGroup: {
+        select: {
+          name: true,
+        },
+      },
+      move: {
+        select: {
+          name: true,
+          power: true,
+          accuracy: true,
+          pp: true,
+          priority: true,
+          damageClassName: true,
+          type: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: [{ versionGroupId: 'asc' }, { levelLearnedAt: 'asc' }],
+  },
+} satisfies Prisma.PokemonSelect
+
+type PokemonMoveLearnRecord = Prisma.PokemonGetPayload<{
+  select: typeof pokemonMoveLearnSelect
 }>
 
 function getStat(stats: Array<{ baseStat: number; stat: { name: string } }>, statName: string): number {
@@ -742,6 +785,40 @@ function serializePokemonDetail(record: PokemonDetailRecord): PokemonDetailDto {
   }
 }
 
+async function findDefaultSpeciesPokemonDetail(
+  prisma: ReturnType<typeof getPrismaClient>,
+  speciesId: number,
+  excludePokemonId: number
+): Promise<PokemonDetailRecord | null> {
+  return prisma.pokemon.findFirst({
+    where: {
+      speciesId,
+      isDefault: true,
+      NOT: {
+        id: excludePokemonId,
+      },
+    },
+    select: pokemonDetailSelect,
+  })
+}
+
+async function findDefaultSpeciesPokemonMoves(
+  prisma: ReturnType<typeof getPrismaClient>,
+  speciesId: number,
+  excludePokemonId: number
+): Promise<PokemonMoveLearnRecord | null> {
+  return prisma.pokemon.findFirst({
+    where: {
+      speciesId,
+      isDefault: true,
+      NOT: {
+        id: excludePokemonId,
+      },
+    },
+    select: pokemonMoveLearnSelect,
+  })
+}
+
 export async function listPokemonCatalog(options: ListPokemonCatalogOptions = {}): Promise<ListPokemonCatalogResult> {
   const prisma = getPrismaClient()
   const competitiveOnly = Boolean(options.competitiveOnly)
@@ -821,7 +898,7 @@ export async function listPokemonCatalog(options: ListPokemonCatalogOptions = {}
 export async function getPokemonDetailByName(nameOrId: string): Promise<PokemonDetailDto | null> {
   const prisma = getPrismaClient()
   const normalized = nameOrId.trim().toLowerCase()
-  const pokemon = await prisma.pokemon.findFirst({
+  let pokemon = await prisma.pokemon.findFirst({
     where: Number.isInteger(Number(normalized))
       ? {
           id: Number(normalized),
@@ -836,13 +913,28 @@ export async function getPokemonDetailByName(nameOrId: string): Promise<PokemonD
     return null
   }
 
+  const needsFallbackAbilities = extractAbilities(pokemon).length === 0
+  const needsFallbackLevelMoves = extractLevelMoves(pokemon).length === 0
+
+  if (!pokemon.isDefault && (needsFallbackAbilities || needsFallbackLevelMoves)) {
+    const fallbackPokemon = await findDefaultSpeciesPokemonDetail(prisma, pokemon.speciesId, pokemon.id)
+
+    if (fallbackPokemon) {
+      pokemon = {
+        ...pokemon,
+        abilities: needsFallbackAbilities ? fallbackPokemon.abilities : pokemon.abilities,
+        moveLearns: needsFallbackLevelMoves ? fallbackPokemon.moveLearns : pokemon.moveLearns,
+      }
+    }
+  }
+
   return serializePokemonDetail(pokemon)
 }
 
 export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<PokemonMoveLearnDto[] | null> {
   const prisma = getPrismaClient()
   const normalized = nameOrId.trim().toLowerCase()
-  const pokemon = await prisma.pokemon.findFirst({
+  let pokemon = await prisma.pokemon.findFirst({
     where: Number.isInteger(Number(normalized))
       ? {
           id: Number(normalized),
@@ -850,43 +942,22 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
       : {
           name: normalized,
         },
-    select: {
-      moveLearns: {
-        select: {
-          levelLearnedAt: true,
-          moveLearnMethod: {
-            select: {
-              name: true,
-            },
-          },
-          versionGroup: {
-            select: {
-              name: true,
-            },
-          },
-          move: {
-            select: {
-              name: true,
-              power: true,
-              accuracy: true,
-              pp: true,
-              priority: true,
-              damageClassName: true,
-              type: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: [{ versionGroupId: 'asc' }, { levelLearnedAt: 'asc' }],
-      },
-    },
+    select: pokemonMoveLearnSelect,
   })
 
   if (!pokemon) {
     return null
+  }
+
+  if (!pokemon.isDefault && !pokemon.moveLearns.length) {
+    const fallbackPokemon = await findDefaultSpeciesPokemonMoves(prisma, pokemon.speciesId, pokemon.id)
+
+    if (fallbackPokemon?.moveLearns.length) {
+      pokemon = {
+        ...pokemon,
+        moveLearns: fallbackPokemon.moveLearns,
+      }
+    }
   }
 
   const moveMap = new Map<string, PokemonMoveLearnDto>()

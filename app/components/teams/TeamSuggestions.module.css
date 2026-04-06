@@ -10,8 +10,8 @@
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
 }
 
 .contentStack {
@@ -42,7 +42,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .header h3,
@@ -75,8 +75,9 @@
   min-width: 92px;
   padding: 0.55rem 0.8rem;
   font-size: 0.82rem;
-  background: #eff4ff;
-  border-color: #d8dfeb;
+  color: var(--badge-text);
+  background: var(--badge-bg);
+  border-color: var(--badge-border);
   border-radius: 999px;
 }
 
@@ -89,17 +90,17 @@
 .errorBanner {
   margin: 0;
   padding: 0.85rem 1rem;
-  color: #7f1d1d;
-  background: #fff5f5;
-  border: 1px solid #fecaca;
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 18px;
 }
 
 .featuredCard,
 .rankingCard {
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 22px;
 }
 
@@ -114,7 +115,7 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: 18px;
-  background: linear-gradient(180deg, #ffffff, #edf2fb);
+  background: var(--panel-bg-elevated);
 }
 
 .featuredThumb {
@@ -192,16 +193,16 @@
 .metaChip {
   padding: 0.38rem 0.62rem;
   font-size: 0.76rem;
-  color: #324962;
-  background: #ffffff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--panel-bg-strong);
+  border-color: var(--border-strong);
   border-radius: 999px;
 }
 
 .addButton,
 .inlineAddButton {
   cursor: pointer;
-  color: #18212f;
+  color: var(--text);
   background: #ffd24d;
   border-color: #f6c437;
   border-radius: 14px;
@@ -231,9 +232,9 @@
   margin: 0;
   padding: 0.72rem 0.8rem;
   line-height: 1.5;
-  color: #324962;
-  background: #ffffff;
-  border: 1px solid #dce6f4;
+  color: var(--text-subtle);
+  background: var(--panel-bg-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 16px;
 }
 
@@ -254,16 +255,16 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .buildChip,
 .moveChip {
   gap: 0.4rem;
   padding: 0.45rem 0.62rem;
-  color: #324962;
-  background: #ffffff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--panel-bg-strong);
+  border-color: var(--border-strong);
   border-radius: 14px;
 }
 
@@ -321,9 +322,9 @@
   padding: 0.3rem 0.5rem;
   font-size: 0.76rem;
   font-weight: 800;
-  color: #324962;
-  background: #eff4ff;
-  border: 1px solid #d8dfeb;
+  color: var(--badge-text);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
   border-radius: 999px;
 }
 
@@ -346,7 +347,7 @@
 .rankingReason {
   margin: 0;
   line-height: 1.5;
-  color: #51657d;
+  color: var(--text-subtle);
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 2;
@@ -357,8 +358,8 @@
   display: grid;
   gap: 0.45rem;
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px dashed #dce6f4;
+  background: var(--empty-bg);
+  border: 1px dashed var(--empty-border);
   border-radius: 18px;
 }
 

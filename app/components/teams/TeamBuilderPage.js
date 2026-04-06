@@ -1,5 +1,6 @@
 'use client'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import SiteHeader from '../home/SiteHeader'
 import { useTeamBuilder } from '../../hooks/useTeamBuilder'
 import pageStyles from '../../page.module.css'
@@ -10,6 +11,7 @@ import TeamWorkspace from './TeamWorkspace'
 import styles from './TeamBuilderPage.module.css'
 
 export default function TeamBuilderPage() {
+  const { t } = useI18n()
   const teamBuilder = useTeamBuilder()
   const filledSlots = teamBuilder.activeTeam.slots.filter((slot) => slot.pokemonSlug).length
   const configuredMoves = teamBuilder.activeTeam.slots.reduce(
@@ -24,24 +26,21 @@ export default function TeamBuilderPage() {
       <main className={pageStyles.pageShell}>
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
-            <h2>Pokemon Teams Lab</h2>
-            <p className={styles.lead}>
-              Monta un unico equipo de seis Pokemon y revisa con claridad que tipos rivales lo castigan mas y cuales
-              tiene mejor cubiertos.
-            </p>
+            <h2>{t('team.page.title')}</h2>
+            <p className={styles.lead}>{t('team.page.description')}</p>
           </div>
 
           <div className={styles.heroStats}>
             <div className={[styles.statCard, styles.formatStatCard].join(' ')}>
-              <span>Formato</span>
+              <span>{t('team.page.stats.format')}</span>
               <strong className={styles.formatValue}>{teamBuilder.activeTeam.formatKey.toUpperCase()}</strong>
             </div>
             <div className={[styles.statCard, styles.compactStatCard].join(' ')}>
-              <span>Huecos ocupados</span>
+              <span>{t('team.page.stats.occupiedSlots')}</span>
               <strong>{filledSlots}/6</strong>
             </div>
             <div className={[styles.statCard, styles.compactStatCard].join(' ')}>
-              <span>Moveset</span>
+              <span>{t('team.page.stats.moveset')}</span>
               <strong>{configuredMoves}/24</strong>
             </div>
           </div>

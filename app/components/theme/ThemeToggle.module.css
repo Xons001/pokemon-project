@@ -1,0 +1,92 @@
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  background: var(--theme-shell-bg);
+  border: 1px solid var(--theme-shell-border);
+  border-radius: 999px;
+  box-shadow: var(--theme-shell-shadow);
+}
+
+.themeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.6rem 0.85rem;
+  color: var(--theme-toggle-text);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.themeButton:hover {
+  transform: translateY(-1px);
+}
+
+.themeButtonActive {
+  color: var(--theme-toggle-active-text);
+  background: var(--theme-toggle-active-bg);
+  box-shadow: 0 10px 20px var(--theme-toggle-active-shadow);
+}
+
+.themeIcon {
+  position: relative;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+
+.themeIconSun::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow:
+    0 -7px 0 -6px currentColor,
+    0 7px 0 -6px currentColor,
+    7px 0 0 -6px currentColor,
+    -7px 0 0 -6px currentColor;
+}
+
+.themeIconMoon::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.themeIconMoon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  background: var(--theme-shell-bg);
+  border-radius: 999px;
+}
+
+.themeLabel {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .themeToggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .themeButton {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}

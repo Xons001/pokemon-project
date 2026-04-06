@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/ensure-next-dev-manifest.cjs && next dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
+    "@smogon/calc": "^0.11.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "10.4.15",

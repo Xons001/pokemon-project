@@ -2,23 +2,30 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import styles from './TeamSelectPicker.module.css'
 
 export default function TeamSelectPicker({
   ariaLabel,
-  clearLabel = 'Vaciar',
+  clearLabel,
   disabled = false,
-  emptyMessage = 'No hay opciones disponibles.',
+  emptyMessage,
   onChange,
   options,
   placeholderMeta = '',
-  placeholderTitle = 'Selecciona una opcion',
-  searchPlaceholder = 'Filtra opciones',
+  placeholderTitle,
+  searchPlaceholder,
   value = '',
 }) {
+  const { locale } = useI18n()
   const pickerRef = useRef(null)
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+
+  const resolvedClearLabel = clearLabel ?? (locale === 'en' ? 'Clear' : 'Vaciar')
+  const resolvedEmptyMessage = emptyMessage ?? (locale === 'en' ? 'No options available.' : 'No hay opciones disponibles.')
+  const resolvedPlaceholderTitle = placeholderTitle ?? (locale === 'en' ? 'Select an option' : 'Selecciona una opción')
+  const resolvedSearchPlaceholder = searchPlaceholder ?? (locale === 'en' ? 'Filter options' : 'Filtra opciones')
 
   const selectedOption = useMemo(() => {
     return options.find((option) => option.value === value) ?? null
@@ -90,7 +97,7 @@ export default function TeamSelectPicker({
         disabled={disabled}
       >
         <span className={styles.triggerContent}>
-          <strong className={styles.triggerTitle}>{selectedOption?.label ?? placeholderTitle}</strong>
+          <strong className={styles.triggerTitle}>{selectedOption?.label ?? resolvedPlaceholderTitle}</strong>
           <span className={styles.triggerMeta}>
             {selectedOption?.meta ? (
               <span className={styles.metaChip}>{selectedOption.meta}</span>
@@ -110,7 +117,7 @@ export default function TeamSelectPicker({
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={searchPlaceholder}
+              placeholder={resolvedSearchPlaceholder}
               autoFocus
             />
             <button
@@ -119,7 +126,7 @@ export default function TeamSelectPicker({
               onClick={() => handleSelection('')}
               disabled={!value}
             >
-              {clearLabel}
+              {resolvedClearLabel}
             </button>
           </div>
 
@@ -145,7 +152,7 @@ export default function TeamSelectPicker({
                 )
               })
             ) : (
-              <p className={styles.emptyState}>{emptyMessage}</p>
+              <p className={styles.emptyState}>{resolvedEmptyMessage}</p>
             )}
           </div>
         </div>

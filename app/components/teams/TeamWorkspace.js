@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import { formatDexNumber, formatResourceName } from '../../lib/pokemon'
 import {
-  TEAM_NATURES,
   createFallbackMoveEntry,
+  getTeamNatures,
   getNatureSummary,
   normalizeTeamResourceId,
 } from '../../lib/team-builder'
@@ -74,7 +75,7 @@ function getMoveCardStyle(move) {
 
 function getNatureMetaLabel(nature) {
   if (!nature?.increasedStat || !nature?.decreasedStat) {
-    return 'Neutral'
+    return ''
   }
 
   return nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '')
@@ -116,6 +117,13 @@ export default function TeamWorkspace({
   setSearchQuery,
   teamMembers,
 }) {
+  const { locale, t } = useI18n()
+  const workspaceCopy = t('team.workspace')
+  const abilityPickerCopy = workspaceCopy.abilityPicker
+  const itemPickerCopy = workspaceCopy.itemPicker
+  const naturePickerCopy = workspaceCopy.naturePicker
+  const moveCopy = workspaceCopy.move
+  const transferCopy = workspaceCopy.transfer
   const teamPanelRef = useRef(null)
   const searchInputRef = useRef(null)
   const searchResultsRef = useRef(null)
@@ -145,10 +153,10 @@ export default function TeamWorkspace({
     return selectedAbilityOptions.map((ability) => ({
       value: ability.slug,
       label: ability.label,
-      meta: ability.isHidden ? 'Oculta' : 'Base',
+      meta: ability.isHidden ? workspaceCopy.hiddenAbilityLabel : workspaceCopy.baseAbilityLabel,
       keywords: [ability.slug],
     }))
-  }, [selectedAbilityOptions])
+  }, [selectedAbilityOptions, workspaceCopy.baseAbilityLabel, workspaceCopy.hiddenAbilityLabel])
   const itemLookup = useMemo(() => {
     const lookup = new Map()
 
@@ -176,13 +184,13 @@ export default function TeamWorkspace({
     }))
   }, [itemCatalog])
   const naturePickerOptions = useMemo(() => {
-    return TEAM_NATURES.map((nature) => ({
+    return getTeamNatures(locale).map((nature) => ({
       value: nature.key,
       label: nature.label,
-      meta: getNatureMetaLabel(nature),
+      meta: getNatureMetaLabel(nature) || workspaceCopy.neutralNature,
       keywords: [nature.summary],
     }))
-  }, [])
+  }, [locale, workspaceCopy.neutralNature])
 
   function getItemLabel(itemSlug) {
     if (!itemSlug) {
@@ -335,32 +343,32 @@ export default function TeamWorkspace({
     const nextText = onGenerateTeamExportText()
 
     if (!nextText.trim()) {
-      setTransferMessage('Todavia no hay sets completos que exportar.')
+      setTransferMessage(transferCopy.emptyExport)
       return
     }
 
     try {
       await navigator.clipboard.writeText(nextText)
       setTransferText(nextText)
-      setTransferMessage('Equipo copiado al portapapeles en formato Showdown.')
+      setTransferMessage(transferCopy.copied)
     } catch {
       setTransferText(nextText)
-      setTransferMessage('No se pudo copiar automaticamente, pero ya tienes el texto preparado.')
+      setTransferMessage(transferCopy.copyFallback)
     }
   }
 
   function handleGenerateExport() {
     const nextText = onGenerateTeamExportText()
     setTransferText(nextText)
-    setTransferMessage(nextText.trim() ? 'Texto de exportacion actualizado.' : 'Todavia no hay sets completos que exportar.')
+    setTransferMessage(nextText.trim() ? transferCopy.updated : transferCopy.emptyExport)
   }
 
   function handleImport() {
     try {
       onImportTeamText(transferText)
-      setTransferMessage('Equipo importado correctamente.')
+      setTransferMessage(transferCopy.importSuccess)
     } catch (error) {
-      setTransferMessage(error instanceof Error ? error.message : 'No se pudo importar el texto.')
+      setTransferMessage(error instanceof Error ? error.message : transferCopy.importError)
     }
   }
 
@@ -372,19 +380,19 @@ export default function TeamWorkspace({
         <section className={styles.teamPanel} ref={teamPanelRef}>
           <div className={styles.header}>
             <div>
-              <p className={styles.kicker}>Equipo guardado</p>
+              <p className={styles.kicker}>{t('team.workspace.savedTeam')}</p>
               <input
                 className={styles.nameInput}
                 type="text"
                 value={activeTeam?.name ?? ''}
                 onChange={(event) => onRenameTeam(event.target.value)}
-                placeholder="Nombre del equipo"
-                aria-label="Nombre del equipo actual"
+                placeholder={t('team.workspace.teamNamePlaceholder')}
+                aria-label={t('team.workspace.teamNameAria')}
               />
             </div>
 
             <button type="button" className={styles.clearButton} onClick={onClearTeam}>
-              Vaciar equipo
+              {t('team.workspace.clearTeam')}
             </button>
           </div>
 
@@ -406,9 +414,9 @@ export default function TeamWorkspace({
                       .join(' ')}
                     onClick={() => onSelectSlot(index)}
                   >
-                    <span className={styles.slotIndex}>Hueco {index + 1}</span>
-                    <strong>Selecciona un Pokemon</strong>
-                    <p>Elige el hueco y anade un Pokemon desde el buscador.</p>
+                    <span className={styles.slotIndex}>{t('team.workspace.slot', { index: index + 1 })}</span>
+                    <strong>{t('team.workspace.selectPokemon')}</strong>
+                    <p>{t('team.workspace.selectPokemonDescription')}</p>
                   </button>
                 )
               }
@@ -421,7 +429,7 @@ export default function TeamWorkspace({
                 >
                   <button type="button" className={styles.slotSelectArea} onClick={() => onSelectSlot(index)}>
                     <div className={styles.slotTop}>
-                      <span className={styles.slotIndex}>Hueco {index + 1}</span>
+                      <span className={styles.slotIndex}>{t('team.workspace.slot', { index: index + 1 })}</span>
                       <span className={styles.slotDex}>{pokemon.id}</span>
                     </div>
 
@@ -432,9 +440,9 @@ export default function TeamWorkspace({
 
                       <div className={styles.slotCopy}>
                         <strong>{pokemon.name}</strong>
-                        <p>{pokemon.types.length ? pokemon.types.join(' / ') : 'Cargando tipos'}</p>
+                        <p>{pokemon.types.length ? pokemon.types.join(' / ') : t('team.workspace.loadingTypes')}</p>
                         <small className={styles.slotMeta}>
-                          {movesConfigured}/4 movimientos
+                          {t('team.workspace.movesConfigured', { count: movesConfigured })}
                           {itemLabel ? ` | ${itemLabel}` : ''}
                         </small>
                       </div>
@@ -443,7 +451,7 @@ export default function TeamWorkspace({
 
                   <div className={styles.slotActions}>
                     <button type="button" className={styles.slotSecondaryAction} onClick={() => onRemovePokemon(index)}>
-                      Quitar
+                      {t('team.workspace.remove')}
                     </button>
                   </div>
                 </article>
@@ -455,12 +463,12 @@ export default function TeamWorkspace({
         <aside className={styles.searchSection} style={searchPanelHeight ? { height: searchPanelHeight } : undefined}>
           <div className={styles.searchHeader}>
             <div>
-              <p className={styles.kicker}>Buscador del equipo</p>
-              <h3>Anade Pokemon al hueco activo</h3>
+              <p className={styles.kicker}>{t('team.workspace.searchKicker')}</p>
+              <h3>{t('team.workspace.searchTitle')}</h3>
             </div>
 
             <span className={styles.catalogBadge}>
-              {isCatalogLoading ? 'Cargando catalogo...' : `${catalogCount} Pokemon`}
+              {isCatalogLoading ? t('team.workspace.loadingCatalog') : t('team.workspace.catalogBadge', { count: catalogCount })}
             </span>
           </div>
 
@@ -473,14 +481,14 @@ export default function TeamWorkspace({
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Busca por nombre, numero o tipo"
+                placeholder={t('team.workspace.searchPlaceholder')}
               />
               {searchQuery ? (
                 <button
                   type="button"
                   className={styles.searchClearButton}
                   onClick={clearSearchQuery}
-                  aria-label="Limpiar busqueda"
+                  aria-label={t('team.workspace.clearSearch')}
                 >
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -490,8 +498,8 @@ export default function TeamWorkspace({
 
           <p className={styles.helperText}>
             {isPokemonLoading
-              ? 'Sincronizando datos del Pokemon activo para editar su build...'
-              : 'Haz clic en un resultado para colocarlo en el hueco seleccionado.'}
+              ? t('team.workspace.syncingActivePokemon')
+              : t('team.workspace.clickResult')}
           </p>
 
           <div className={styles.searchResults} ref={searchResultsRef}>
@@ -514,26 +522,30 @@ export default function TeamWorkspace({
                 </button>
               ))
             ) : (
-              <p className={styles.emptyResults}>No hemos encontrado Pokemon para esa busqueda.</p>
+              <p className={styles.emptyResults}>{t('team.workspace.noSearchResults')}</p>
             )}
           </div>
 
           <div className={styles.searchFooter}>
             <p className={styles.searchSummary}>
               {searchResultsSummary.total
-                ? `Mostrando ${searchResultsSummary.from}-${searchResultsSummary.to} de ${searchResultsSummary.total} Pokemon`
-                : '0 Pokemon en esta busqueda'}
+                ? t('team.workspace.showingResults', {
+                    from: searchResultsSummary.from,
+                    to: searchResultsSummary.to,
+                    total: searchResultsSummary.total,
+                  })
+                : t('team.workspace.zeroResults')}
             </p>
 
             {searchResultsSummary.totalPages > 1 ? (
-              <nav className={styles.searchPagination} aria-label="Paginacion del buscador del equipo">
+              <nav className={styles.searchPagination} aria-label={t('team.workspace.searchPaginationAria')}>
                 <button
                   type="button"
                   className={styles.searchPaginationButton}
                   onClick={() => handleSearchPageChange(searchPage - 1)}
                   disabled={searchPage <= 1}
                 >
-                  Anterior
+                  {t('team.workspace.previous')}
                 </button>
 
                 <div className={styles.searchPaginationPages}>
@@ -561,7 +573,7 @@ export default function TeamWorkspace({
                   onClick={() => handleSearchPageChange(searchPage + 1)}
                   disabled={searchPage >= searchResultsSummary.totalPages}
                 >
-                  Siguiente
+                  {t('team.workspace.next')}
                 </button>
               </nav>
             ) : null}
@@ -572,19 +584,19 @@ export default function TeamWorkspace({
       <section className={styles.buildPanel}>
         <div className={styles.buildHeader}>
           <div>
-            <p className={styles.kicker}>Editor del hueco activo</p>
-            <h3>{activePokemon ? activePokemon.name : `Hueco ${selectedSlotIndex + 1}`}</h3>
+            <p className={styles.kicker}>{t('team.workspace.activeSlotEditor')}</p>
+            <h3>{activePokemon ? activePokemon.name : t('team.workspace.slot', { index: selectedSlotIndex + 1 })}</h3>
           </div>
 
           <div className={styles.buildActions}>
-            <span className={styles.buildBadge}>{selectedMovesCount}/4 movimientos</span>
+            <span className={styles.buildBadge}>{t('team.workspace.movesConfigured', { count: selectedMovesCount })}</span>
             {activePokemon ? (
               <button
                 type="button"
                 className={styles.slotSecondaryAction}
                 onClick={() => onClearMovesFromSlot(selectedSlotIndex)}
               >
-                Vaciar moves
+                {t('team.workspace.clearMoves')}
               </button>
             ) : null}
           </div>
@@ -598,78 +610,78 @@ export default function TeamWorkspace({
 
               <div className={styles.buildSummaryCopy}>
                 <strong>{activePokemon.name}</strong>
-                <p>{activePokemon.types.length ? activePokemon.types.join(' / ') : 'Tipos sin cargar'}</p>
+                <p>{activePokemon.types.length ? activePokemon.types.join(' / ') : t('team.workspace.loadingTypes')}</p>
                 <div className={styles.buildTags}>
                   <span>{activePokemon.role}</span>
-                  <span>{selectedPokemonMoves.length} opciones de movimiento</span>
-                  <span>{selectedSlot?.itemSlug ? getItemLabel(selectedSlot.itemSlug) : 'Sin item'}</span>
-                  <span>{getNatureSummary(selectedSlot?.natureKey)}</span>
+                  <span>{t('team.workspace.moveOptions', { count: selectedPokemonMoves.length })}</span>
+                  <span>{selectedSlot?.itemSlug ? getItemLabel(selectedSlot.itemSlug) : t('team.workspace.noItem')}</span>
+                  <span>{getNatureSummary(selectedSlot?.natureKey, locale)}</span>
                 </div>
               </div>
             </div>
 
             <p className={styles.buildHelperText}>
               {isMovesLoading
-                ? 'Cargando learnset competitivo para este Pokemon...'
-                : 'Ahora puedes fijar habilidad, item, naturaleza y moveset base para alimentar el analisis del equipo y el validador.'}
+                ? t('team.workspace.loadingLearnset')
+                : t('team.workspace.buildHelper')}
             </p>
 
             <div className={styles.buildConfigGrid}>
               <div className={styles.configField}>
-                <span>Habilidad</span>
+                <span>{workspaceCopy.ability}</span>
                 <TeamSelectPicker
-                  ariaLabel="Opciones de habilidad"
+                  ariaLabel={abilityPickerCopy.ariaLabel}
                   value={selectedAbilitySlug}
                   onChange={onAssignAbilityToSlot}
                   options={abilityPickerOptions}
                   disabled={!selectedAbilityOptions.length && isPokemonLoading}
-                  placeholderTitle={isPokemonLoading ? 'Cargando habilidades...' : 'Selecciona una habilidad'}
-                  placeholderMeta="La habilidad influye en la validacion del set."
-                  searchPlaceholder="Filtra por nombre de habilidad"
-                  emptyMessage="No encontramos habilidades que coincidan con ese filtro."
+                  placeholderTitle={isPokemonLoading ? abilityPickerCopy.loadingTitle : abilityPickerCopy.selectTitle}
+                  placeholderMeta={abilityPickerCopy.placeholderMeta}
+                  searchPlaceholder={abilityPickerCopy.searchPlaceholder}
+                  emptyMessage={abilityPickerCopy.emptyMessage}
                 />
                 <small>
                   {selectedAbilityOptions.length
-                    ? 'La habilidad seleccionada se validara contra el meta elegido.'
+                    ? abilityPickerCopy.selectedHelp
                     : isPokemonLoading
-                      ? 'Cargando habilidades disponibles...'
-                      : 'Todavia no tenemos habilidades cargadas para este Pokemon.'}
+                      ? abilityPickerCopy.loadingHelp
+                      : abilityPickerCopy.emptyHelp}
                 </small>
               </div>
 
               <div className={styles.configField}>
-                <span>Item</span>
+                <span>{workspaceCopy.item}</span>
                 <TeamSelectPicker
-                  ariaLabel="Opciones de item"
+                  ariaLabel={itemPickerCopy.ariaLabel}
                   value={selectedSlot?.itemSlug ?? ''}
                   onChange={onAssignItemToSlot}
                   options={itemPickerOptions}
                   disabled={isItemsLoading}
-                  placeholderTitle={isItemsLoading ? 'Cargando items...' : 'Selecciona un item'}
-                  placeholderMeta="Prioriza el meta actual y conserva las megapiedras del scope competitivo."
-                  searchPlaceholder="Filtra por nombre o categoria"
-                  emptyMessage="No encontramos items que coincidan con ese filtro."
+                  placeholderTitle={isItemsLoading ? itemPickerCopy.loadingTitle : itemPickerCopy.selectTitle}
+                  placeholderMeta={itemPickerCopy.placeholderMeta}
+                  searchPlaceholder={itemPickerCopy.searchPlaceholder}
+                  emptyMessage={itemPickerCopy.emptyMessage}
                 />
                 <small>
                   {isItemsLoading
-                    ? 'Sincronizando el catalogo de items...'
-                    : 'El catalogo prioriza items vistos en el meta actual y mantiene tambien las megapiedras del scope competitivo activo.'}
+                    ? itemPickerCopy.loadingHelp
+                    : itemPickerCopy.readyHelp}
                 </small>
               </div>
 
               <div className={styles.configField}>
-                <span>Naturaleza</span>
+                <span>{workspaceCopy.nature}</span>
                 <TeamSelectPicker
-                  ariaLabel="Opciones de naturaleza"
+                  ariaLabel={naturePickerCopy.ariaLabel}
                   value={selectedNatureKey}
                   onChange={onAssignNatureToSlot}
                   options={naturePickerOptions}
-                  placeholderTitle="Sin naturaleza"
-                  placeholderMeta="Ajusta el boost y el drop del set."
-                  searchPlaceholder="Filtra por naturaleza o stat"
-                  emptyMessage="No encontramos naturalezas que coincidan con ese filtro."
+                  placeholderTitle={naturePickerCopy.placeholderTitle}
+                  placeholderMeta={naturePickerCopy.placeholderMeta}
+                  searchPlaceholder={naturePickerCopy.searchPlaceholder}
+                  emptyMessage={naturePickerCopy.emptyMessage}
                 />
-                <small>La naturaleza afecta los totales del radar y la tabla de stats en este mismo panel.</small>
+                <small>{naturePickerCopy.help}</small>
               </div>
             </div>
 
@@ -702,7 +714,7 @@ export default function TeamWorkspace({
                     style={getMoveCardStyle(selectedMove)}
                   >
                     <label className={styles.moveLabel} htmlFor={`team-move-${index}`}>
-                      Movimiento {index + 1}
+                      {t('team.workspace.move.title', { index: index + 1 })}
                     </label>
 
                     <div
@@ -722,7 +734,7 @@ export default function TeamWorkspace({
                       >
                         <span className={styles.moveSelectContent}>
                           <strong className={styles.moveSelectTitle}>
-                            {selectedMove ? selectedMove.move : 'Selecciona un movimiento'}
+                            {selectedMove ? selectedMove.move : moveCopy.selectTitle}
                           </strong>
                           <span className={styles.moveSelectMeta}>
                             {selectedMove ? (
@@ -745,7 +757,7 @@ export default function TeamWorkspace({
                               </>
                             ) : (
                               <span className={styles.moveSelectPlaceholder}>
-                                Pulsa para abrir el learnset y elegirlo con color por tipo.
+                                {moveCopy.pickerPlaceholder}
                               </span>
                             )}
                           </span>
@@ -761,7 +773,7 @@ export default function TeamWorkspace({
                               type="text"
                               value={moveSearchQuery}
                               onChange={(event) => setMoveSearchQuery(event.target.value)}
-                              placeholder="Filtra por nombre, tipo o categoria"
+                              placeholder={moveCopy.searchPlaceholder}
                               autoFocus
                             />
                             {moveSlug ? (
@@ -770,12 +782,12 @@ export default function TeamWorkspace({
                                 className={styles.moveClearButton}
                                 onClick={() => handleMoveSelection(index, '')}
                               >
-                                Vaciar
+                                {moveCopy.clear}
                               </button>
                             ) : null}
                           </div>
 
-                          <div className={styles.moveOptionList} role="listbox" aria-label={`Opciones de movimiento ${index + 1}`}>
+                          <div className={styles.moveOptionList} role="listbox" aria-label={t('team.workspace.move.optionsAria', { index: index + 1 })}>
                             {filteredMoves.length ? (
                               filteredMoves.map((move) => {
                                 const isSelected = move.moveSlug === moveSlug
@@ -819,7 +831,7 @@ export default function TeamWorkspace({
                               })
                             ) : (
                               <p className={styles.moveOptionEmpty}>
-                                No encontramos movimientos que coincidan con ese filtro.
+                                {moveCopy.noResults}
                               </p>
                             )}
                           </div>
@@ -839,15 +851,15 @@ export default function TeamWorkspace({
                         </div>
                         <p className={styles.moveHint}>
                           {selectedMove.learnMethods.length
-                            ? `Aprendizaje: ${selectedMove.learnMethods.join(', ')}`
-                            : 'Movimiento importado o pendiente de sincronizar en el learnset local.'}
+                            ? t('team.workspace.move.learningPrefix', { methods: selectedMove.learnMethods.join(', ') })
+                            : moveCopy.importedPending}
                         </p>
                       </>
                     ) : (
                       <p className={styles.moveHint}>
                         {isMovesLoading
-                          ? 'Esperando a que termine de cargar el learnset...'
-                          : 'Todavia no has elegido un movimiento para este hueco.'}
+                          ? moveCopy.waitingLearnset
+                          : moveCopy.emptySlot}
                       </p>
                     )}
                   </article>
@@ -857,34 +869,32 @@ export default function TeamWorkspace({
           </>
         ) : (
           <div className={styles.emptyBuildState}>
-            <strong>Selecciona un Pokemon en este hueco</strong>
-            <p>Cuando el hueco activo tenga Pokemon, aqui podras guardar habilidad, item, naturaleza y cuatro movimientos base.</p>
+            <strong>{workspaceCopy.emptyBuildTitle}</strong>
+            <p>{workspaceCopy.emptyBuildDescription}</p>
           </div>
         )}
 
         <section className={styles.transferPanel}>
           <div className={styles.transferHeader}>
             <div>
-              <p className={styles.kicker}>Importar y exportar</p>
-              <h3>Texto Showdown / Pokepaste</h3>
+              <p className={styles.kicker}>{transferCopy.kicker}</p>
+              <h3>{transferCopy.title}</h3>
             </div>
 
             <div className={styles.transferActions}>
               <button type="button" className={styles.transferButton} onClick={handleGenerateExport}>
-                Generar
+                {transferCopy.generate}
               </button>
               <button type="button" className={styles.transferButton} onClick={handleCopyExport}>
-                Copiar
+                {transferCopy.copy}
               </button>
               <button type="button" className={[styles.transferButton, styles.transferButtonPrimary].join(' ')} onClick={handleImport}>
-                Importar
+                {transferCopy.import}
               </button>
             </div>
           </div>
 
-          <p className={styles.transferHelper}>
-            Pega aqui un equipo en formato Showdown para reemplazar el actual, o genera el texto desde tu build para llevartelo fuera.
-          </p>
+          <p className={styles.transferHelper}>{transferCopy.description}</p>
 
           <textarea
             className={styles.transferTextarea}

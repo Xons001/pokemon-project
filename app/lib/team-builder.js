@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, getMessages } from './i18n'
 import {
   createCatalogPokemon,
   formatAbility,
@@ -48,14 +49,12 @@ const STAT_LABELS = {
   speed: 'Spe',
 }
 
-const MOVE_UTILITY_LABELS = {
-  hazard: 'hazards',
-  hazardRemoval: 'control de hazards',
-  pivot: 'pivot',
-  recovery: 'recuperacion',
-  status: 'estado',
-  boosting: 'setup',
-  priority: 'prioridad',
+function getTeamBuilderMessages(locale = DEFAULT_LOCALE) {
+  return getMessages(locale).teamBuilder ?? {}
+}
+
+function getMoveUtilityLabels(locale = DEFAULT_LOCALE) {
+  return getTeamBuilderMessages(locale).moveUtility ?? {}
 }
 
 const HAZARD_MOVE_IDS = new Set(['stealthrock', 'spikes', 'toxicspikes', 'stickyweb'])
@@ -170,10 +169,14 @@ export function toCompetitiveResourceId(value) {
   return normalizeTeamResourceId(value)?.replace(/-/g, '') ?? ''
 }
 
-export const TEAM_NATURES = NATURE_DEFINITIONS.map((nature) => ({
-  ...nature,
-  summary: getNatureSummary(nature.key),
-}))
+export function getTeamNatures(locale = DEFAULT_LOCALE) {
+  return NATURE_DEFINITIONS.map((nature) => ({
+    ...nature,
+    summary: getNatureSummary(nature.key, locale),
+  }))
+}
+
+export const TEAM_NATURES = getTeamNatures()
 
 export function createDefaultEffortValues() {
   return {
@@ -206,11 +209,11 @@ export function getNatureOption(natureKey) {
   return NATURE_MAP.get(normalizeNatureKey(natureKey) ?? '') ?? null
 }
 
-export function getNatureSummary(natureKey) {
+export function getNatureSummary(natureKey, locale = DEFAULT_LOCALE) {
   const nature = getNatureOption(natureKey)
 
   if (!nature) {
-    return 'Sin naturaleza'
+    return getTeamBuilderMessages(locale).noNature ?? 'Sin naturaleza'
   }
 
   if (!nature.increasedStat || !nature.decreasedStat) {
@@ -334,9 +337,9 @@ export function createTeamSlot(pokemonSlug, overrides = {}) {
   }
 }
 
-export function createDefaultTeam(formatKey = DEFAULT_TEAM_FORMAT) {
+export function createDefaultTeam(formatKey = DEFAULT_TEAM_FORMAT, locale = DEFAULT_LOCALE) {
   return {
-    name: 'Equipo principal',
+    name: getTeamBuilderMessages(locale).defaultTeamName ?? 'Equipo principal',
     formatKey,
     slots: Array.from({ length: TEAM_SIZE }, () => createEmptyTeamSlot()),
     leaderSlot: 0,
@@ -403,7 +406,7 @@ export function migrateLegacyTemplates(value) {
   })
 }
 
-export function buildCatalogSearchResults(catalog, query) {
+export function buildCatalogSearchResults(catalog, query, locale = DEFAULT_LOCALE) {
   const normalized = query.trim().toLowerCase()
   const baseResults = normalized
     ? catalog.filter((entry) => {
@@ -415,8 +418,8 @@ export function buildCatalogSearchResults(catalog, query) {
           entry.primaryAbility ? formatAbility(entry.primaryAbility) : null,
           entry.primaryType,
           entry.secondaryType,
-          entry.primaryType ? translateType(entry.primaryType) : null,
-          entry.secondaryType ? translateType(entry.secondaryType) : null,
+          entry.primaryType ? translateType(entry.primaryType, locale) : null,
+          entry.secondaryType ? translateType(entry.secondaryType, locale) : null,
         ]
           .filter(Boolean)
           .join(' ')
@@ -426,7 +429,7 @@ export function buildCatalogSearchResults(catalog, query) {
       })
     : catalog
 
-  return baseResults.map((entry) => createCatalogPokemon(entry))
+  return baseResults.map((entry) => createCatalogPokemon(entry, locale))
 }
 
 export function normalizeTypeChartEntry(typeData) {
@@ -523,9 +526,9 @@ export function createFallbackMoveEntry(moveSlug) {
   return {
     move: formatResourceName(moveSlug),
     moveSlug,
-    type: 'Tipo pendiente',
+    type: getTeamBuilderMessages().pendingType ?? 'Tipo pendiente',
     typeKey: null,
-    category: 'Pendiente',
+    category: getTeamBuilderMessages().pendingCategory ?? 'Pendiente',
     categoryKey: null,
     power: null,
     accuracy: null,
@@ -539,7 +542,7 @@ export function createFallbackMoveEntry(moveSlug) {
   }
 }
 
-export function buildTeamTypeAnalysis(teamMembers, typeChart) {
+export function buildTeamTypeAnalysis(teamMembers, typeChart, locale = DEFAULT_LOCALE) {
   return ATTACKING_TYPES.map((attackingType) => {
     const slotMultipliers = teamMembers.map((pokemon) => getPokemonDefensiveMultiplier(pokemon, attackingType, typeChart))
     const multipliers = slotMultipliers.filter((value) => typeof value === 'number')
@@ -551,7 +554,7 @@ export function buildTeamTypeAnalysis(teamMembers, typeChart) {
 
     return {
       type: attackingType,
-      label: translateType(attackingType),
+      label: translateType(attackingType, locale),
       slotMultipliers,
       multipliers,
       weakCount,
@@ -625,7 +628,7 @@ function getMoveUtilityTags(move) {
   return tags
 }
 
-function buildTeamMoveCoverage(teamMoveMatrix, typeChart) {
+function buildTeamMoveCoverage(teamMoveMatrix, typeChart, locale = DEFAULT_LOCALE) {
   const damagingMoves = teamMoveMatrix
     .flat()
     .filter((move) => isDamagingMove(move))
@@ -633,7 +636,7 @@ function buildTeamMoveCoverage(teamMoveMatrix, typeChart) {
       moveSlug: move.moveSlug,
       label: move.move ?? formatResourceName(move.moveSlug),
       typeKey: move.typeKey,
-      typeLabel: move.type ?? translateType(move.typeKey),
+      typeLabel: move.type ?? translateType(move.typeKey, locale),
     }))
 
   const entries = ATTACKING_TYPES.map((defendingType) => {
@@ -650,7 +653,7 @@ function buildTeamMoveCoverage(teamMoveMatrix, typeChart) {
 
     return {
       type: defendingType,
-      label: translateType(defendingType),
+      label: translateType(defendingType, locale),
       bestMultiplier,
       bestMoves,
       superEffectiveCount,
@@ -688,7 +691,7 @@ function buildTeamMoveCoverage(teamMoveMatrix, typeChart) {
   }
 }
 
-function buildSlotArchetype(slot, pokemon, selectedMoves, slotIndex) {
+function buildSlotArchetype(slot, pokemon, selectedMoves, slotIndex, locale = DEFAULT_LOCALE) {
   if (!pokemon) {
     return null
   }
@@ -706,67 +709,74 @@ function buildSlotArchetype(slot, pokemon, selectedMoves, slotIndex) {
   const powerScore = Math.max(attack, specialAttack)
   const boostedSpeed = getNatureModifier(slot?.natureKey, 'speed') > 1 || speed >= 105
   const labels = []
+  const archetypes = getTeamBuilderMessages(locale).archetypes ?? {}
 
   if (utilityTags.has('hazard') && boostedSpeed) {
-    labels.push('lead de hazards')
+    labels.push(archetypes.hazardLead ?? 'lead de hazards')
   } else if (utilityTags.has('hazard')) {
-    labels.push('hazard stack')
+    labels.push(archetypes.hazardStack ?? 'hazard stack')
   }
 
   if (utilityTags.has('hazardRemoval')) {
-    labels.push('control de hazards')
+    labels.push(archetypes.hazardControl ?? 'control de hazards')
   }
 
   if (utilityTags.has('pivot') && bulkScore >= 250) {
-    labels.push('pivot bulky')
+    labels.push(archetypes.bulkyPivot ?? 'pivot bulky')
   } else if (utilityTags.has('pivot')) {
-    labels.push('pivot')
+    labels.push(archetypes.pivot ?? 'pivot')
   }
 
   if (utilityTags.has('boosting') && boostedSpeed && powerScore >= 105) {
-    labels.push('setup sweeper')
+    labels.push(archetypes.setupSweeper ?? 'setup sweeper')
   } else if (utilityTags.has('boosting')) {
-    labels.push('setup breaker')
+    labels.push(archetypes.setupBreaker ?? 'setup breaker')
   }
 
   if (utilityTags.has('recovery') && bulkScore >= 250) {
-    labels.push('muro')
+    labels.push(archetypes.wall ?? 'muro')
   }
 
   if (utilityTags.has('status') && bulkScore >= 240) {
-    labels.push('soporte de estado')
+    labels.push(archetypes.statusSupport ?? 'soporte de estado')
   }
 
   if (utilityTags.has('priority') && powerScore >= 100) {
-    labels.push('revenge killer')
+    labels.push(archetypes.revengeKiller ?? 'revenge killer')
   }
 
   if (!labels.length && damagingMoves.length >= 3 && powerScore >= 120) {
-    labels.push('wallbreaker')
+    labels.push(archetypes.wallbreaker ?? 'wallbreaker')
   }
 
   if (!labels.length && boostedSpeed && damagingMoves.length >= 3) {
-    labels.push('cleaner')
+    labels.push(archetypes.cleaner ?? 'cleaner')
   }
 
   if (!labels.length) {
-    labels.push(attackBias === 'mixed' ? 'flexible' : attackBias === 'physical' ? 'breaker fisico' : 'breaker especial')
+    labels.push(
+      attackBias === 'mixed'
+        ? archetypes.flexible ?? 'flexible'
+        : attackBias === 'physical'
+          ? archetypes.physicalBreaker ?? 'breaker físico'
+          : archetypes.specialBreaker ?? 'breaker especial'
+    )
   }
 
   return {
     slotIndex,
     pokemonSlug: pokemon.slug,
     pokemonName: pokemon.name,
-    natureSummary: getNatureSummary(slot?.natureKey),
+    natureSummary: getNatureSummary(slot?.natureKey, locale),
     labels: Array.from(new Set(labels)).slice(0, 3),
     utilityTags: Array.from(utilityTags),
     attackBias,
   }
 }
 
-function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix) {
+function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix, locale = DEFAULT_LOCALE) {
   const memberRoles = teamMembers
-    .map((pokemon, index) => buildSlotArchetype(teamSlots[index], pokemon, teamMoveMatrix[index] ?? [], index))
+    .map((pokemon, index) => buildSlotArchetype(teamSlots[index], pokemon, teamMoveMatrix[index] ?? [], index, locale))
     .filter(Boolean)
   const tagCounts = {
     hazard: 0,
@@ -779,6 +789,10 @@ function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix) {
   }
   let offensiveCount = 0
 
+  const copy = getTeamBuilderMessages(locale)
+  const archetypes = copy.archetypes ?? {}
+  const reasons = copy.archetypeReasons ?? {}
+
   memberRoles.forEach((entry) => {
     entry.utilityTags.forEach((tag) => {
       if (typeof tagCounts[tag] === 'number') {
@@ -786,29 +800,40 @@ function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix) {
       }
     })
 
-    if (entry.labels.some((label) => ['setup sweeper', 'setup breaker', 'wallbreaker', 'cleaner', 'revenge killer'].includes(label))) {
+    if (
+      entry.labels.some((label) =>
+        [
+          archetypes.setupSweeper ?? 'setup sweeper',
+          archetypes.setupBreaker ?? 'setup breaker',
+          archetypes.wallbreaker ?? 'wallbreaker',
+          archetypes.cleaner ?? 'cleaner',
+          archetypes.revengeKiller ?? 'revenge killer',
+        ].includes(label)
+      )
+    ) {
       offensiveCount += 1
     }
   })
 
-  let styleLabel = 'Balance'
-  let styleReason = 'La distribucion actual mezcla presion ofensiva y utilidades sin caer todavia en un arquetipo extremo.'
+  let styleLabel = archetypes.balance ?? 'Balance'
+  let styleReason =
+    reasons.balance ?? 'La distribución actual mezcla presión ofensiva y utilidades sin caer todavía en un arquetipo extremo.'
 
   if (tagCounts.boosting >= 2 && offensiveCount >= 3) {
-    styleLabel = 'Setup offense'
-    styleReason = 'Tu plan principal gira alrededor de abrir huecos y cerrar partidas con boosts.'
+    styleLabel = archetypes.setupOffense ?? 'Setup offense'
+    styleReason = reasons.setupOffense ?? 'Tu plan principal gira alrededor de abrir huecos y cerrar partidas con boosts.'
   } else if (tagCounts.pivot >= 2) {
-    styleLabel = 'VoltTurn balance'
-    styleReason = 'Hay varios pivots para ganar inercia y recolocar a tus wincons con seguridad.'
+    styleLabel = archetypes.voltTurnBalance ?? 'VoltTurn balance'
+    styleReason = reasons.voltTurnBalance ?? 'Hay varios pivots para ganar inercia y recolocar a tus wincons con seguridad.'
   } else if (tagCounts.hazard >= 2) {
-    styleLabel = 'Hazard stack'
-    styleReason = 'El equipo ya apunta a acumular hazards y castigar cambios rivales.'
+    styleLabel = archetypes.hazardStack ?? 'hazard stack'
+    styleReason = reasons.hazardStack ?? 'El equipo ya apunta a acumular hazards y castigar cambios rivales.'
   } else if (tagCounts.recovery >= 2 && tagCounts.status >= 1) {
-    styleLabel = 'Balance bulky'
-    styleReason = 'Tienes varias piezas con sustain y herramientas para desgastar a largo plazo.'
+    styleLabel = archetypes.bulkyBalance ?? 'Balance bulky'
+    styleReason = reasons.bulkyBalance ?? 'Tienes varias piezas con sustain y herramientas para desgastar a largo plazo.'
   } else if (offensiveCount >= 4) {
-    styleLabel = 'Bulky offense'
-    styleReason = 'La mayor parte del equipo quiere presionar turnos y mantener el ritmo del combate.'
+    styleLabel = archetypes.bulkyOffense ?? 'Bulky offense'
+    styleReason = reasons.bulkyOffense ?? 'La mayor parte del equipo quiere presionar turnos y mantener el ritmo del combate.'
   }
 
   const topTraits = Object.entries(tagCounts)
@@ -817,7 +842,7 @@ function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix) {
     .slice(0, 4)
     .map(([key, count]) => ({
       key,
-      label: MOVE_UTILITY_LABELS[key],
+      label: getMoveUtilityLabels(locale)[key],
       count,
     }))
 
@@ -830,10 +855,10 @@ function buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix) {
   }
 }
 
-export function summarizeTeam(teamMembers, typeChart, teamSlots = [], teamMoveMatrix = []) {
+export function summarizeTeam(teamMembers, typeChart, teamSlots = [], teamMoveMatrix = [], locale = DEFAULT_LOCALE) {
   const filledSlots = teamMembers.filter(Boolean).length
   const readyMembers = teamMembers.filter((pokemon) => pokemon && !pokemon.isPlaceholder)
-  const typeAnalysis = buildTeamTypeAnalysis(teamMembers, typeChart)
+  const typeAnalysis = buildTeamTypeAnalysis(teamMembers, typeChart, locale)
   const weaknesses = [...typeAnalysis]
     .filter((entry) => entry.weakCount > 0)
     .sort((left, right) => right.riskScore - left.riskScore || right.maxMultiplier - left.maxMultiplier)
@@ -841,8 +866,8 @@ export function summarizeTeam(teamMembers, typeChart, teamSlots = [], teamMoveMa
     .filter((entry) => entry.resistCount > 0 || entry.immuneCount > 0)
     .sort((left, right) => right.stabilityScore - left.stabilityScore || right.immuneCount - left.immuneCount)
   const balanceScore = typeAnalysis.reduce((total, entry) => total + entry.stabilityScore, 0)
-  const moveCoverage = buildTeamMoveCoverage(teamMoveMatrix, typeChart)
-  const archetypeAnalysis = buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix)
+  const moveCoverage = buildTeamMoveCoverage(teamMoveMatrix, typeChart, locale)
+  const archetypeAnalysis = buildTeamArchetypeSummary(teamSlots, teamMembers, teamMoveMatrix, locale)
 
   return {
     filledSlots,
@@ -856,18 +881,20 @@ export function summarizeTeam(teamMembers, typeChart, teamSlots = [], teamMoveMa
   }
 }
 
-export function getBalanceLabel(balanceScore) {
+export function getBalanceLabel(balanceScore, locale = DEFAULT_LOCALE) {
+  const labels = getTeamBuilderMessages(locale).balance ?? {}
+
   if (balanceScore >= 8) {
-    return 'Muy compensado'
+    return labels.veryStable ?? 'Muy compensado'
   }
 
   if (balanceScore >= 2) {
-    return 'Bastante estable'
+    return labels.stable ?? 'Bastante estable'
   }
 
   if (balanceScore >= -4) {
-    return 'Equilibrio medio'
+    return labels.medium ?? 'Equilibrio medio'
   }
 
-  return 'Fragil ante counters'
+  return labels.fragile ?? 'Frágil ante counters'
 }

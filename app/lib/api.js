@@ -87,3 +87,7 @@ export function validateTeamBuild(payload) {
 export function fetchTeamSuggestions(payload) {
   return sendJson('/api/team/suggestions', 'POST', payload)
 }
+
+export function calculateDamage(payload) {
+  return sendJson('/api/damage/calculate', 'POST', payload)
+}
