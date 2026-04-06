@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchPokemonCatalog, fetchPokemonDetail } from '../lib/api'
+import { useI18n } from '../components/i18n/LanguageProvider'
 import {
   DESKTOP_PAGE_SIZE,
   INITIAL_SELECTED_SLUG,
   createCatalogPokemon,
   getResponsivePageSize,
+  localizePokemonDetail,
   quickSuggestions,
 } from '../lib/pokemon'
 
@@ -87,6 +89,7 @@ async function loadCachedPokemonDetail(slug) {
 }
 
 export function usePokemonCatalog() {
+  const { locale, t } = useI18n()
   const [query, setQueryValue] = useState('')
   const [selectedSlug, setSelectedSlug] = useState(INITIAL_SELECTED_SLUG)
   const [currentPage, setCurrentPage] = useState(1)
@@ -141,7 +144,7 @@ export function usePokemonCatalog() {
         setLoadError('')
       } catch {
         if (!isMounted) return
-        setLoadError('No se pudo cargar el catalogo desde la API interna.')
+        setLoadError(t('team.errors.loadCatalog'))
       } finally {
         if (isMounted) {
           isInitialCatalogLoadRef.current = false
@@ -156,7 +159,7 @@ export function usePokemonCatalog() {
     return () => {
       isMounted = false
     }
-  }, [currentPage, pageSize, query])
+  }, [currentPage, pageSize, query, t])
 
   const effectivePageSize = pageSize ?? DESKTOP_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(filteredCount / effectivePageSize))
@@ -181,7 +184,7 @@ export function usePokemonCatalog() {
     if (!catalogPage.some((entry) => entry.slug === selectedSlug)) {
       setSelectedSlug(catalogPage[0].slug)
     }
-  }, [catalogPage, selectedSlug])
+  }, [catalogPage, selectedSlug, t])
 
   useEffect(() => {
     if (!selectedSlug || detailCache[selectedSlug]) {
@@ -228,17 +231,17 @@ export function usePokemonCatalog() {
   }, [detailCache, selectedSlug])
 
   const displayedPokemon = useMemo(() => {
-    return catalogPage.map((entry) => createCatalogPokemon(entry))
-  }, [catalogPage])
+    return catalogPage.map((entry) => createCatalogPokemon(entry, locale))
+  }, [catalogPage, locale])
 
   const selectedEntry = useMemo(() => {
     return catalogPage.find((entry) => entry.slug === selectedSlug) ?? catalogPage[0] ?? null
   }, [catalogPage, selectedSlug])
 
   const selectedPokemon = selectedSlug
-    ? detailCache[selectedSlug] ??
-      getCachedPokemonDetail(selectedSlug) ??
-      (selectedEntry ? createCatalogPokemon(selectedEntry) : null)
+    ? (detailCache[selectedSlug] ? localizePokemonDetail(detailCache[selectedSlug], locale) : null) ??
+      (getCachedPokemonDetail(selectedSlug) ? localizePokemonDetail(getCachedPokemonDetail(selectedSlug), locale) : null) ??
+      (selectedEntry ? createCatalogPokemon(selectedEntry, locale) : null)
     : null
 
   function selectPokemon(slug) {

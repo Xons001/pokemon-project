@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import GalleryToolbar from './GalleryToolbar'
 import PokemonDetail from './PokemonDetail'
 import PokemonGallery from './PokemonGallery'
@@ -45,6 +46,7 @@ export default function PokedexHub({
   catalogCount,
   voiceSearchMessage,
 }) {
+  const { t } = useI18n()
   const sectionClassName = [styles.pokedexHub, paletteClassMap[selectedPokemon.palette] || styles.pokedexHubNeutral]
     .filter(Boolean)
     .join(' ')
@@ -53,9 +55,9 @@ export default function PokedexHub({
     <section className={sectionClassName} id="inicio">
       <div className={styles.hubHeading}>
         <div>
-          <h2>Pokedex interactiva</h2>
+          <h2>{t('home.pokedex.title')}</h2>
         </div>
-        <span className={styles.hubBadge}>{catalogCount} Pokemon</span>
+        <span className={styles.hubBadge}>{t('home.pokedex.badge', { count: catalogCount })}</span>
       </div>
 
       <SearchPanel

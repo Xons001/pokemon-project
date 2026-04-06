@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import { useDamageCalculator } from '../../hooks/useDamageCalculator'
 import pageStyles from '../../page.module.css'
 import SiteHeader from '../home/SiteHeader'
@@ -17,13 +18,13 @@ function formatRolls(rolls) {
   return rolls.slice(0, 16).join(', ')
 }
 
-function MoveListCard({ title, pokemon, results, selectedMove, onSelectMove }) {
+function MoveListCard({ sideKey, title, pokemon, results, selectedMove, onSelectMove, t }) {
   return (
     <article className={styles.moveResultsCard}>
       <div className={styles.moveResultsHeader}>
         <div>
           <p className={styles.kicker}>{title}</p>
-          <h3>{pokemon?.name ?? 'Sin Pokemon'}</h3>
+          <h3>{pokemon?.name ?? t('damagePage.noPokemon')}</h3>
         </div>
 
         {pokemon ? (
@@ -36,14 +37,14 @@ function MoveListCard({ title, pokemon, results, selectedMove, onSelectMove }) {
       <div className={styles.moveResultsList}>
         {results.length ? (
           results.map((result) => {
-            const isActive = selectedMove.side === title.toLowerCase() && selectedMove.slot === result.slot
+            const isActive = selectedMove.side === sideKey && selectedMove.slot === result.slot
 
             return (
               <button
                 key={`${title}-${result.slot}-${result.moveSlug}`}
                 type="button"
                 className={[styles.moveResultRow, isActive ? styles.moveResultRowActive : null].filter(Boolean).join(' ')}
-                onClick={() => onSelectMove(title.toLowerCase(), result.slot)}
+                onClick={() => onSelectMove(sideKey, result.slot)}
               >
                 <div className={styles.moveResultCopy}>
                   <strong>{result.moveName}</strong>
@@ -61,7 +62,7 @@ function MoveListCard({ title, pokemon, results, selectedMove, onSelectMove }) {
             )
           })
         ) : (
-          <p className={styles.emptyState}>Configura movimientos en este lado para ver rangos de dano.</p>
+          <p className={styles.emptyState}>{t('damagePage.moveListEmpty')}</p>
         )}
       </div>
     </article>
@@ -69,6 +70,7 @@ function MoveListCard({ title, pokemon, results, selectedMove, onSelectMove }) {
 }
 
 export default function DamageCalculatorPage() {
+  const { t } = useI18n()
   const calculator = useDamageCalculator()
   const selectedCalculation = calculator.calculationResult?.calculations.selected ?? null
   const attackerResults = calculator.calculationResult?.calculations.attackerMoves ?? []
@@ -87,42 +89,41 @@ export default function DamageCalculatorPage() {
           <section className={styles.hero}>
             <div className={styles.heroCopy}>
               <div className={styles.heroTopline}>
-                <p className={styles.kicker}>Pokemon Champions Scope</p>
+                <p className={styles.kicker}>{t('damagePage.scopeKicker')}</p>
               </div>
 
-              <h2>Calculadora de dano local</h2>
-              <p>
-                Baseada en tus datos competitivos locales y alineada con el scope Champions actual del proyecto:
-                Combate individual y Combate doble, con primer reglamento ranked preparado para Mega Evolution.
-              </p>
+              <h2>{t('damagePage.title')}</h2>
+              <p>{t('damagePage.description')}</p>
             </div>
 
             <div className={styles.heroStats}>
               <div className={styles.heroStatCard}>
-                <span>Formato</span>
-                <strong>{calculator.activeFormat?.headline ?? 'Cargando...'}</strong>
-                <small>{calculator.activeFormat?.name ?? 'Esperando API interna'}</small>
+                <span>{t('damagePage.stats.format')}</span>
+                <strong>{calculator.activeFormat?.headline ?? t('damagePage.stats.loading')}</strong>
+                <small>{calculator.activeFormat?.name ?? t('damagePage.stats.waiting')}</small>
               </div>
               <div className={styles.heroStatCard}>
-                <span>Modo</span>
-                <strong>{calculator.activeFormat?.battleModeLabel ?? 'Combate individual'}</strong>
-                <small>Scope competitivo local</small>
+                <span>{t('damagePage.stats.mode')}</span>
+                <strong>{calculator.activeFormat?.battleModeLabel ?? t('damage.battleMode.singles')}</strong>
+                <small>{t('damagePage.stats.localScope')}</small>
               </div>
               <div className={styles.heroStatCard}>
-                <span>Estado</span>
-                <strong>{calculator.isCalculating ? 'Calculando...' : selectedCalculation ? 'Listo' : 'Configura el duelo'}</strong>
-                <small>{calculator.calculationError ? 'Revisa los datos del set' : 'Sincronizado en local'}</small>
+                <span>{t('damagePage.stats.state')}</span>
+                <strong>{calculator.isCalculating ? t('damagePage.stats.calculating') : selectedCalculation ? t('damagePage.stats.ready') : t('damagePage.stats.configure')}</strong>
+                <small>{calculator.calculationError ? t('damagePage.stats.checkSet') : t('damagePage.stats.synced')}</small>
               </div>
             </div>
           </section>
 
           <section className={styles.overviewGrid}>
             <MoveListCard
-              title="Attacker"
+              sideKey="attacker"
+              title={t('damagePage.attacker')}
               pokemon={calculator.attackerPokemon}
               results={attackerResults}
               selectedMove={calculator.state.selectedMove}
               onSelectMove={calculator.selectMove}
+              t={t}
             />
 
             <article className={styles.summaryCard}>
@@ -137,14 +138,14 @@ export default function DamageCalculatorPage() {
                       loading="lazy"
                     />
                   ) : null}
-                  <strong>{calculator.attackerPokemon?.name ?? 'Atacante'}</strong>
-                  <small>{calculator.attackerPokemon?.types?.join(' / ') ?? 'Sin datos'}</small>
+                  <strong>{calculator.attackerPokemon?.name ?? t('damagePage.attacker')}</strong>
+                  <small>{calculator.attackerPokemon?.types?.join(' / ') ?? t('damagePage.noData')}</small>
                 </div>
 
                 <div className={styles.summaryCenter}>
-                  <span className={styles.summaryModeBadge}>{calculator.activeFormat?.battleModeLabel ?? 'Combate individual'}</span>
-                  <strong>VS</strong>
-                  <small>{calculator.activeFormat?.headline ?? 'Damage Calculator'}</small>
+                  <span className={styles.summaryModeBadge}>{calculator.activeFormat?.battleModeLabel ?? t('damage.battleMode.singles')}</span>
+                  <strong>{t('damagePage.versus')}</strong>
+                  <small>{calculator.activeFormat?.headline ?? t('damagePage.title')}</small>
                 </div>
 
                 <div className={styles.summarySide}>
@@ -157,41 +158,50 @@ export default function DamageCalculatorPage() {
                       loading="lazy"
                     />
                   ) : null}
-                  <strong>{calculator.defenderPokemon?.name ?? 'Defensor'}</strong>
-                  <small>{calculator.defenderPokemon?.types?.join(' / ') ?? 'Sin datos'}</small>
+                  <strong>{calculator.defenderPokemon?.name ?? t('damagePage.defender')}</strong>
+                  <small>{calculator.defenderPokemon?.types?.join(' / ') ?? t('damagePage.noData')}</small>
                 </div>
               </div>
 
               {selectedCalculation ? (
                 <div className={styles.summaryDetails}>
                   <p className={styles.summaryMoveTitle}>
-                    {selectedMoveSourcePokemon?.name ?? 'Atacante'} usa <strong>{selectedCalculation.moveName}</strong> sobre{' '}
-                    {selectedMoveTargetPokemon?.name ?? 'Defensor'}
+                    {t('damagePage.usesMove', {
+                      source: selectedMoveSourcePokemon?.name ?? t('damagePage.attacker'),
+                      move: selectedCalculation.moveName,
+                      target: selectedMoveTargetPokemon?.name ?? t('damagePage.defender'),
+                    }).split(selectedCalculation.moveName)[0]}
+                    <strong>{selectedCalculation.moveName}</strong>
+                    {t('damagePage.usesMove', {
+                      source: selectedMoveSourcePokemon?.name ?? t('damagePage.attacker'),
+                      move: selectedCalculation.moveName,
+                      target: selectedMoveTargetPokemon?.name ?? t('damagePage.defender'),
+                    }).split(selectedCalculation.moveName)[1] ?? ''}
                   </p>
                   <p className={styles.summaryDescription}>{selectedCalculation.fullDescription}</p>
                   <div className={styles.summaryMetrics}>
                     <span className={styles.summaryMetricPrimary}>{selectedCalculation.rangeLabel}</span>
-                    <span className={styles.summaryMetricSecondary}>{selectedCalculation.koText || 'Sin texto de KO adicional'}</span>
+                    <span className={styles.summaryMetricSecondary}>{selectedCalculation.koText || t('damagePage.summaryKoFallback')}</span>
                   </div>
                   {selectedCalculation.rolls.length ? (
                     <p className={styles.summaryRolls}>
-                      Posibles danos: {formatRolls(selectedCalculation.rolls)}
+                      {t('damagePage.possibleDamage', { rolls: formatRolls(selectedCalculation.rolls) })}
                     </p>
                   ) : null}
                 </div>
               ) : (
-                <p className={styles.emptyState}>
-                  Selecciona movimientos en alguno de los dos lados para obtener el calculo detallado.
-                </p>
+                <p className={styles.emptyState}>{t('damagePage.selectMoveToCalculate')}</p>
               )}
             </article>
 
             <MoveListCard
-              title="Defender"
+              sideKey="defender"
+              title={t('damagePage.defender')}
               pokemon={calculator.defenderPokemon}
               results={defenderResults}
               selectedMove={calculator.state.selectedMove}
               onSelectMove={calculator.selectMove}
+              t={t}
             />
           </section>
 

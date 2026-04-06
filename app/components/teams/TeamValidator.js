@@ -1,11 +1,5 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import styles from './TeamValidator.module.css'
-
-const statusLabels = {
-  valid: 'OK',
-  warning: 'Aviso',
-  invalid: 'Ilegal',
-  pending: 'Pendiente',
-}
 
 function getStatusClassName(status) {
   return styles[`status${status}`] ?? styles.statuspending
@@ -22,6 +16,13 @@ export default function TeamValidator({
   validationError,
   validationResult,
 }) {
+  const { t } = useI18n()
+  const statusLabels = {
+    valid: t('team.validator.statuses.valid'),
+    warning: t('team.validator.statuses.warning'),
+    invalid: t('team.validator.statuses.invalid'),
+    pending: t('team.validator.statuses.pending'),
+  }
   const availableFormatKeys = new Set(competitiveFormats.map((format) => format.key))
   const hasSelectedFormat = availableFormatKeys.has(selectedFormatKey)
   const selectValue = competitiveFormats.length
@@ -34,13 +35,13 @@ export default function TeamValidator({
     <section className={styles.validator}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Validador competitivo</p>
-          <h3>Legalidad y encaje en el meta</h3>
+          <p className={styles.kicker}>{t('team.validator.kicker')}</p>
+          <h3>{t('team.validator.title')}</h3>
         </div>
 
         <div className={styles.actions}>
           <label className={styles.formatField}>
-            <span>Formato</span>
+            <span>{t('team.validator.format')}</span>
             <select
               value={selectValue}
               onChange={(event) => onSetFormatKey(event.target.value)}
@@ -53,7 +54,7 @@ export default function TeamValidator({
                   </option>
                 ))
               ) : (
-                <option value="">Sin metas disponibles</option>
+                <option value="">{t('team.validator.noFormats')}</option>
               )}
             </select>
           </label>
@@ -64,15 +65,12 @@ export default function TeamValidator({
             onClick={onValidateTeam}
             disabled={isValidationLoading || !competitiveFormats.length}
           >
-            {isValidationLoading ? 'Validando...' : 'Validar equipo'}
+            {isValidationLoading ? t('team.validator.validating') : t('team.validator.validate')}
           </button>
         </div>
       </div>
 
-      <p className={styles.helperText}>
-        Esta version valida Pokemon, habilidad, item y movimientos con datos locales de Showdown. Teratipo y reglas mas
-        complejas iran despues para no mentirte con falsos positivos.
-      </p>
+      <p className={styles.helperText}>{t('team.validator.helper')}</p>
 
       <div className={styles.contentStack}>
         {validationError ? <p className={styles.errorBanner}>{validationError}</p> : null}
@@ -81,28 +79,28 @@ export default function TeamValidator({
           <>
             <div className={styles.summaryGrid}>
               <article className={styles.summaryCard}>
-                <span>Estado global</span>
+                <span>{t('team.validator.globalStatus')}</span>
                 <strong className={[styles.statusBadge, getStatusClassName(validationResult.summary.teamStatus)].join(' ')}>
                   {statusLabels[validationResult.summary.teamStatus]}
                 </strong>
               </article>
               <article className={styles.summaryCard}>
-                <span>Slots revisados</span>
+                <span>{t('team.validator.checkedSlots')}</span>
                 <strong>{validationResult.summary.checkedSlots}/6</strong>
               </article>
               <article className={styles.summaryCard}>
-                <span>Ilegales</span>
+                <span>{t('team.validator.invalid')}</span>
                 <strong>{validationResult.summary.invalidCount}</strong>
               </article>
               <article className={styles.summaryCard}>
-                <span>Avisos</span>
+                <span>{t('team.validator.warnings')}</span>
                 <strong>{validationResult.summary.warningCount}</strong>
               </article>
             </div>
 
             <div className={styles.metaRow}>
-              <span>Formato activo: {validationResult.format.name}</span>
-              <span>{isValidationDirty ? 'Cambios pendientes de revalidar' : 'Resultados al dia'}</span>
+              <span>{t('team.validator.activeFormat', { name: validationResult.format.name })}</span>
+              <span>{isValidationDirty ? t('team.validator.pendingChanges') : t('team.validator.upToDate')}</span>
             </div>
 
             <div className={styles.slotList}>
@@ -110,9 +108,9 @@ export default function TeamValidator({
                 <article key={`validation-slot-${slot.slotIndex}`} className={styles.slotCard}>
                   <div className={styles.slotHeader}>
                     <div>
-                      <span className={styles.slotLabel}>Hueco {slot.slotIndex + 1}</span>
-                      <strong>{slot.pokemonName ?? 'Sin Pokemon'}</strong>
-                      {slot.tierKey ? <small>Tier actual: {slot.tierKey}</small> : null}
+                      <span className={styles.slotLabel}>{t('team.validator.slot', { index: slot.slotIndex + 1 })}</span>
+                      <strong>{slot.pokemonName ?? t('team.validator.emptyPokemon')}</strong>
+                      {slot.tierKey ? <small>{t('team.validator.currentTier', { tier: slot.tierKey })}</small> : null}
                     </div>
                     <span className={[styles.statusBadge, getStatusClassName(slot.status)].join(' ')}>
                       {statusLabels[slot.status]}
@@ -138,8 +136,8 @@ export default function TeamValidator({
           </>
         ) : (
           <div className={styles.emptyState}>
-            <strong>Elige un formato y pulsa validar</strong>
-            <p>Cuando tengas al menos un Pokemon con build, aqui veras si algo esta baneado, incompleto o listo para jugar.</p>
+            <strong>{t('team.validator.emptyTitle')}</strong>
+            <p>{t('team.validator.emptyDescription')}</p>
           </div>
         )}
       </div>

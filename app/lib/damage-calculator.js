@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, getMessages } from './i18n'
 import { ATTACKING_TYPES, createDefaultEffortValues, createDefaultIndividualValues } from './team-builder'
 
 export const DAMAGE_CALCULATOR_STORAGE_KEY = 'pokemon-project-damage-calculator-v1'
@@ -17,34 +18,56 @@ export const DAMAGE_BOOSTABLE_STAT_CONFIG = DAMAGE_STAT_CONFIG.filter((stat) => 
 export const DAMAGE_BOOST_OPTIONS = Array.from({ length: 13 }, (_, index) => index - 6)
 export const DAMAGE_TERA_TYPE_KEYS = [...ATTACKING_TYPES, 'stellar']
 
-export const DAMAGE_STATUS_OPTIONS = [
-  { value: '', label: 'Sano', meta: 'Sin estado alterado' },
-  { value: 'brn', label: 'Quemado', meta: 'Reduce ataque fisico salvo excepciones' },
-  { value: 'par', label: 'Paralizado', meta: 'Puede afectar velocidad e interacciones' },
-  { value: 'psn', label: 'Envenenado', meta: 'Veneno normal' },
-  { value: 'tox', label: 'Toxico', meta: 'Veneno grave' },
-  { value: 'slp', label: 'Dormido', meta: 'Estado de sueño' },
-  { value: 'frz', label: 'Congelado', meta: 'Estado de congelacion' },
-]
+function getDamageMessages(locale = DEFAULT_LOCALE) {
+  return getMessages(locale).damage ?? {}
+}
 
-export const DAMAGE_WEATHER_OPTIONS = [
-  { value: '', label: 'Sin clima' },
-  { value: 'Sun', label: 'Sol' },
-  { value: 'Rain', label: 'Lluvia' },
-  { value: 'Sand', label: 'Tormenta arena' },
-  { value: 'Snow', label: 'Nieve' },
-  { value: 'Harsh Sunshine', label: 'Sol intenso' },
-  { value: 'Heavy Rain', label: 'Lluvia intensa' },
-  { value: 'Strong Winds', label: 'Vientos fuertes' },
-]
+export function getDamageStatusOptions(locale = DEFAULT_LOCALE) {
+  const copy = getDamageMessages(locale).statusOptions ?? {}
 
-export const DAMAGE_TERRAIN_OPTIONS = [
-  { value: '', label: 'Sin terreno' },
-  { value: 'Electric', label: 'Campo electrico' },
-  { value: 'Grassy', label: 'Campo de hierba' },
-  { value: 'Misty', label: 'Campo de niebla' },
-  { value: 'Psychic', label: 'Campo psiquico' },
-]
+  return [
+    { value: '', label: copy.healthy?.label ?? 'Sano', meta: copy.healthy?.meta ?? 'Sin estado alterado' },
+    { value: 'brn', label: copy.brn?.label ?? 'Quemado', meta: copy.brn?.meta ?? 'Reduce el ataque físico salvo excepciones' },
+    { value: 'par', label: copy.par?.label ?? 'Paralizado', meta: copy.par?.meta ?? 'Puede afectar a velocidad e interacciones' },
+    { value: 'psn', label: copy.psn?.label ?? 'Envenenado', meta: copy.psn?.meta ?? 'Veneno normal' },
+    { value: 'tox', label: copy.tox?.label ?? 'Tóxico', meta: copy.tox?.meta ?? 'Veneno grave' },
+    { value: 'slp', label: copy.slp?.label ?? 'Dormido', meta: copy.slp?.meta ?? 'Estado de sueño' },
+    { value: 'frz', label: copy.frz?.label ?? 'Congelado', meta: copy.frz?.meta ?? 'Estado de congelación' },
+  ]
+}
+
+export const DAMAGE_STATUS_OPTIONS = getDamageStatusOptions()
+
+export function getDamageWeatherOptions(locale = DEFAULT_LOCALE) {
+  const copy = getDamageMessages(locale).weather ?? {}
+
+  return [
+    { value: '', label: copy.none ?? 'Sin clima' },
+    { value: 'Sun', label: copy.sun ?? 'Sol' },
+    { value: 'Rain', label: copy.rain ?? 'Lluvia' },
+    { value: 'Sand', label: copy.sand ?? 'Tormenta de arena' },
+    { value: 'Snow', label: copy.snow ?? 'Nieve' },
+    { value: 'Harsh Sunshine', label: copy.harshSunshine ?? 'Sol intenso' },
+    { value: 'Heavy Rain', label: copy.heavyRain ?? 'Lluvia intensa' },
+    { value: 'Strong Winds', label: copy.strongWinds ?? 'Vientos fuertes' },
+  ]
+}
+
+export const DAMAGE_WEATHER_OPTIONS = getDamageWeatherOptions()
+
+export function getDamageTerrainOptions(locale = DEFAULT_LOCALE) {
+  const copy = getDamageMessages(locale).terrain ?? {}
+
+  return [
+    { value: '', label: copy.none ?? 'Sin terreno' },
+    { value: 'Electric', label: copy.electric ?? 'Campo eléctrico' },
+    { value: 'Grassy', label: copy.grassy ?? 'Campo de hierba' },
+    { value: 'Misty', label: copy.misty ?? 'Campo de niebla' },
+    { value: 'Psychic', label: copy.psychic ?? 'Campo psíquico' },
+  ]
+}
+
+export const DAMAGE_TERRAIN_OPTIONS = getDamageTerrainOptions()
 
 export const DAMAGE_GLOBAL_FIELD_OPTIONS = [
   { key: 'isMagicRoom', label: 'Magic Room' },
@@ -77,11 +100,17 @@ export const DAMAGE_SIDE_FIELD_OPTIONS = [
   { key: 'isSteelySpirit', label: 'Steely Spirit' },
 ]
 
-export const DAMAGE_SWITCHING_OPTIONS = [
-  { value: '', label: 'Quieto' },
-  { value: 'out', label: 'Switching Out' },
-  { value: 'in', label: 'Switching In' },
-]
+export function getDamageSwitchingOptions(locale = DEFAULT_LOCALE) {
+  const copy = getDamageMessages(locale).switching ?? {}
+
+  return [
+    { value: '', label: copy.idle ?? 'Quieto' },
+    { value: 'out', label: copy.out ?? 'Switching Out' },
+    { value: 'in', label: copy.in ?? 'Switching In' },
+  ]
+}
+
+export const DAMAGE_SWITCHING_OPTIONS = getDamageSwitchingOptions()
 
 function clamp(value, min, max, fallback) {
   if (!Number.isFinite(Number(value))) {
@@ -250,7 +279,7 @@ function sanitizeFieldSide(value) {
   })
 
   nextSide.spikes = clamp(value?.spikes, 0, 3, 0)
-  nextSide.isSwitching = DAMAGE_SWITCHING_OPTIONS.some((option) => option.value === value?.isSwitching)
+  nextSide.isSwitching = getDamageSwitchingOptions().some((option) => option.value === value?.isSwitching)
     ? value?.isSwitching
     : ''
 
@@ -260,8 +289,8 @@ function sanitizeFieldSide(value) {
 function sanitizeField(value) {
   const nextField = createDefaultDamageField()
 
-  nextField.weather = DAMAGE_WEATHER_OPTIONS.some((option) => option.value === value?.weather) ? value.weather : ''
-  nextField.terrain = DAMAGE_TERRAIN_OPTIONS.some((option) => option.value === value?.terrain) ? value.terrain : ''
+  nextField.weather = getDamageWeatherOptions().some((option) => option.value === value?.weather) ? value.weather : ''
+  nextField.terrain = getDamageTerrainOptions().some((option) => option.value === value?.terrain) ? value.terrain : ''
 
   ;[...DAMAGE_GLOBAL_FIELD_OPTIONS, ...DAMAGE_RUIN_OPTIONS].forEach((option) => {
     nextField[option.key] = Boolean(value?.[option.key])

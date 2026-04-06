@@ -2,22 +2,17 @@
 
 import Image from 'next/image'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import TeamSelectPicker from '../teams/TeamSelectPicker'
 import {
-  DAMAGE_BOOSTABLE_STAT_CONFIG,
   DAMAGE_BOOST_OPTIONS,
   DAMAGE_STAT_CONFIG,
-  DAMAGE_STATUS_OPTIONS,
+  getDamageStatusOptions,
   DAMAGE_TERA_TYPE_KEYS,
 } from '../../lib/damage-calculator'
-import { TEAM_NATURES, calculateBattleStat } from '../../lib/team-builder'
+import { calculateBattleStat, getTeamNatures } from '../../lib/team-builder'
 import { formatResourceName, translateType } from '../../lib/pokemon'
 import styles from './DamageCalculatorPage.module.css'
-
-const sideLabels = {
-  attacker: 'Atacante',
-  defender: 'Defensor',
-}
 
 function formatBoostLabel(value) {
   if (!value) {
@@ -31,22 +26,14 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(Number(value)) ? Number(value) : fallback
 }
 
-function buildTeraOptions() {
+function buildTeraOptions(locale) {
   return DAMAGE_TERA_TYPE_KEYS.map((typeKey) => ({
     value: typeKey,
-    label: translateType(typeKey),
+    label: translateType(typeKey, locale),
     meta: 'Tera',
     keywords: [typeKey],
   }))
 }
-
-const teraOptions = buildTeraOptions()
-const natureOptions = TEAM_NATURES.map((nature) => ({
-  value: nature.key,
-  label: nature.label,
-  meta: nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '') || 'Neutral',
-  keywords: [nature.summary],
-}))
 
 export default function DamageSidePanel({
   sideKey,
@@ -62,10 +49,28 @@ export default function DamageSidePanel({
   onSetStat,
   selectedMove,
 }) {
+  const { locale, t } = useI18n()
+  const sidePanelCopy = t('damagePage.sidePanel')
+  const workspaceCopy = t('team.workspace')
+  const abilityPickerCopy = t('team.workspace.abilityPicker')
+  const itemPickerCopy = t('team.workspace.itemPicker')
+  const naturePickerCopy = t('team.workspace.naturePicker')
+  const sideLabels = {
+    attacker: t('damagePage.attacker'),
+    defender: t('damagePage.defender'),
+  }
+  const teraOptions = buildTeraOptions(locale)
+  const natureOptions = getTeamNatures(locale).map((nature) => ({
+    value: nature.key,
+    label: nature.label,
+    meta: nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '') || workspaceCopy.neutralNature,
+    keywords: [nature.summary],
+  }))
+  const statusOptions = getDamageStatusOptions(locale)
   const abilityOptions = (detail?.abilities ?? []).map((ability) => ({
     value: ability.slug,
     label: ability.label,
-    meta: ability.isHidden ? 'Oculta' : 'Base',
+    meta: ability.isHidden ? workspaceCopy.hiddenAbilityLabel : workspaceCopy.baseAbilityLabel,
     keywords: [ability.slug],
   }))
   const moveOptions = moveCatalog.map((move) => ({
@@ -102,7 +107,7 @@ export default function DamageSidePanel({
       <div className={styles.sideHeader}>
         <div>
           <p className={styles.kicker}>{sideLabels[sideKey]}</p>
-          <h3>{pokemon?.name ?? 'Selecciona un Pokemon'}</h3>
+          <h3>{pokemon?.name ?? sidePanelCopy.selectPokemon}</h3>
         </div>
 
         {pokemon ? (
@@ -114,16 +119,16 @@ export default function DamageSidePanel({
 
       <div className={styles.sideIdentity}>
         <div className={styles.configField}>
-          <span>Pokemon</span>
+          <span>{sidePanelCopy.pokemon}</span>
           <TeamSelectPicker
-            ariaLabel={`Pokemon ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.pokemon} ${sideLabels[sideKey]}`}
             value={sideState.pokemonSlug}
             onChange={(value) => onSetPokemon(sideKey, value)}
             options={pokemonOptions}
-            placeholderTitle="Selecciona un Pokemon"
-            placeholderMeta="Catalogo competitivo local"
-            searchPlaceholder="Busca por nombre, tipo o habilidad"
-            emptyMessage="No hemos encontrado Pokemon para ese filtro."
+            placeholderTitle={sidePanelCopy.selectPokemon}
+            placeholderMeta={sidePanelCopy.pokemonCatalogMeta}
+            searchPlaceholder={sidePanelCopy.pokemonSearchPlaceholder}
+            emptyMessage={sidePanelCopy.pokemonEmptyMessage}
           />
         </div>
 
@@ -140,86 +145,86 @@ export default function DamageSidePanel({
               <p>{detail?.description ?? pokemon.description}</p>
             </>
           ) : (
-            <p>Elige un Pokemon para cargar sus habilidades, learnset y stats base en la calculadora.</p>
+            <p>{sidePanelCopy.emptyPokemonHint}</p>
           )}
         </div>
       </div>
 
       <div className={styles.sideConfigGrid}>
         <div className={styles.configField}>
-          <span>Habilidad</span>
+          <span>{sidePanelCopy.ability}</span>
           <TeamSelectPicker
-            ariaLabel={`Habilidad ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.ability} ${sideLabels[sideKey]}`}
             value={sideState.abilitySlug}
             onChange={(value) => onSetValue(sideKey, 'abilitySlug', value)}
             options={abilityOptions}
-            placeholderTitle="Selecciona una habilidad"
-            placeholderMeta="Se cargan desde la ficha local"
-            searchPlaceholder="Filtra habilidades"
-            emptyMessage="Este Pokemon no tiene habilidades cargadas todavia."
+            placeholderTitle={abilityPickerCopy.selectTitle}
+            placeholderMeta={abilityPickerCopy.placeholderMeta}
+            searchPlaceholder={abilityPickerCopy.searchPlaceholder}
+            emptyMessage={abilityPickerCopy.emptyHelp}
           />
         </div>
 
         <div className={styles.configField}>
-          <span>Item</span>
+          <span>{sidePanelCopy.item}</span>
           <TeamSelectPicker
-            ariaLabel={`Item ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.item} ${sideLabels[sideKey]}`}
             value={sideState.itemSlug}
             onChange={(value) => onSetValue(sideKey, 'itemSlug', value)}
             options={itemOptions}
-            placeholderTitle="Selecciona un item"
-            placeholderMeta="Scope competitivo activo"
-            searchPlaceholder="Filtra items"
-            emptyMessage="No hay items para este scope."
+            placeholderTitle={itemPickerCopy.selectTitle}
+            placeholderMeta={itemPickerCopy.placeholderMeta}
+            searchPlaceholder={itemPickerCopy.searchPlaceholder}
+            emptyMessage={itemPickerCopy.emptyMessage}
           />
         </div>
 
         <div className={styles.configField}>
-          <span>Naturaleza</span>
+          <span>{sidePanelCopy.nature}</span>
           <TeamSelectPicker
-            ariaLabel={`Naturaleza ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.nature} ${sideLabels[sideKey]}`}
             value={sideState.natureKey}
             onChange={(value) => onSetValue(sideKey, 'natureKey', value)}
             options={natureOptions}
-            placeholderTitle="Sin naturaleza"
-            placeholderMeta="Modifica los totales"
-            searchPlaceholder="Filtra por naturaleza o stat"
-            emptyMessage="No encontramos naturalezas para ese filtro."
+            placeholderTitle={naturePickerCopy.placeholderTitle}
+            placeholderMeta={naturePickerCopy.placeholderMeta}
+            searchPlaceholder={naturePickerCopy.searchPlaceholder}
+            emptyMessage={naturePickerCopy.emptyMessage}
           />
         </div>
 
         <div className={styles.configField}>
-          <span>Teratipo</span>
+          <span>{sidePanelCopy.teraType}</span>
           <TeamSelectPicker
-            ariaLabel={`Teratipo ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.teraType} ${sideLabels[sideKey]}`}
             value={sideState.teraType}
             onChange={(value) => onSetValue(sideKey, 'teraType', value)}
             options={teraOptions}
-            placeholderTitle="Sin teratipo"
-            placeholderMeta="Opcional"
-            searchPlaceholder="Filtra por tipo"
-            emptyMessage="No encontramos ese tipo."
+            placeholderTitle={sidePanelCopy.noTeraType}
+            placeholderMeta={sidePanelCopy.optional}
+            searchPlaceholder={workspaceCopy.searchPlaceholder}
+            emptyMessage={sidePanelCopy.pokemonEmptyMessage}
           />
         </div>
       </div>
 
       <div className={styles.supportRow}>
         <div className={styles.configField}>
-          <span>Estado</span>
+          <span>{sidePanelCopy.status}</span>
           <TeamSelectPicker
-            ariaLabel={`Estado ${sideLabels[sideKey]}`}
+            ariaLabel={`${sidePanelCopy.status} ${sideLabels[sideKey]}`}
             value={sideState.status}
             onChange={(value) => onSetValue(sideKey, 'status', value)}
-            options={DAMAGE_STATUS_OPTIONS}
-            placeholderTitle="Sano"
-            placeholderMeta="Sin estado alterado"
-            searchPlaceholder="Busca un estado"
-            emptyMessage="No hay estados para ese filtro."
+            options={statusOptions}
+            placeholderTitle={statusOptions[0]?.label ?? ''}
+            placeholderMeta={statusOptions[0]?.meta ?? ''}
+            searchPlaceholder={workspaceCopy.searchPlaceholder}
+            emptyMessage={sidePanelCopy.pokemonEmptyMessage}
           />
         </div>
 
         <label className={styles.numberField}>
-          <span>Nivel</span>
+          <span>{sidePanelCopy.level}</span>
           <input
             type="number"
             min="1"
@@ -231,7 +236,7 @@ export default function DamageSidePanel({
 
         <div className={styles.hpField}>
           <div className={styles.hpHeader}>
-            <span>HP actual</span>
+            <span>{sidePanelCopy.currentHp}</span>
             <strong>{sideState.currentHpPercent}%</strong>
           </div>
           <input
@@ -256,29 +261,29 @@ export default function DamageSidePanel({
               className={[styles.moveCard, isSelected ? styles.moveCardSelected : null].filter(Boolean).join(' ')}
             >
               <div className={styles.moveCardHeader}>
-                <span>Movimiento {slot + 1}</span>
+                <span>{t('damagePage.sidePanel.move', { index: slot + 1 })}</span>
                 {moveResult ? (
                   <span className={styles.moveRangePill}>{moveResult.minPercent}% - {moveResult.maxPercent}%</span>
                 ) : null}
               </div>
 
               <TeamSelectPicker
-                ariaLabel={`Movimiento ${slot + 1} ${sideLabels[sideKey]}`}
+                ariaLabel={`${t('damagePage.sidePanel.move', { index: slot + 1 })} ${sideLabels[sideKey]}`}
                 value={moveSlug}
                 onChange={(value) => onSetMove(sideKey, slot, value)}
                 options={moveOptions}
-                placeholderTitle="Selecciona un movimiento"
+                placeholderTitle={workspaceCopy.move.selectTitle}
                 placeholderMeta="Learnset local"
-                searchPlaceholder="Filtra por nombre, tipo o categoria"
-                emptyMessage="No encontramos movimientos para ese filtro."
+                searchPlaceholder={workspaceCopy.move.searchPlaceholder}
+                emptyMessage={workspaceCopy.move.noResults}
               />
 
               <small className={styles.moveHint}>
                 {moveResult
                   ? `${moveResult.rangeLabel}${moveResult.koText ? ` | ${moveResult.koText}` : ''}`
                   : moveSlug
-                    ? `Movimiento cargado: ${formatResourceName(moveSlug)}`
-                    : 'Elige hasta cuatro movimientos para evaluar el matchup.'}
+                    ? t('damagePage.sidePanel.loadedMove', { move: formatResourceName(moveSlug) })
+                    : sidePanelCopy.chooseMoves}
               </small>
             </article>
           )
@@ -287,12 +292,12 @@ export default function DamageSidePanel({
 
       <div className={styles.statsTable}>
         <div className={styles.statsHead}>
-          <span>Stat</span>
-          <span>Base</span>
-          <span>EV</span>
-          <span>IV</span>
-          <span>Total</span>
-          <span>Boost</span>
+          <span>{sidePanelCopy.stats.stat}</span>
+          <span>{sidePanelCopy.stats.base}</span>
+          <span>{sidePanelCopy.stats.ev}</span>
+          <span>{sidePanelCopy.stats.iv}</span>
+          <span>{sidePanelCopy.stats.total}</span>
+          <span>{sidePanelCopy.stats.boost}</span>
         </div>
 
         {statRows.map((stat) => (

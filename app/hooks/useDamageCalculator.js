@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { useI18n } from '../components/i18n/LanguageProvider'
 import {
   calculateDamage as requestDamageCalculation,
   fetchCompetitiveFormats,
@@ -10,15 +11,28 @@ import {
   fetchPokemonDetail,
   fetchPokemonMoves,
 } from '../lib/api'
-import { createDefaultDamageSide, createDefaultDamageCalculatorState, DAMAGE_CALCULATOR_STORAGE_KEY, sanitizeStoredDamageCalculator } from '../lib/damage-calculator'
-import { createCatalogPokemon, createPlaceholderPokemon, formatDexNumber, formatName as formatPokemonName, translateType } from '../lib/pokemon'
+import {
+  createDefaultDamageSide,
+  createDefaultDamageCalculatorState,
+  DAMAGE_CALCULATOR_STORAGE_KEY,
+  sanitizeStoredDamageCalculator,
+} from '../lib/damage-calculator'
+import {
+  createCatalogPokemon,
+  createPlaceholderPokemon,
+  formatDexNumber,
+  formatName as formatPokemonName,
+  localizePokemonDetail,
+  localizePokemonMoveLearn,
+  translateType,
+} from '../lib/pokemon'
 
-function getBattleModeLabel(format) {
-  return format?.gameType === 'doubles' ? 'Combate doble' : 'Combate individual'
+function getBattleModeLabel(format, t) {
+  return format?.gameType === 'doubles' ? t('damage.battleMode.doubles') : t('damage.battleMode.singles')
 }
 
-function getFormatHeadline(format) {
-  return format?.gameType === 'doubles' ? 'Champions Doubles' : 'Champions Singles'
+function getFormatHeadline(format, t) {
+  return format?.gameType === 'doubles' ? t('damage.formatHeadline.doubles') : t('damage.formatHeadline.singles')
 }
 
 function getPokemonOptionKeywords(entry) {
@@ -26,6 +40,7 @@ function getPokemonOptionKeywords(entry) {
 }
 
 export function useDamageCalculator() {
+  const { locale, t } = useI18n()
   const [state, setState] = useState(createDefaultDamageCalculatorState)
   const [competitiveFormats, setCompetitiveFormats] = useState([])
   const [catalog, setCatalog] = useState([])
@@ -189,7 +204,7 @@ export function useDamageCalculator() {
           setLoadError('')
         })
         .catch(() => {
-          setLoadError('No se pudo cargar alguna ficha de Pokemon para la calculadora.')
+          setLoadError('No se pudo cargar alguna ficha de Pokémon para la calculadora.')
         })
         .finally(() => {
           loadingDetailsRef.current.delete(slug)
@@ -219,7 +234,7 @@ export function useDamageCalculator() {
           setLoadError('')
         })
         .catch(() => {
-          setLoadError('No se pudo cargar algun learnset para la calculadora.')
+          setLoadError('No se pudo cargar algún learnset para la calculadora.')
         })
         .finally(() => {
           loadingMovesRef.current.delete(slug)
@@ -294,20 +309,28 @@ export function useDamageCalculator() {
     }
   }, [state.attacker.moveSlugs, state.defender.moveSlugs, state.selectedMove.side, state.selectedMove.slot])
 
+  const resolvedCompetitiveFormats = useMemo(() => {
+    return competitiveFormats.map((format) => ({
+      ...format,
+      headline: getFormatHeadline(format, t),
+      battleModeLabel: getBattleModeLabel(format, t),
+    }))
+  }, [competitiveFormats, t])
+
   const activeFormat = useMemo(() => {
-    return competitiveFormats.find((format) => format.key === state.formatKey) ?? competitiveFormats[0] ?? null
-  }, [competitiveFormats, state.formatKey])
+    return resolvedCompetitiveFormats.find((format) => format.key === state.formatKey) ?? resolvedCompetitiveFormats[0] ?? null
+  }, [resolvedCompetitiveFormats, state.formatKey])
 
   const pokemonOptions = useMemo(() => {
     return catalog.map((entry) => ({
       value: entry.slug,
       label: entry.label,
-      meta: [entry.primaryType ? translateType(entry.primaryType) : null, entry.secondaryType ? translateType(entry.secondaryType) : null]
+      meta: [entry.primaryType ? translateType(entry.primaryType, locale) : null, entry.secondaryType ? translateType(entry.secondaryType, locale) : null]
         .filter(Boolean)
         .join(' / ') || formatDexNumber(entry.id),
       keywords: getPokemonOptionKeywords(entry),
     }))
-  }, [catalog])
+  }, [catalog, locale])
 
   const itemOptions = useMemo(() => {
     return itemCatalog.map((item) => ({
@@ -326,21 +349,21 @@ export function useDamageCalculator() {
     const entry = catalog.find((item) => item.slug === attackerPokemonSlug)
 
     if (entry) {
-      return createCatalogPokemon(entry)
+      return createCatalogPokemon(entry, locale)
     }
 
     const detail = detailCache[attackerPokemonSlug]
 
     if (detail) {
-      return detail
+      return localizePokemonDetail(detail, locale)
     }
 
     return createPlaceholderPokemon({
       id: 0,
       slug: attackerPokemonSlug,
       label: formatPokemonName(attackerPokemonSlug),
-    })
-  }, [attackerPokemonSlug, catalog, detailCache])
+    }, locale)
+  }, [attackerPokemonSlug, catalog, detailCache, locale])
 
   const defenderPokemon = useMemo(() => {
     if (!defenderPokemonSlug) {
@@ -350,26 +373,34 @@ export function useDamageCalculator() {
     const entry = catalog.find((item) => item.slug === defenderPokemonSlug)
 
     if (entry) {
-      return createCatalogPokemon(entry)
+      return createCatalogPokemon(entry, locale)
     }
 
     const detail = detailCache[defenderPokemonSlug]
 
     if (detail) {
-      return detail
+      return localizePokemonDetail(detail, locale)
     }
 
     return createPlaceholderPokemon({
       id: 0,
       slug: defenderPokemonSlug,
       label: formatPokemonName(defenderPokemonSlug),
-    })
-  }, [catalog, defenderPokemonSlug, detailCache])
+    }, locale)
+  }, [catalog, defenderPokemonSlug, detailCache, locale])
 
-  const attackerDetail = attackerPokemonSlug ? detailCache[attackerPokemonSlug] ?? null : null
-  const defenderDetail = defenderPokemonSlug ? detailCache[defenderPokemonSlug] ?? null : null
-  const attackerMoves = attackerPokemonSlug ? moveCache[attackerPokemonSlug] ?? [] : []
-  const defenderMoves = defenderPokemonSlug ? moveCache[defenderPokemonSlug] ?? [] : []
+  const attackerDetail = useMemo(() => {
+    return attackerPokemonSlug ? localizePokemonDetail(detailCache[attackerPokemonSlug] ?? null, locale) : null
+  }, [attackerPokemonSlug, detailCache, locale])
+  const defenderDetail = useMemo(() => {
+    return defenderPokemonSlug ? localizePokemonDetail(detailCache[defenderPokemonSlug] ?? null, locale) : null
+  }, [defenderPokemonSlug, detailCache, locale])
+  const attackerMoves = useMemo(() => {
+    return attackerPokemonSlug ? (moveCache[attackerPokemonSlug] ?? []).map((move) => localizePokemonMoveLearn(move, locale)) : []
+  }, [attackerPokemonSlug, locale, moveCache])
+  const defenderMoves = useMemo(() => {
+    return defenderPokemonSlug ? (moveCache[defenderPokemonSlug] ?? []).map((move) => localizePokemonMoveLearn(move, locale)) : []
+  }, [defenderPokemonSlug, locale, moveCache])
 
   const calculationPayload = useMemo(() => {
     return {
@@ -406,7 +437,7 @@ export function useDamageCalculator() {
         setCalculationResult(result)
       } catch (error) {
         if (!cancelled) {
-          setCalculationError(error instanceof Error ? error.message : 'No se pudo calcular el dano.')
+          setCalculationError(error instanceof Error ? error.message : 'No se pudo calcular el daño.')
         }
       } finally {
         if (!cancelled) {
@@ -548,11 +579,7 @@ export function useDamageCalculator() {
   return {
     state,
     activeFormat,
-    competitiveFormats: competitiveFormats.map((format) => ({
-      ...format,
-      headline: getFormatHeadline(format),
-      battleModeLabel: getBattleModeLabel(format),
-    })),
+    competitiveFormats: resolvedCompetitiveFormats,
     pokemonOptions,
     itemOptions,
     attackerPokemon,

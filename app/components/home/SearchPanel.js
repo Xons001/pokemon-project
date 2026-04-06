@@ -1,4 +1,5 @@
 import { quickSuggestions } from '../../lib/pokemon'
+import { useI18n } from '../i18n/LanguageProvider'
 import MicIcon from '../icons/MicIcon'
 import SearchIcon from '../icons/SearchIcon'
 import styles from './PokedexHub.module.css'
@@ -17,6 +18,8 @@ export default function SearchPanel({
   searchInputRef,
   voiceSearchMessage,
 }) {
+  const { t } = useI18n()
+
   return (
     <div className={`${styles.searchPanel} ${styles.hubSearch}`} id="buscar">
       <label className={styles.searchBar} htmlFor="pokemon-search">
@@ -26,27 +29,27 @@ export default function SearchPanel({
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar Pokemon por nombre, numero o tipo"
+          placeholder={t('home.search.placeholder')}
         />
 
         <div className={styles.searchActions}>
           <button
             type="button"
             onClick={onVoiceSearch}
-            aria-label={isVoiceSearchListening ? 'Detener busqueda por voz' : 'Buscar Pokemon por voz'}
-            title={isVoiceSearchSupported ? 'Buscar por voz' : 'Busqueda por voz no disponible en este navegador'}
+            aria-label={isVoiceSearchListening ? t('home.search.stopVoiceSearch') : t('home.search.startVoiceSearch')}
+            title={isVoiceSearchSupported ? t('home.search.voiceSearchTitle') : t('home.search.voiceSearchUnavailableTitle')}
             className={isVoiceSearchListening ? styles.searchActionActive : undefined}
             disabled={!isVoiceSearchSupported}
           >
             <MicIcon />
           </button>
-          <button type="button" onClick={onSearch} aria-label="Buscar Pokemon">
+          <button type="button" onClick={onSearch} aria-label={t('home.search.searchButton')}>
             <SearchIcon />
           </button>
         </div>
       </label>
 
-      <div className={styles.searchSuggestions} aria-label="Sugerencias">
+      <div className={styles.searchSuggestions} aria-label={t('home.search.suggestionsAriaLabel')}>
         {quickSuggestions.map((suggestion) => (
           <button key={suggestion} type="button" onClick={() => onSuggestionClick(suggestion)}>
             {suggestion}
@@ -56,9 +59,9 @@ export default function SearchPanel({
 
       {loadError ? <p className={styles.helperText}>{loadError}</p> : null}
       {voiceSearchMessage ? <p className={styles.helperText}>{voiceSearchMessage}</p> : null}
-      {isCatalogLoading ? <p className={styles.helperText}>Cargando catalogo desde la API interna...</p> : null}
+      {isCatalogLoading ? <p className={styles.helperText}>{t('home.search.loadingCatalog')}</p> : null}
       {isPageLoading && !isCatalogLoading ? (
-        <p className={styles.helperText}>Cargando stats y tipos desde tu backend...</p>
+        <p className={styles.helperText}>{t('home.search.loadingDetails')}</p>
       ) : null}
     </div>
   )

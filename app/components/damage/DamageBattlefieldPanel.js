@@ -1,12 +1,13 @@
 'use client'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import {
   DAMAGE_GLOBAL_FIELD_OPTIONS,
   DAMAGE_RUIN_OPTIONS,
   DAMAGE_SIDE_FIELD_OPTIONS,
-  DAMAGE_SWITCHING_OPTIONS,
-  DAMAGE_TERRAIN_OPTIONS,
-  DAMAGE_WEATHER_OPTIONS,
+  getDamageSwitchingOptions,
+  getDamageTerrainOptions,
+  getDamageWeatherOptions,
 } from '../../lib/damage-calculator'
 import styles from './DamageCalculatorPage.module.css'
 
@@ -67,22 +68,28 @@ export default function DamageBattlefieldPanel({
   onSetFieldSideValue,
   onSetSelectedMoveOption,
 }) {
+  const { t, locale } = useI18n()
+  const copy = t('damagePage.battlefield')
+  const weatherOptions = getDamageWeatherOptions(locale)
+  const terrainOptions = getDamageTerrainOptions(locale)
+  const switchingOptions = getDamageSwitchingOptions(locale)
+
   return (
     <section className={styles.battlefieldPanel}>
       <div className={styles.sideHeader}>
         <div>
-          <p className={styles.kicker}>Battlefield</p>
-          <h3>{activeFormat?.headline ?? 'Damage Calculator'}</h3>
+          <p className={styles.kicker}>{copy.kicker}</p>
+          <h3>{activeFormat?.headline ?? copy.fallbackTitle}</h3>
         </div>
 
         <div className={styles.summaryStack}>
-          <span className={styles.summaryBadge}>{activeFormat?.battleModeLabel ?? 'Combate individual'}</span>
+          <span className={styles.summaryBadge}>{activeFormat?.battleModeLabel ?? t('damage.battleMode.singles')}</span>
           {activeFormat?.name ? <span className={styles.summaryBadgeMuted}>{activeFormat.name}</span> : null}
         </div>
       </div>
 
       <div className={styles.fieldGroup}>
-        <p className={styles.fieldGroupTitle}>Formato activo</p>
+        <p className={styles.fieldGroupTitle}>{copy.activeFormat}</p>
         <div className={styles.formatGrid}>
           {formats.map((format) => {
             const isActive = format.key === activeFormat?.key
@@ -104,33 +111,33 @@ export default function DamageBattlefieldPanel({
       </div>
 
       <div className={styles.fieldGroup}>
-        <p className={styles.fieldGroupTitle}>Clima</p>
-        {renderButtonGroup(DAMAGE_WEATHER_OPTIONS, field.weather, (value) => onSetFieldValue('weather', value))}
+        <p className={styles.fieldGroupTitle}>{copy.weather}</p>
+        {renderButtonGroup(weatherOptions, field.weather, (value) => onSetFieldValue('weather', value))}
       </div>
 
       <div className={styles.fieldGroup}>
-        <p className={styles.fieldGroupTitle}>Terreno</p>
-        {renderButtonGroup(DAMAGE_TERRAIN_OPTIONS, field.terrain, (value) => onSetFieldValue('terrain', value))}
+        <p className={styles.fieldGroupTitle}>{copy.terrain}</p>
+        {renderButtonGroup(terrainOptions, field.terrain, (value) => onSetFieldValue('terrain', value))}
       </div>
 
-      <ToggleCluster title="Condiciones globales" options={DAMAGE_GLOBAL_FIELD_OPTIONS} values={field} onToggle={onToggleFieldFlag} />
-      <ToggleCluster title="Aura y Ruin" options={DAMAGE_RUIN_OPTIONS} values={field} onToggle={onToggleFieldFlag} />
+      <ToggleCluster title={copy.globalConditions} options={DAMAGE_GLOBAL_FIELD_OPTIONS} values={field} onToggle={onToggleFieldFlag} />
+      <ToggleCluster title={copy.auraAndRuin} options={DAMAGE_RUIN_OPTIONS} values={field} onToggle={onToggleFieldFlag} />
 
       <div className={styles.fieldGroup}>
-        <p className={styles.fieldGroupTitle}>Movimiento seleccionado</p>
+        <p className={styles.fieldGroupTitle}>{copy.selectedMove}</p>
         <div className={styles.selectedMoveTools}>
           <button
             type="button"
             className={[styles.toggleButton, selectedMove.isCrit ? styles.toggleButtonActive : null].filter(Boolean).join(' ')}
             onClick={() => onSetSelectedMoveOption('isCrit', !selectedMove.isCrit)}
           >
-            Golpe critico
+            {copy.criticalHit}
           </button>
 
           <label className={styles.numberField}>
-            <span>Golpes</span>
+            <span>{copy.hits}</span>
             <select value={selectedMove.hits} onChange={(event) => onSetSelectedMoveOption('hits', event.target.value)}>
-              <option value="">Auto</option>
+              <option value="">{copy.auto}</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4">4</option>
@@ -142,18 +149,18 @@ export default function DamageBattlefieldPanel({
 
       <div className={styles.sideFieldGrid}>
         {[
-          { key: 'attackerSide', label: 'Lado 1' },
-          { key: 'defenderSide', label: 'Lado 2' },
+          { key: 'attackerSide', label: copy.sideOne },
+          { key: 'defenderSide', label: copy.sideTwo },
         ].map((side) => (
           <article key={side.key} className={styles.sideFieldCard}>
             <div className={styles.sideFieldHeader}>
               <strong>{side.label}</strong>
-              <small>{side.key === 'attackerSide' ? 'Atacante' : 'Defensor'}</small>
+              <small>{side.key === 'attackerSide' ? t('damagePage.attacker') : t('damagePage.defender')}</small>
             </div>
 
             <div className={styles.sideFieldControls}>
               <label className={styles.numberField}>
-                <span>Spikes</span>
+                <span>{copy.spikes}</span>
                 <select
                   value={field[side.key].spikes}
                   onChange={(event) => onSetFieldSideValue(side.key, 'spikes', Number(event.target.value))}
@@ -167,12 +174,12 @@ export default function DamageBattlefieldPanel({
               </label>
 
               <label className={styles.numberField}>
-                <span>Switching</span>
+                <span>{copy.switching}</span>
                 <select
                   value={field[side.key].isSwitching}
                   onChange={(event) => onSetFieldSideValue(side.key, 'isSwitching', event.target.value)}
                 >
-                  {DAMAGE_SWITCHING_OPTIONS.map((option) => (
+                  {switchingOptions.map((option) => (
                     <option key={`${side.key}-switching-${option.value || 'idle'}`} value={option.value}>
                       {option.label}
                     </option>

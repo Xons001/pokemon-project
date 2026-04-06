@@ -1,5 +1,6 @@
 'use client'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import {
   TEAM_MAX_EVS,
   TEAM_MAX_EVS_PER_STAT,
@@ -45,6 +46,7 @@ export default function TeamStatEditor({
   onAssignIndividualValue,
   onResetStatSpread,
 }) {
+  const { locale, t } = useI18n()
   if (!pokemon) {
     return null
   }
@@ -114,16 +116,16 @@ export default function TeamStatEditor({
     <section className={styles.editor}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Ajuste de stats</p>
-          <h3>EVs e IVs del hueco activo</h3>
+          <p className={styles.kicker}>{t('team.statEditor.kicker')}</p>
+          <h3>{t('team.statEditor.title')}</h3>
         </div>
 
         <div className={styles.headerActions}>
-          <span className={styles.summaryBadge}>EV total {effortTotal}/{TEAM_MAX_EVS}</span>
-          <span className={styles.summaryBadge}>Totales Lv.{TEAM_STAT_LEVEL}</span>
-          <span className={[styles.summaryBadge, styles.natureBadge].join(' ')}>{getNatureSummary(natureKey)}</span>
+          <span className={styles.summaryBadge}>{t('team.statEditor.totalEv', { current: effortTotal, max: TEAM_MAX_EVS })}</span>
+          <span className={styles.summaryBadge}>{t('team.statEditor.totalsLevel', { level: TEAM_STAT_LEVEL })}</span>
+          <span className={[styles.summaryBadge, styles.natureBadge].join(' ')}>{getNatureSummary(natureKey, locale)}</span>
           <button type="button" className={styles.resetButton} onClick={onResetStatSpread}>
-            Reset stats
+            {t('team.statEditor.reset')}
           </button>
         </div>
       </div>
@@ -131,12 +133,12 @@ export default function TeamStatEditor({
       <div className={styles.layout}>
         <article className={styles.radarPanel}>
           <div className={styles.radarLegend}>
-            <span className={[styles.legendChip, styles.legendChipBase].join(' ')}>Base</span>
-            <span className={[styles.legendChip, styles.legendChipAdjusted].join(' ')}>Ajustado</span>
+            <span className={[styles.legendChip, styles.legendChipBase].join(' ')}>{t('team.statEditor.base')}</span>
+            <span className={[styles.legendChip, styles.legendChipAdjusted].join(' ')}>{t('team.statEditor.adjusted')}</span>
           </div>
 
           <div className={styles.radarFrame}>
-            <svg viewBox="0 0 260 260" className={styles.radarSvg} aria-label={`Radar de stats de ${pokemon.name}`}>
+            <svg viewBox="0 0 260 260" className={styles.radarSvg} aria-label={t('team.statEditor.radarAria', { name: pokemon.name })}>
               {gridLevels.map((level) => {
                 const levelPoints = statRows.map((_, index) => {
                   return buildRadarPoint(radarCenter, radarCenter, radarRadius * level, index, statRows.length)
@@ -195,17 +197,17 @@ export default function TeamStatEditor({
             </svg>
           </div>
           <p className={styles.radarCaption}>
-            El radar refleja los totales calculados a nivel {TEAM_STAT_LEVEL} con la distribucion actual de EVs e IVs.
+            {t('team.statEditor.radarCaption', { level: TEAM_STAT_LEVEL })}
           </p>
         </article>
 
         <div className={styles.statTable}>
           <div className={styles.statTableHead}>
-            <span>Stat</span>
-            <span>Base</span>
-            <span>EVs</span>
-            <span>IVs</span>
-            <span>Total</span>
+            <span>{t('team.statEditor.stat')}</span>
+            <span>{t('team.statEditor.base')}</span>
+            <span>{t('team.statEditor.evs')}</span>
+            <span>{t('team.statEditor.ivs')}</span>
+            <span>{t('team.statEditor.total')}</span>
           </div>
 
           {statRows.map((stat) => (

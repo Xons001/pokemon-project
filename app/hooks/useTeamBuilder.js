@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useI18n } from '../components/i18n/LanguageProvider'
 import {
   fetchCompetitiveFormats,
   fetchItemCatalog,
@@ -11,7 +12,13 @@ import {
   fetchTypeChart,
   validateTeamBuild,
 } from '../lib/api'
-import { createCatalogPokemon, createPlaceholderPokemon, formatName as formatPokemonName } from '../lib/pokemon'
+import {
+  createCatalogPokemon,
+  createPlaceholderPokemon,
+  formatName as formatPokemonName,
+  localizePokemonDetail,
+  localizePokemonMoveLearn,
+} from '../lib/pokemon'
 import {
   ATTACKING_TYPES,
   DEFAULT_TEAM_FORMAT,
@@ -32,12 +39,13 @@ import {
 import { exportTeamToShowdownText, importTeamFromShowdownText } from '../lib/team-io'
 
 export function useTeamBuilder() {
+  const { locale } = useI18n()
   const [catalog, setCatalog] = useState([])
   const [itemCatalog, setItemCatalog] = useState([])
   const [competitiveFormats, setCompetitiveFormats] = useState([])
   const [detailCache, setDetailCache] = useState({})
   const [moveCache, setMoveCache] = useState({})
-  const [team, setTeam] = useState(createDefaultTeam)
+  const [team, setTeam] = useState(() => createDefaultTeam(DEFAULT_TEAM_FORMAT, locale))
   const [selectedSlotIndex, setSelectedSlotIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchPage, setSearchPage] = useState(1)
@@ -58,7 +66,7 @@ export function useTeamBuilder() {
   const [isValidationDirty, setIsValidationDirty] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [notice, setNotice] = useState(
-    'Este equipo se guarda automaticamente en este navegador y ya acepta import/export estilo Showdown.'
+    'Este equipo se guarda automáticamente en este navegador y ya acepta import/export estilo Showdown.'
   )
   const loadingDetailsRef = useRef(new Set())
   const loadingMovesRef = useRef(new Set())
@@ -78,11 +86,11 @@ export function useTeamBuilder() {
         setTeam(migrateLegacyTemplates(JSON.parse(legacyTemplates)))
       }
     } catch {
-      setTeam(createDefaultTeam())
+      setTeam(createDefaultTeam(DEFAULT_TEAM_FORMAT, locale))
     } finally {
       setIsStorageReady(true)
     }
-  }, [])
+  }, [locale])
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isStorageReady) return
@@ -114,7 +122,7 @@ export function useTeamBuilder() {
         setLoadError('')
       } catch {
         if (!isMounted) return
-        setLoadError('No se pudo cargar el catalogo desde la API interna.')
+        setLoadError('No se pudo cargar el catálogo desde la API interna.')
       } finally {
         if (isMounted) {
           setIsCatalogLoading(false)
@@ -147,7 +155,7 @@ export function useTeamBuilder() {
         setLoadError('')
       } catch {
         if (!isMounted) return
-        setLoadError('No se pudo cargar el catalogo de items desde la API interna.')
+        setLoadError('No se pudo cargar el catálogo de items desde la API interna.')
       } finally {
         if (isMounted) {
           setIsItemsLoading(false)
@@ -278,7 +286,7 @@ export function useTeamBuilder() {
         setLoadError('')
       } catch {
         if (!cancelled) {
-          setLoadError('No se pudo cargar la ficha competitiva del Pokemon seleccionado.')
+          setLoadError('No se pudo cargar la ficha competitiva del Pokémon seleccionado.')
         }
       } finally {
         loadingDetailsRef.current.delete(selectedPokemonSlug)
@@ -323,7 +331,7 @@ export function useTeamBuilder() {
         setLoadError('')
       } catch {
         if (!cancelled) {
-          setLoadError('No se pudo cargar el learnset del Pokemon seleccionado.')
+          setLoadError('No se pudo cargar el learnset del Pokémon seleccionado.')
         }
       } finally {
         loadingMovesRef.current.delete(selectedPokemonSlug)
@@ -394,22 +402,22 @@ export function useTeamBuilder() {
 
       const entry = catalog.find((item) => item.slug === slug)
       if (entry) {
-        return createCatalogPokemon(entry)
+        return createCatalogPokemon(entry, locale)
       }
 
       const cachedDetail = detailCache[slug]
 
       if (cachedDetail) {
-        return cachedDetail
+        return localizePokemonDetail(cachedDetail, locale)
       }
 
       return createPlaceholderPokemon({
         id: 0,
         slug,
         label: formatPokemonName(slug),
-      })
+      }, locale)
     })
-  }, [catalog, detailCache, team.slots])
+  }, [catalog, detailCache, locale, team.slots])
 
   const teamMoveMatrix = useMemo(() => {
     return team.slots.map((slot) => {
@@ -427,8 +435,8 @@ export function useTeamBuilder() {
   }, [moveCache, team.slots])
 
   const searchResults = useMemo(() => {
-    return buildCatalogSearchResults(catalog, searchQuery)
-  }, [catalog, searchQuery])
+    return buildCatalogSearchResults(catalog, searchQuery, locale)
+  }, [catalog, locale, searchQuery])
 
   const totalSearchPages = useMemo(() => {
     return Math.max(1, Math.ceil(searchResults.length / TEAM_SEARCH_PAGE_SIZE))
@@ -465,8 +473,8 @@ export function useTeamBuilder() {
   }, [searchPage, searchResults.length, totalSearchPages])
 
   const teamSummary = useMemo(() => {
-    return summarizeTeam(teamMembers, typeChart, team.slots, teamMoveMatrix)
-  }, [teamMembers, teamMoveMatrix, team.slots, typeChart])
+    return summarizeTeam(teamMembers, typeChart, team.slots, teamMoveMatrix, locale)
+  }, [locale, teamMembers, teamMoveMatrix, team.slots, typeChart])
 
   const leaderPokemon = useMemo(() => {
     return teamMembers[team.leaderSlot] ?? teamMembers.find(Boolean) ?? null
@@ -497,16 +505,16 @@ export function useTeamBuilder() {
       return []
     }
 
-    return moveCache[selectedPokemonSlug] ?? []
-  }, [moveCache, selectedPokemonSlug])
+    return (moveCache[selectedPokemonSlug] ?? []).map((move) => localizePokemonMoveLearn(move, locale))
+  }, [locale, moveCache, selectedPokemonSlug])
 
   const selectedPokemonDetail = useMemo(() => {
     if (!selectedPokemonSlug) {
       return null
     }
 
-    return detailCache[selectedPokemonSlug] ?? null
-  }, [detailCache, selectedPokemonSlug])
+    return localizePokemonDetail(detailCache[selectedPokemonSlug] ?? null, locale)
+  }, [detailCache, locale, selectedPokemonSlug])
 
   useEffect(() => {
     setSearchPage(1)
@@ -619,7 +627,7 @@ export function useTeamBuilder() {
     const defaultAbility = typeof catalogEntry?.primaryAbility === 'string' ? catalogEntry.primaryAbility : null
 
     if (existingIndex !== -1 && existingIndex !== selectedSlotIndex) {
-      setNotice('Ese Pokemon ya forma parte del equipo.')
+      setNotice('Ese Pokémon ya forma parte del equipo.')
       setSelectedSlotIndex(existingIndex)
       return
     }
@@ -649,7 +657,7 @@ export function useTeamBuilder() {
     })
 
     setSelectedSlotIndex(Math.min(safeTargetIndex + 1, team.slots.length - 1))
-    setNotice('Pokemon anadido al equipo actual.')
+    setNotice('Pokémon añadido al equipo actual.')
   }
 
   function removePokemonFromTeam(index) {
@@ -672,12 +680,12 @@ export function useTeamBuilder() {
     })
 
     setSelectedSlotIndex(index)
-    setNotice('Hueco liberado para otro Pokemon.')
+    setNotice('Hueco liberado para otro Pokémon.')
   }
 
   function assignMoveToSlot(moveIndex, moveSlug) {
     if (!selectedPokemonSlug) {
-      setNotice('Selecciona primero un Pokemon para asignarle movimientos.')
+      setNotice('Selecciona primero un Pokémon para asignarle movimientos.')
       return
     }
 
@@ -687,7 +695,7 @@ export function useTeamBuilder() {
       normalizedMoveSlug &&
       selectedSlot.moveSlugs.some((slug, index) => slug === normalizedMoveSlug && index !== moveIndex)
     ) {
-      setNotice('Ese movimiento ya esta elegido en otro hueco del moveset.')
+      setNotice('Ese movimiento ya está elegido en otro hueco del moveset.')
       return
     }
 
@@ -713,7 +721,7 @@ export function useTeamBuilder() {
 
   function assignAbilityToSlot(abilitySlug) {
     if (!selectedPokemonSlug) {
-      setNotice('Selecciona primero un Pokemon para asignarle una habilidad.')
+      setNotice('Selecciona primero un Pokémon para asignarle una habilidad.')
       return
     }
 
@@ -734,12 +742,12 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice(normalizedAbilitySlug ? 'Habilidad guardada en el hueco activo.' : 'Habilidad limpiada para este Pokemon.')
+    setNotice(normalizedAbilitySlug ? 'Habilidad guardada en el hueco activo.' : 'Habilidad limpiada para este Pokémon.')
   }
 
   function assignItemToSlot(itemSlug) {
     if (!selectedPokemonSlug) {
-      setNotice('Selecciona primero un Pokemon para asignarle un item.')
+      setNotice('Selecciona primero un Pokémon para asignarle un item.')
       return
     }
 
@@ -760,12 +768,12 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice(normalizedItemSlug ? 'Item guardado en el hueco activo.' : 'Item limpiado para este Pokemon.')
+    setNotice(normalizedItemSlug ? 'Item guardado en el hueco activo.' : 'Item limpiado para este Pokémon.')
   }
 
   function assignNatureToSlot(natureKey) {
     if (!selectedPokemonSlug) {
-      setNotice('Selecciona primero un Pokemon para asignarle una naturaleza.')
+      setNotice('Selecciona primero un Pokémon para asignarle una naturaleza.')
       return
     }
 
@@ -786,7 +794,7 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice(normalizedNatureKey ? 'Naturaleza guardada en el hueco activo.' : 'Naturaleza limpiada para este Pokemon.')
+    setNotice(normalizedNatureKey ? 'Naturaleza guardada en el hueco activo.' : 'Naturaleza limpiada para este Pokémon.')
   }
 
   function clearMovesFromSlot(index) {
@@ -805,7 +813,7 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice('Moveset reiniciado para este Pokemon.')
+    setNotice('Moveset reiniciado para este Pokémon.')
   }
 
   function assignEffortValue(statKey, value) {
@@ -860,11 +868,11 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice('EVs e IVs reiniciados para este Pokemon.')
+    setNotice('EVs e IVs reiniciados para este Pokémon.')
   }
 
   function clearTeam() {
-    updateTeam(() => createDefaultTeam(getDefaultFormatKey()))
+    updateTeam(() => createDefaultTeam(getDefaultFormatKey(), locale))
     setSelectedSlotIndex(0)
     setNotice('Equipo vaciado. Puedes reconstruirlo desde cero.')
   }
@@ -875,7 +883,7 @@ export function useTeamBuilder() {
       leaderSlot: index,
     }))
 
-    setNotice('Pokemon marcado como lider del equipo.')
+    setNotice('Pokémon marcado como líder del equipo.')
   }
 
   function generateTeamExportText() {
@@ -894,13 +902,13 @@ export function useTeamBuilder() {
     const importedCount = importedTeam.slots.filter((slot) => slot.pokemonSlug).length
 
     if (!importedCount) {
-      throw new Error('No hemos detectado sets validos en ese texto.')
+      throw new Error('No hemos detectado sets válidos en ese texto.')
     }
 
     const firstFilledIndex = importedTeam.slots.findIndex((slot) => slot.pokemonSlug)
     setTeam(importedTeam)
     setSelectedSlotIndex(firstFilledIndex >= 0 ? firstFilledIndex : 0)
-    setNotice(`Equipo importado con ${importedCount} Pokemon. Revisa item, naturaleza y validacion del meta.`)
+    setNotice(`Equipo importado con ${importedCount} Pokémon. Revisa item, naturaleza y validación del meta.`)
     return importedTeam
   }
 

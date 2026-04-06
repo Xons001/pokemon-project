@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import { getBalanceLabel } from '../../lib/team-builder'
 import { getPalette } from '../../lib/pokemon'
 import styles from './TeamAnalysis.module.css'
@@ -236,6 +237,7 @@ export default function TeamAnalysis({
   typeAnalysis,
   typeChartReady,
 }) {
+  const { locale, t } = useI18n()
   const hasReadyAnalysis = typeChartReady && teamSummary.readyMembers > 0
   const hasSelectedMembers = teamSummary.filledSlots > 0
   const leadingWeaknesses = teamSummary.weaknesses.slice(0, 4)
@@ -268,29 +270,29 @@ export default function TeamAnalysis({
     <section className={styles.analysis} id="analisis">
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Analisis del equipo</p>
-          <h3>Compatibilidad y quimica</h3>
+          <p className={styles.kicker}>{t('team.analysis.kicker')}</p>
+          <h3>{t('team.analysis.title')}</h3>
         </div>
         <span className={styles.statusBadge}>
-          {isTypeChartLoading ? 'Calculando...' : typeChartReady ? 'Tipos listos' : 'Pendiente'}
+          {isTypeChartLoading ? t('team.analysis.calculating') : typeChartReady ? t('team.analysis.ready') : t('team.analysis.pending')}
         </span>
       </div>
 
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
-          <span>Slots ocupados</span>
+          <span>{t('team.analysis.summary.occupiedSlots')}</span>
           <strong>{teamSummary.filledSlots}/6</strong>
         </div>
         <div className={styles.summaryCard}>
-          <span>Balance</span>
-          <strong>{getBalanceLabel(teamSummary.balanceScore)}</strong>
+          <span>{t('team.analysis.summary.balance')}</span>
+          <strong>{getBalanceLabel(teamSummary.balanceScore, locale)}</strong>
         </div>
         <div className={styles.summaryCard}>
-          <span>Cobertura ofensiva</span>
+          <span>{t('team.analysis.summary.offensiveCoverage')}</span>
           <strong>{coverageVerdict.label}</strong>
         </div>
         <div className={styles.summaryCard}>
-          <span>Arquetipo</span>
+          <span>{t('team.analysis.summary.archetype')}</span>
           <strong>{archetypeAnalysis.styleLabel}</strong>
         </div>
       </div>
@@ -602,7 +604,7 @@ export default function TeamAnalysis({
                     <td className={styles.footerCell}>
                       <div className={styles.overviewStack}>
                         <span className={[styles.verdictBadge, styles.verdictNeutral].join(' ')}>
-                          {getBalanceLabel(teamSummary.balanceScore)}
+                          {getBalanceLabel(teamSummary.balanceScore, locale)}
                         </span>
                         <div className={styles.overviewList}>
                           <span>{teamSummary.weaknesses.length} riesgos</span>

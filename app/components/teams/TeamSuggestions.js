@@ -1,5 +1,6 @@
 import Image from 'next/image'
 
+import { useI18n } from '../i18n/LanguageProvider'
 import styles from './TeamSuggestions.module.css'
 
 const typeAccents = {
@@ -71,6 +72,7 @@ export default function TeamSuggestions({
   suggestionsError,
   suggestionsResult,
 }) {
+  const { t } = useI18n()
   const featuredSuggestion = suggestionsResult?.items?.[0] ?? null
   const otherSuggestions = suggestionsResult?.items?.slice(1) ?? []
   const helperMonth = suggestionsResult?.format?.latestMonth
@@ -79,16 +81,18 @@ export default function TeamSuggestions({
     <section className={styles.suggestions}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Suggestions</p>
-          <h3>Quien completa mejor el equipo</h3>
+          <p className={styles.kicker}>{t('team.suggestions.kicker')}</p>
+          <h3>{t('team.suggestions.title')}</h3>
         </div>
-        <span className={styles.statusBadge}>{isSuggestionsLoading ? 'Actualizando...' : `${suggestionsResult?.summary?.suggestionCount ?? 0} picks`}</span>
+        <span className={styles.statusBadge}>
+          {isSuggestionsLoading ? t('team.suggestions.updating') : t('team.suggestions.picks', { count: suggestionsResult?.summary?.suggestionCount ?? 0 })}
+        </span>
       </div>
 
       <p className={styles.helperText}>
         {helperMonth
-          ? `Cruza teammates, usage y build meta de ${suggestionsResult.format.name} (${helperMonth}) para proponerte el mejor siguiente pick.`
-          : 'Cruza teammates, usage y build meta para proponerte el mejor siguiente pick del equipo.'}
+          ? t('team.suggestions.helperWithMonth', { format: suggestionsResult.format.name, month: helperMonth })
+          : t('team.suggestions.helperWithoutMonth')}
       </p>
 
       {suggestionsError ? <p className={styles.errorBanner}>{suggestionsError}</p> : null}
@@ -121,7 +125,7 @@ export default function TeamSuggestions({
                       </span>
                     ))}
                     {formatUsagePercent(featuredSuggestion.usagePercent) ? (
-                      <span className={styles.metaChip}>Uso {formatUsagePercent(featuredSuggestion.usagePercent)}</span>
+                      <span className={styles.metaChip}>{t('team.suggestions.usage', { value: formatUsagePercent(featuredSuggestion.usagePercent) })}</span>
                     ) : null}
                   </div>
                 </div>
@@ -133,7 +137,9 @@ export default function TeamSuggestions({
                 onClick={() => featuredSuggestion.pokemonSlug && onAddPokemon(featuredSuggestion.pokemonSlug)}
                 disabled={!featuredSuggestion.pokemonSlug}
               >
-                {featuredSuggestion.pokemonSlug ? `Anadir al hueco ${selectedSlotIndex + 1}` : 'Sin slug local'}
+                {featuredSuggestion.pokemonSlug
+                  ? t('team.suggestions.addToSlot', { index: selectedSlotIndex + 1 })
+                  : t('team.suggestions.noLocalSlug')}
               </button>
             </div>
 
@@ -147,7 +153,7 @@ export default function TeamSuggestions({
 
             <div className={styles.featuredMetaGrid}>
               <div className={styles.buildSection}>
-                <span className={styles.blockLabel}>Build meta</span>
+                <span className={styles.blockLabel}>{t('team.suggestions.buildMeta')}</span>
                 <div className={styles.buildWrap}>
                   {featuredSuggestion.recommendedBuild.abilities.map((entry) => renderBuildEntry(entry, styles.buildAbility))}
                   {featuredSuggestion.recommendedBuild.items.map((entry) => renderBuildEntry(entry, styles.buildItem))}
@@ -157,7 +163,7 @@ export default function TeamSuggestions({
               </div>
 
               <div className={styles.buildSection}>
-                <span className={styles.blockLabel}>Moves frecuentes</span>
+                <span className={styles.blockLabel}>{t('team.suggestions.frequentMoves')}</span>
                 <div className={styles.moveWrap}>
                   {featuredSuggestion.recommendedBuild.moves.map((move) => (
                     <span key={`${featuredSuggestion.showdownPokemonId}-${move.showdownId}`} className={styles.moveChip}>
@@ -177,7 +183,7 @@ export default function TeamSuggestions({
           {otherSuggestions.length ? (
             <div className={styles.ranking}>
               <div className={styles.rankingHeader}>
-                <h4>Otros picks fuertes</h4>
+                <h4>{t('team.suggestions.otherStrongPicks')}</h4>
                 <span>{otherSuggestions.length}</span>
               </div>
 
@@ -219,7 +225,7 @@ export default function TeamSuggestions({
                       onClick={() => suggestion.pokemonSlug && onAddPokemon(suggestion.pokemonSlug)}
                       disabled={!suggestion.pokemonSlug}
                     >
-                      Anadir
+                      {t('team.suggestions.add')}
                     </button>
                   </article>
                 ))}
@@ -230,11 +236,8 @@ export default function TeamSuggestions({
       ) : (
         <div className={styles.contentStack}>
           <div className={styles.emptyState}>
-            <strong>{isSuggestionsLoading ? 'Calculando sugerencias...' : 'Completa al menos un Pokemon del equipo'}</strong>
-            <p>
-              Cuando haya base suficiente, aqui veras el pick con mejor encaje competitivo segun tus miembros actuales,
-              sus builds y el meta activo.
-            </p>
+            <strong>{isSuggestionsLoading ? t('team.suggestions.calculating') : t('team.suggestions.emptyTitle')}</strong>
+            <p>{t('team.suggestions.emptyDescription')}</p>
           </div>
         </div>
       )}
