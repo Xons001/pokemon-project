@@ -16,6 +16,7 @@ const typeLabels: Record<string, string> = {
   psychic: 'Psiquico',
   rock: 'Roca',
   steel: 'Acero',
+  stellar: 'Estelar',
   water: 'Agua',
 }
 
@@ -37,6 +38,7 @@ const typePaletteMap: Record<string, string> = {
   psychic: 'psychic',
   rock: 'earth',
   steel: 'steel',
+  stellar: 'neutral',
   water: 'water',
 }
 

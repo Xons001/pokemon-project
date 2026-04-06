@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import ConfirmationSection from './ConfirmationSection'
 import PokedexHub from './PokedexHub'
 import SiteHeader from './SiteHeader'
+import { useI18n } from '../i18n/LanguageProvider'
 import { usePokemonCatalog } from '../../hooks/usePokemonCatalog'
 import { createPlaceholderPokemon, INITIAL_SELECTED_ENTRY } from '../../lib/pokemon'
 import pageStyles from '../../page.module.css'
@@ -14,6 +15,7 @@ function cleanTranscript(value) {
 }
 
 export default function HomePage() {
+  const { locale, t } = useI18n()
   const router = useRouter()
   const pokedexRef = useRef(null)
   const searchInputRef = useRef(null)
@@ -39,7 +41,7 @@ export default function HomePage() {
     searchFirstMatch,
     applySuggestion,
   } = usePokemonCatalog()
-  const activePokemon = selectedPokemon ?? createPlaceholderPokemon(INITIAL_SELECTED_ENTRY)
+  const activePokemon = selectedPokemon ?? createPlaceholderPokemon(INITIAL_SELECTED_ENTRY, locale)
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -48,12 +50,12 @@ export default function HomePage() {
 
     if (!SpeechRecognition) {
       setIsVoiceSearchSupported(false)
-      setVoiceSearchMessage('La busqueda por voz solo esta disponible en navegadores compatibles como Chrome o Edge.')
+      setVoiceSearchMessage(t('home.voiceSearch.unsupported'))
       return undefined
     }
 
     const recognition = new SpeechRecognition()
-    recognition.lang = window.navigator.language || 'es-ES'
+    recognition.lang = window.navigator.language || (locale === 'en' ? 'en-US' : 'es-ES')
     recognition.continuous = false
     recognition.interimResults = false
     recognition.maxAlternatives = 1
@@ -61,7 +63,7 @@ export default function HomePage() {
     recognition.onstart = () => {
       setIsVoiceSearchSupported(true)
       setIsVoiceSearchListening(true)
-      setVoiceSearchMessage('Escuchando... di el nombre, numero o tipo del Pokemon.')
+      setVoiceSearchMessage(t('home.voiceSearch.listening'))
     }
 
     recognition.onend = () => {
@@ -72,32 +74,32 @@ export default function HomePage() {
       setIsVoiceSearchListening(false)
 
       if (event.error === 'no-speech') {
-        setVoiceSearchMessage('No he detectado voz. Prueba otra vez y habla un poco mas cerca del micro.')
+        setVoiceSearchMessage(t('home.voiceSearch.noSpeech'))
         return
       }
 
       if (event.error === 'audio-capture') {
-        setVoiceSearchMessage('No se ha encontrado un micro activo en este dispositivo.')
+        setVoiceSearchMessage(t('home.voiceSearch.noMicrophone'))
         return
       }
 
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        setVoiceSearchMessage('Necesito permiso de micro para poder buscar por voz.')
+        setVoiceSearchMessage(t('home.voiceSearch.permissionDenied'))
         return
       }
 
-      setVoiceSearchMessage('No se pudo completar la busqueda por voz. Intentalo de nuevo.')
+      setVoiceSearchMessage(t('home.voiceSearch.failed'))
     }
 
     recognition.onresult = (event) => {
       const transcript = cleanTranscript(event.results?.[0]?.[0]?.transcript ?? '')
 
       if (!transcript) {
-        setVoiceSearchMessage('No he entendido la busqueda. Prueba de nuevo.')
+        setVoiceSearchMessage(t('home.voiceSearch.empty'))
         return
       }
 
-      setVoiceSearchMessage(`Busqueda por voz: ${transcript}`)
+      setVoiceSearchMessage(t('home.voiceSearch.resultPrefix', { transcript }))
       setQuery(transcript)
       searchInputRef.current?.focus()
       pokedexRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -114,7 +116,7 @@ export default function HomePage() {
       recognition.stop()
       recognitionRef.current = null
     }
-  }, [setQuery])
+  }, [locale, setQuery, t])
 
   function handleSearch() {
     const found = searchFirstMatch()
@@ -130,7 +132,7 @@ export default function HomePage() {
 
   function handleVoiceSearch() {
     if (!recognitionRef.current || !isVoiceSearchSupported) {
-      setVoiceSearchMessage('La busqueda por voz no esta disponible en este navegador.')
+      setVoiceSearchMessage(t('home.voiceSearch.unavailable'))
       return
     }
 
@@ -143,7 +145,7 @@ export default function HomePage() {
       setVoiceSearchMessage('')
       recognitionRef.current.start()
     } catch (error) {
-      setVoiceSearchMessage('No se pudo iniciar el micro. Cierra otras capturas de voz y prueba de nuevo.')
+      setVoiceSearchMessage(t('home.voiceSearch.startFailed'))
     }
   }
 

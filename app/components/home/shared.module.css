@@ -4,7 +4,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .sectionTitle {
@@ -33,12 +33,12 @@
 }
 
 .primaryLink {
-  color: #111827;
+  color: var(--text-strong);
   background: var(--accent);
 }
 
 .secondaryLink {
   color: var(--text);
   border: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--panel-bg-strong);
 }

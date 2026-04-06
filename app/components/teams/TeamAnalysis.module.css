@@ -6,8 +6,8 @@
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
 }
 
 .header,
@@ -25,7 +25,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .header h3,
@@ -48,8 +48,9 @@
   padding: 0.55rem 0.8rem;
   font-size: 0.84rem;
   font-weight: 700;
-  background: #eff4ff;
-  border: 1px solid #d8dfeb;
+  color: var(--badge-text);
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
   border-radius: 999px;
 }
 
@@ -64,8 +65,8 @@
   display: grid;
   gap: 0.35rem;
   padding: 0.95rem 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 20px;
 }
 
@@ -74,7 +75,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .summaryCard strong {
@@ -84,7 +85,7 @@
 .block {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e6edf8;
+  border-top: 1px solid var(--divider);
 }
 
 .highlightGrid {
@@ -96,8 +97,8 @@
 
 .highlightPanel {
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 20px;
 }
 
@@ -112,8 +113,8 @@
 .roleCard,
 .archetypeCard {
   padding: 0.95rem 1rem;
-  background: #ffffff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 18px;
 }
 
@@ -127,7 +128,7 @@
 
 .coverageTop small,
 .roleHeader small {
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .coverageMoves,
@@ -199,7 +200,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .legendList {
@@ -234,9 +235,9 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-gutter: stable both-edges;
-  border: 1px solid #dce6f4;
+  border: 1px solid var(--border-strong);
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--table-bg);
 }
 
 .matrixTable {
@@ -244,7 +245,7 @@
   min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
-  background: #ffffff;
+  background: var(--table-bg);
   table-layout: fixed;
 }
 
@@ -252,8 +253,8 @@
 .matrixTable td {
   padding: 0.6rem 0.28rem;
   text-align: center;
-  border-right: 1px solid #eef3fb;
-  border-bottom: 1px solid #eef3fb;
+  border-right: 1px solid var(--table-divider);
+  border-bottom: 1px solid var(--table-divider);
 }
 
 .matrixTable th:last-child,
@@ -265,7 +266,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f8fbff;
+  background: var(--table-head-bg);
 }
 
 .axisHeader,
@@ -278,14 +279,14 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  background: #fbfdff;
+  background: var(--table-sticky-bg);
 }
 
 .axisHeader,
 .teamFooterLabel {
   font-size: 0.9rem;
   font-weight: 800;
-  color: #18212f;
+  color: var(--text);
 }
 
 .pokemonColumnHeader {
@@ -313,7 +314,7 @@
 }
 
 .typeRowHeader {
-  background: #fbfdff;
+  background: var(--table-sticky-bg);
 }
 
 .typeRowCard {
@@ -362,18 +363,18 @@
   position: sticky;
   right: 0;
   z-index: 3;
-  background: #f8fbff;
+  background: var(--table-head-bg);
   text-align: center;
   padding-left: 0.7rem !important;
   padding-right: 0.7rem !important;
   box-shadow:
-    inset 1px 0 0 #dce6f4,
-    -6px 0 12px rgba(248, 251, 255, 0.96);
+    inset 1px 0 0 var(--border-strong),
+    -6px 0 12px color-mix(in srgb, var(--table-head-bg) 96%, transparent);
 }
 
 .matrixCell,
 .footerCell {
-  background: #ffffff;
+  background: var(--table-bg);
 }
 
 .matchupBadge {
@@ -397,9 +398,9 @@
 }
 
 .cellNeutral {
-  color: #324962;
-  background: #f8fbff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--chip-bg);
+  border-color: var(--chip-border);
 }
 
 .cellSafe {
@@ -429,7 +430,7 @@
 .overviewCell,
 .footerCell {
   text-align: center;
-  background: #fbfdff;
+  background: var(--table-sticky-bg);
 }
 
 .overviewCell,
@@ -440,8 +441,8 @@
   padding-left: 0.7rem !important;
   padding-right: 0.7rem !important;
   box-shadow:
-    inset 1px 0 0 #dce6f4,
-    -6px 0 12px rgba(251, 253, 255, 0.96);
+    inset 1px 0 0 var(--border-strong),
+    -6px 0 12px color-mix(in srgb, var(--table-sticky-bg) 96%, transparent);
 }
 
 .overviewStack {
@@ -457,7 +458,7 @@
   min-width: 0;
   font-size: 0.7rem;
   text-align: center;
-  color: #324962;
+  color: var(--text-subtle);
 }
 
 .verdictBadge {
@@ -484,9 +485,9 @@
 
 .verdictNeutral,
 .legendNeutral {
-  color: #324962;
-  background: #f8fbff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--chip-bg);
+  border-color: var(--chip-border);
 }
 
 .verdictSafe,
@@ -512,7 +513,7 @@
 .matrixTable tfoot td {
   position: sticky;
   bottom: 0;
-  background: #f8fbff;
+  background: var(--table-head-bg);
   z-index: 2;
 }
 

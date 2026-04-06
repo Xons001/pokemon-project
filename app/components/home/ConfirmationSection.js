@@ -1,7 +1,9 @@
+import { useI18n } from '../i18n/LanguageProvider'
 import sharedStyles from './shared.module.css'
 import styles from './ConfirmationSection.module.css'
 
 export default function ConfirmationSection({ pokemon, onViewCard, onBackToList }) {
+  const { t } = useI18n()
   const hasLevelMoves = pokemon.levelMoves.length > 0
   const hasHeldItems = pokemon.heldItems.length > 0
 
@@ -14,21 +16,20 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
           </div>
 
           <div className={styles.confirmationMessage}>
-            <p className={sharedStyles.eyebrow}>Aprendizaje</p>
+            <p className={sharedStyles.eyebrow}>{t('home.confirmation.eyebrow')}</p>
             <h2 className={`${sharedStyles.sectionTitle} ${styles.confirmationTitle}`}>
-              Ataques y objetos de {pokemon.name}
+              {t('home.confirmation.title', { name: pokemon.name })}
             </h2>
             <p className={sharedStyles.sectionText}>
-              Consulta los movimientos que aprende por nivel, los objetos asociados y salta a la pagina de equipos para
-              usarlo como futuro lider.
+              {t('home.confirmation.description')}
             </p>
           </div>
         </div>
 
         <div className={styles.learnsetGrid}>
-          <section className={styles.infoPanel} aria-label="Movimientos por nivel">
+          <section className={styles.infoPanel} aria-label={t('home.confirmation.levelMovesAria')}>
             <div className={styles.panelHeading}>
-              <h3>Movimientos por nivel</h3>
+              <h3>{t('home.confirmation.levelMovesTitle')}</h3>
               <span>{pokemon.levelMoves.length}</span>
             </div>
 
@@ -36,23 +37,23 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
               {hasLevelMoves ? (
                 pokemon.levelMoves.map((move) => (
                   <div key={`${move.name}-${move.level}`} className={styles.moveRow}>
-                    <span className={styles.moveLevel}>Nv. {move.level}</span>
+                    <span className={styles.moveLevel}>{t('home.confirmation.levelLabel', { level: move.level })}</span>
                     <strong>{move.name}</strong>
                   </div>
                 ))
               ) : (
                 <p className={styles.emptyMessage}>
                   {pokemon.isPlaceholder
-                    ? 'Cargando movimientos aprendidos por nivel...'
-                    : 'No hay movimientos por nivel registrados para este Pokemon.'}
+                    ? t('home.confirmation.loadingLevelMoves')
+                    : t('home.confirmation.noLevelMoves')}
                 </p>
               )}
             </div>
           </section>
 
-          <section className={styles.infoPanel} aria-label="Objetos posibles">
+          <section className={styles.infoPanel} aria-label={t('home.confirmation.heldItemsAria')}>
             <div className={styles.panelHeading}>
-              <h3>Objetos posibles</h3>
+              <h3>{t('home.confirmation.heldItemsTitle')}</h3>
               <span>{pokemon.heldItems.length}</span>
             </div>
 
@@ -61,14 +62,14 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
                 pokemon.heldItems.map((item) => (
                   <div key={item.name} className={styles.itemCard}>
                     <strong>{item.name}</strong>
-                    <span>{item.rarity ? `Rareza ${item.rarity}` : 'Rareza sin dato'}</span>
+                    <span>{item.rarity ? t('home.confirmation.rarity', { rarity: item.rarity }) : t('home.confirmation.rarityUnknown')}</span>
                   </div>
                 ))
               ) : (
                 <p className={styles.emptyMessage}>
                   {pokemon.isPlaceholder
-                    ? 'Cargando objetos posibles...'
-                    : 'Este Pokemon no suele llevar objetos asociados.'}
+                    ? t('home.confirmation.loadingItems')
+                    : t('home.confirmation.noItems')}
                 </p>
               )}
             </div>
@@ -77,10 +78,10 @@ export default function ConfirmationSection({ pokemon, onViewCard, onBackToList 
 
         <div className={styles.confirmationActions}>
           <button type="button" className={styles.confirmationPrimary} onClick={onViewCard}>
-            Ir a equipos
+            {t('home.confirmation.goToTeams')}
           </button>
           <button type="button" className={styles.confirmationSecondary} onClick={onBackToList}>
-            Volver a la lista
+            {t('home.confirmation.backToList')}
           </button>
         </div>
       </div>
