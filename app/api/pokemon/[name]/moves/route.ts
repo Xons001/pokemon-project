@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { isDatabaseUnavailableError } from '@/src/lib/database'
+import { getFallbackPokemonMoveLearns } from '@/src/modules/pokemon/pokeapi'
 import { getPokemonMoveLearnsByName } from '@/src/modules/pokemon/queries'
 
 export const dynamic = 'force-dynamic'
@@ -31,6 +33,22 @@ export async function GET(
       items: moves,
     })
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      try {
+        const fallbackMoves = await getFallbackPokemonMoveLearns(context.params.name)
+
+        if (fallbackMoves) {
+          return NextResponse.json({
+            total: fallbackMoves.length,
+            items: fallbackMoves,
+            fallbackSource: 'pokeapi',
+          })
+        }
+      } catch (fallbackError) {
+        console.error('Failed to load pokemon moves fallback', fallbackError)
+      }
+    }
+
     console.error('Failed to load pokemon moves', error)
 
     return NextResponse.json(

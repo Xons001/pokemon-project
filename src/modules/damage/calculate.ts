@@ -1,9 +1,11 @@
 import { calculate, Field, Move, Pokemon, type Result } from '@smogon/calc'
 
 import { getPrismaClient } from '@/src/lib/prisma'
+import { isDatabaseUnavailableError } from '@/src/lib/database'
 import { formatName, translateDamageClass, translateType } from '@/src/modules/pokemon/format'
 import { getActiveMetaFormatKeys, normalizeMetaFormatKey } from '@/src/modules/showdown/format-scope'
 import { toShowdownId } from '@/src/modules/showdown/id'
+import { resolveFallbackCompetitiveFormat } from '@/src/modules/team/fallback'
 
 const DAMAGE_MOVE_SLOTS = 4
 const DAMAGE_LEVEL_DEFAULT = 50
@@ -432,46 +434,61 @@ async function resolveDamageFormat(requestedFormatKey?: string | null) {
   const activeFormatKeys = getActiveMetaFormatKeys()
   const requestedKey = requestedFormatKey ? normalizeMetaFormatKey(requestedFormatKey) : null
 
-  if (requestedKey && (!activeFormatKeys.length || activeFormatKeys.includes(requestedKey))) {
-    const requestedFormat = await prisma.competitiveFormat.findUnique({
-      where: {
-        formatKey: requestedKey,
-      },
+  try {
+    if (requestedKey && (!activeFormatKeys.length || activeFormatKeys.includes(requestedKey))) {
+      const requestedFormat = await prisma.competitiveFormat.findUnique({
+        where: {
+          formatKey: requestedKey,
+        },
+        select: {
+          formatKey: true,
+          name: true,
+          section: true,
+          gameType: true,
+        },
+      })
+
+      if (requestedFormat) {
+        return requestedFormat
+      }
+    }
+
+    const fallbackFormat = await prisma.competitiveFormat.findFirst({
+      where: activeFormatKeys.length
+        ? {
+            formatKey: {
+              in: activeFormatKeys,
+            },
+          }
+        : undefined,
       select: {
         formatKey: true,
         name: true,
         section: true,
         gameType: true,
       },
+      orderBy: [{ section: 'asc' }, { name: 'asc' }],
     })
 
-    if (requestedFormat) {
-      return requestedFormat
+    if (!fallbackFormat) {
+      throw new Error('No hay formatos competitivos disponibles para la calculadora de dano.')
     }
+
+    return fallbackFormat
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const fallbackFormat = resolveFallbackCompetitiveFormat(requestedKey)
+
+      return {
+        formatKey: fallbackFormat.key,
+        name: fallbackFormat.name,
+        section: fallbackFormat.section,
+        gameType: fallbackFormat.gameType,
+      }
+    }
+
+    throw error
   }
-
-  const fallbackFormat = await prisma.competitiveFormat.findFirst({
-    where: activeFormatKeys.length
-      ? {
-          formatKey: {
-            in: activeFormatKeys,
-          },
-        }
-      : undefined,
-    select: {
-      formatKey: true,
-      name: true,
-      section: true,
-      gameType: true,
-    },
-    orderBy: [{ section: 'asc' }, { name: 'asc' }],
-  })
-
-  if (!fallbackFormat) {
-    throw new Error('No hay formatos competitivos disponibles para la calculadora de dano.')
-  }
-
-  return fallbackFormat
 }
 
 function calculateSideMoveList(attacker: Pokemon, defender: Pokemon, field: Field, moveSlugs: string[]) {

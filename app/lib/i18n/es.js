@@ -249,6 +249,9 @@ const es = {
     },
   },
   team: {
+    errors: {
+      loadCatalog: 'No se pudo cargar el catalogo de Pokemon ahora mismo.',
+    },
     page: {
       title: 'Pokémon Teams Lab',
       description:

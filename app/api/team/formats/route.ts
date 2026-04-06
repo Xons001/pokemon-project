@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { isDatabaseUnavailableError } from '@/src/lib/database'
+import { listFallbackCompetitiveFormats } from '@/src/modules/team/fallback'
 import { listCompetitiveFormats } from '@/src/modules/team/queries'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +15,16 @@ export async function GET() {
       items,
     })
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      const fallbackItems = listFallbackCompetitiveFormats()
+
+      return NextResponse.json({
+        total: fallbackItems.length,
+        items: fallbackItems,
+        fallbackSource: 'static',
+      })
+    }
+
     console.error('Failed to load competitive formats', error)
 
     return NextResponse.json(
