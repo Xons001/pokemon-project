@@ -10,8 +10,8 @@
   padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 38px rgba(24, 33, 47, 0.09);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
 }
 
 .contentStack {
@@ -37,7 +37,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .header h3 {
@@ -64,7 +64,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
 }
 
 .formatField select {
@@ -73,16 +73,16 @@
   max-width: 100%;
   padding: 0.8rem 0.95rem;
   font: inherit;
-  color: #18212f;
-  background: #ffffff;
-  border: 1px solid #d6deeb;
+  color: var(--input-text);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 14px;
 }
 
 .validateButton {
   padding: 0.85rem 1rem;
   font-weight: 800;
-  color: #18212f;
+  color: var(--text);
   background: #ffd24d;
   border: 1px solid #f6c437;
   border-radius: 14px;
@@ -103,9 +103,9 @@
 .errorBanner {
   margin: 0;
   padding: 0.85rem 1rem;
-  color: #7f1d1d;
-  background: #fff5f5;
-  border: 1px solid #fecaca;
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 18px;
 }
 
@@ -119,8 +119,8 @@
   display: grid;
   gap: 0.45rem;
   padding: 0.95rem 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 20px;
 }
 
@@ -135,7 +135,7 @@
   flex-wrap: wrap;
   gap: 1rem;
   font-size: 0.86rem;
-  color: #4b5f78;
+  color: var(--text-subtle);
 }
 
 .slotList {
@@ -145,8 +145,8 @@
 
 .slotCard {
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 22px;
 }
 
@@ -213,7 +213,7 @@
 .checkCopy p {
   margin: 0.28rem 0 0;
   line-height: 1.55;
-  color: #324962;
+  color: var(--text-subtle);
 }
 
 .statusvalid {
@@ -235,17 +235,17 @@
 }
 
 .statuspending {
-  color: #324962;
-  background: #f8fbff;
-  border-color: #dce6f4;
+  color: var(--text-subtle);
+  background: var(--chip-bg);
+  border-color: var(--chip-border);
 }
 
 .emptyState {
   display: grid;
   gap: 0.45rem;
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px dashed #dce6f4;
+  background: var(--empty-bg);
+  border: 1px dashed var(--empty-border);
   border-radius: 18px;
 }
 

@@ -3,10 +3,12 @@ import Link from 'next/link'
 import { isMetaRefreshUiEnabled } from '@/src/modules/ops/meta-refresh'
 
 import styles from './SiteHeader.module.css'
+import ThemeToggle from '../theme/ThemeToggle'
 
 const navItems = [
   { label: 'Pokedex', href: '/pokedex' },
   { label: 'Equipos', href: '/equipos' },
+  { label: 'Calculadora', href: '/calculadora-dano' },
 ]
 
 export default function SiteHeader() {
@@ -31,6 +33,10 @@ export default function SiteHeader() {
           </Link>
         ))}
       </nav>
+
+      <div className={styles.headerActions}>
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

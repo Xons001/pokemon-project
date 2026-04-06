@@ -1,7 +1,7 @@
 .editor {
   margin-top: 1.2rem;
   padding-top: 1.2rem;
-  border-top: 1px solid #e6edf8;
+  border-top: 1px solid var(--divider);
 }
 
 .header,
@@ -21,7 +21,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #3d5a80;
+  color: var(--kicker);
 }
 
 .header h3 {
@@ -48,9 +48,9 @@
 }
 
 .summaryBadge {
-  color: #324962;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  color: var(--text-subtle);
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
 }
 
 .natureBadge {
@@ -74,8 +74,8 @@
 .radarPanel {
   flex: 0 0 310px;
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px solid #dce6f4;
+  background: var(--panel-bg-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 24px;
 }
 
@@ -113,7 +113,7 @@
   place-items: center;
   min-height: 300px;
   border-radius: 20px;
-  background: linear-gradient(180deg, #ffffff, #eef4fd);
+  background: var(--panel-bg-elevated);
 }
 
 .radarSvg {
@@ -124,12 +124,12 @@
 
 .radarGrid {
   fill: none;
-  stroke: #d5dfed;
+  stroke: color-mix(in srgb, var(--border-strong) 90%, transparent);
   stroke-width: 1;
 }
 
 .radarAxis {
-  stroke: #c0cbdb;
+  stroke: color-mix(in srgb, var(--border) 90%, transparent);
   stroke-width: 1;
 }
 
@@ -147,12 +147,12 @@
 
 .radarDot {
   fill: var(--dot-color, #4361ee);
-  stroke: #ffffff;
+  stroke: var(--panel-bg-strong);
   stroke-width: 2;
 }
 
 .radarLabel {
-  fill: #324962;
+  fill: var(--text-subtle);
   font-size: 11px;
   font-weight: 800;
 }
@@ -179,7 +179,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d7f96;
+  color: var(--muted-strong);
   gap: 0.9rem;
 }
 
@@ -192,8 +192,8 @@
   grid-template-columns: 72px minmax(150px, 0.9fr) minmax(190px, 1fr) minmax(190px, 1fr) 60px;
   align-items: center;
   padding: 1rem;
-  background: #f8fbff;
-  border: 1px solid color-mix(in srgb, var(--stat-accent, #dce6f4) 18%, #dce6f4);
+  background: var(--panel-bg-soft);
+  border: 1px solid color-mix(in srgb, var(--stat-accent, var(--border-strong)) 18%, var(--border-strong));
   border-radius: 22px;
   gap: 0.9rem;
 }
@@ -210,7 +210,7 @@
   padding: 0.45rem 0.65rem;
   font-size: 0.82rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--panel-bg-strong);
   background: var(--stat-accent, #4361ee);
   border-radius: 999px;
 }
@@ -233,12 +233,12 @@
   gap: 0.5rem;
   margin-bottom: 0.45rem;
   font-size: 0.82rem;
-  color: #5f6c80;
+  color: var(--muted);
 }
 
 .baseMeta strong,
 .sliderMeta strong {
-  color: #18212f;
+  color: var(--text);
 }
 
 .baseMeter {
@@ -246,7 +246,7 @@
   height: 14px;
   overflow: hidden;
   border-radius: 999px;
-  background: #c9d2de;
+  background: color-mix(in srgb, var(--border) 90%, transparent);
 }
 
 .baseMeterFill {
@@ -260,7 +260,7 @@
   width: 60px;
   font-size: 1.05rem;
   text-align: center;
-  color: #18212f;
+  color: var(--text);
 }
 
 .statTotal {
@@ -286,9 +286,9 @@
   padding: 0.28rem 0.45rem;
   font-size: 0.82rem;
   font-weight: 800;
-  color: #18212f;
-  background: #ffffff;
-  border: 1px solid #dce6f4;
+  color: var(--text);
+  background: var(--panel-bg-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
 }
 

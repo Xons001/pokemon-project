@@ -65,6 +65,7 @@ const typeLabels = {
   psychic: 'Psiquico',
   rock: 'Roca',
   steel: 'Acero',
+  stellar: 'Estelar',
   water: 'Agua',
 }
 
@@ -86,6 +87,7 @@ const typePaletteMap = {
   psychic: 'psychic',
   rock: 'earth',
   steel: 'steel',
+  stellar: 'neutral',
   water: 'water',
 }
 
