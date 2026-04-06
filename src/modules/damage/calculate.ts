@@ -8,7 +8,7 @@ import { toShowdownId } from '@/src/modules/showdown/id'
 const DAMAGE_MOVE_SLOTS = 4
 const DAMAGE_LEVEL_DEFAULT = 50
 
-const WEATHER_VALUES = new Set([
+const WEATHER_VALUES = [
   'Sun',
   'Rain',
   'Sand',
@@ -16,10 +16,41 @@ const WEATHER_VALUES = new Set([
   'Harsh Sunshine',
   'Heavy Rain',
   'Strong Winds',
-])
+ ] as const
+const WEATHER_VALUE_SET = new Set<string>(WEATHER_VALUES)
+type DamageWeather = (typeof WEATHER_VALUES)[number]
 
-const TERRAIN_VALUES = new Set(['Electric', 'Grassy', 'Misty', 'Psychic'])
-const STATUS_VALUES = new Set(['brn', 'par', 'psn', 'tox', 'slp', 'frz'])
+const TERRAIN_VALUES = ['Electric', 'Grassy', 'Misty', 'Psychic'] as const
+const TERRAIN_VALUE_SET = new Set<string>(TERRAIN_VALUES)
+type DamageTerrain = (typeof TERRAIN_VALUES)[number]
+
+const TERA_TYPE_VALUES = [
+  'Normal',
+  'Fighting',
+  'Flying',
+  'Poison',
+  'Ground',
+  'Rock',
+  'Bug',
+  'Ghost',
+  'Steel',
+  'Fire',
+  'Water',
+  'Grass',
+  'Electric',
+  'Psychic',
+  'Ice',
+  'Dragon',
+  'Dark',
+  'Fairy',
+  'Stellar',
+] as const
+const TERA_TYPE_VALUE_SET = new Set<string>(TERA_TYPE_VALUES)
+type DamageTeraType = (typeof TERA_TYPE_VALUES)[number]
+
+const STATUS_VALUES = ['brn', 'par', 'psn', 'tox', 'slp', 'frz'] as const
+const STATUS_VALUE_SET = new Set<string>(STATUS_VALUES)
+type DamageStatus = '' | (typeof STATUS_VALUES)[number]
 const SWITCHING_VALUES = new Set(['out', 'in'])
 
 type DamageCalculatorStatMapDto = {
@@ -157,15 +188,15 @@ function normalizeMoveList(value?: Array<string | null> | null) {
 }
 
 function normalizeWeather(value?: string | null) {
-  return WEATHER_VALUES.has(value ?? '') ? (value as NonNullable<typeof value>) : undefined
+  return WEATHER_VALUE_SET.has(value ?? '') ? (value as DamageWeather) : undefined
 }
 
 function normalizeTerrain(value?: string | null) {
-  return TERRAIN_VALUES.has(value ?? '') ? (value as NonNullable<typeof value>) : undefined
+  return TERRAIN_VALUE_SET.has(value ?? '') ? (value as DamageTerrain) : undefined
 }
 
 function normalizeStatus(value?: string | null) {
-  return STATUS_VALUES.has(value ?? '') ? (value as NonNullable<typeof value>) : ''
+  return STATUS_VALUE_SET.has(value ?? '') ? (value as DamageStatus) : ''
 }
 
 function normalizeNature(value?: string | null) {
@@ -175,7 +206,12 @@ function normalizeNature(value?: string | null) {
 
 function normalizeTeraType(value?: string | null) {
   const normalized = normalizeSlug(value)
-  return normalized ? formatName(normalized) : undefined
+  if (!normalized) {
+    return undefined
+  }
+
+  const formattedType = formatName(normalized)
+  return TERA_TYPE_VALUE_SET.has(formattedType) ? (formattedType as DamageTeraType) : undefined
 }
 
 function buildStatsTable(
