@@ -12,7 +12,7 @@ const VALIDATOR_PRIORITY = {
   valid: 1,
   pending: 0,
 } as const
-const DEFAULT_COMPETITIVE_FORMAT = 'gen9ou'
+const DEFAULT_COMPETITIVE_FORMAT = 'gen9championsvgc2026regma'
 const TEAM_VALIDATION_SIZE = 6
 const DEFAULT_SUGGESTION_LIMIT = 8
 const MAX_SUGGESTION_LIMIT = 12
@@ -446,6 +446,10 @@ function formatUsagePercent(value: number | null | undefined): string | null {
 }
 
 function getFormatTierDimension(formatKey: string, gameType: string | null): string {
+  if (formatKey.includes('champions')) {
+    return 'championsTier'
+  }
+
   if (formatKey.includes('natdex')) {
     return 'natDexTier'
   }
@@ -785,6 +789,7 @@ async function resolveScopedFormats(
       select: {
         id: true,
         formatKey: true,
+        rawPayload: true,
       },
     })
 
@@ -804,6 +809,7 @@ async function resolveScopedFormats(
     select: {
       id: true,
       formatKey: true,
+      rawPayload: true,
     },
     orderBy: {
       name: 'asc',
@@ -819,12 +825,37 @@ function isReservedCompetitiveItemCategory(categoryName?: string | null) {
   return RESERVED_COMPETITIVE_ITEM_CATEGORIES.has(categoryName ?? '')
 }
 
+function getExplicitlyLegalItemIds(scopedFormats: Array<{ rawPayload?: unknown }>) {
+  const legalItemIds = new Set<string>()
+
+  scopedFormats.forEach((format) => {
+    const payload = (format.rawPayload ?? {}) as JsonObject
+    const rawItemIds = Array.isArray(payload.championsItemIds) ? payload.championsItemIds : []
+
+    rawItemIds.forEach((itemId) => {
+      if (typeof itemId !== 'string') {
+        return
+      }
+
+      const showdownId = toShowdownId(itemId)
+
+      if (showdownId && showdownId !== 'nothing') {
+        legalItemIds.add(showdownId)
+      }
+    })
+  })
+
+  return legalItemIds
+}
+
 export async function listItemOptions(requestedFormatKey?: string | null): Promise<TeamItemOptionDto[]> {
   const prisma = getPrismaClient()
 
   const scopedFormats = await resolveScopedFormats(prisma, requestedFormatKey)
   const scopedFormatIds = scopedFormats.map((format) => format.id)
-  const includeReservedCompetitiveItems = shouldIncludeReservedCompetitiveItems(scopedFormats)
+  const explicitlyLegalItemIds = getExplicitlyLegalItemIds(scopedFormats)
+  const includeReservedCompetitiveItems =
+    explicitlyLegalItemIds.size === 0 && shouldIncludeReservedCompetitiveItems(scopedFormats)
 
   if (!scopedFormatIds.length) {
     return []
@@ -912,8 +943,9 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
       category: item.categoryName,
       score: itemScoreByShowdownId.get(toShowdownId(item.name)) ?? 0,
       isReserved: includeReservedCompetitiveItems && isReservedCompetitiveItemCategory(item.categoryName),
+      isExplicitlyLegal: explicitlyLegalItemIds.has(toShowdownId(item.name)),
     }))
-    .filter((item) => item.score > 0 || item.isReserved)
+    .filter((item) => item.score > 0 || item.isReserved || item.isExplicitlyLegal)
     .sort((left, right) => {
       const leftHasDirectMetaUsage = left.score > 0
       const rightHasDirectMetaUsage = right.score > 0
@@ -930,10 +962,14 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
         return left.isReserved ? 1 : -1
       }
 
+      if (left.isExplicitlyLegal !== right.isExplicitlyLegal) {
+        return left.isExplicitlyLegal ? -1 : 1
+      }
+
       return left.label.localeCompare(right.label, 'es')
     })
 
-  return scopedItems.map(({ score: _score, isReserved: _isReserved, ...item }) => item)
+  return scopedItems.map(({ score: _score, isReserved: _isReserved, isExplicitlyLegal: _isExplicitlyLegal, ...item }) => item)
 }
 
 export async function validateTeamBuild(input: TeamValidationInput): Promise<TeamValidationResultDto> {
@@ -1236,7 +1272,7 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
       )
     }
 
-    if (formatPresence?.isUsageTracked || formatPresence?.isSampleSetAvailable) {
+    if (formatPresence) {
       const usageText = formatUsagePercent(formatPresence.latestUsagePercent)
       checks.push(
         buildValidationCheck(
@@ -1245,7 +1281,9 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
           'valid',
           usageText
             ? `${pokemonName} tiene presencia registrada en ${format.name} con un uso reciente aproximado de ${usageText}.`
-            : `${pokemonName} tiene datos competitivos directos dentro de ${format.name}.`
+            : formatPresence.isSampleSetAvailable || formatPresence.isUsageTracked
+              ? `${pokemonName} tiene datos competitivos directos dentro de ${format.name}.`
+              : `${pokemonName} aparece como Pokemon legal dentro de ${format.name}.`
         )
       )
     } else {

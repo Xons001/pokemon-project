@@ -88,6 +88,7 @@ async function main() {
       id: true,
       formatKey: true,
       name: true,
+      rawPayload: true,
     },
     orderBy: {
       name: 'asc',
@@ -252,6 +253,23 @@ async function main() {
     if (showdownId && showdownId !== 'nothing') {
       activeItemIds.add(showdownId)
     }
+  })
+
+  activeFormats.forEach((format) => {
+    const payload = (format.rawPayload ?? {}) as Record<string, unknown>
+    const rawItemIds = Array.isArray(payload.championsItemIds) ? payload.championsItemIds : []
+
+    rawItemIds.forEach((value) => {
+      if (typeof value !== 'string') {
+        return
+      }
+
+      const showdownId = toShowdownId(value)
+
+      if (showdownId && showdownId !== 'nothing') {
+        activeItemIds.add(showdownId)
+      }
+    })
   })
 
   const scopedItems = canonicalItems.filter((item) => activeItemIds.has(toShowdownId(item.name)))

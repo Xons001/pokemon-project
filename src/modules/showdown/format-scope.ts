@@ -1,7 +1,7 @@
 import { toShowdownId } from '@/src/modules/showdown/id'
 
-// Temporary Champions-aligned scope: one usable Singles regulation proxy and one Doubles regulation proxy.
-export const ACTIVE_META_FORMAT_KEYS = ['gen9bssregi', 'gen9vgc2026regi'] as const
+// Real Pokemon Champions regulation formats from Pokemon Showdown.
+export const ACTIVE_META_FORMAT_KEYS = ['gen9championsbssregma', 'gen9championsvgc2026regma'] as const
 
 function uniqueMetaFormatKeys(values: string[]) {
   return Array.from(new Set(values.filter(Boolean)))
