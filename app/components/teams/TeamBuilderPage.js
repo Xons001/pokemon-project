@@ -4,9 +4,9 @@ import { useI18n } from '../i18n/LanguageProvider'
 import SiteHeader from '../home/SiteHeader'
 import { useTeamBuilder } from '../../hooks/useTeamBuilder'
 import pageStyles from '../../page.module.css'
+import MetaTeams from './MetaTeams'
 import TeamAnalysis from './TeamAnalysis'
 import TeamSuggestions from './TeamSuggestions'
-import TeamValidator from './TeamValidator'
 import TeamWorkspace from './TeamWorkspace'
 import styles from './TeamBuilderPage.module.css'
 
@@ -58,7 +58,6 @@ export default function TeamBuilderPage() {
             notice={teamBuilder.notice}
             onAddPokemon={teamBuilder.addPokemonToTeam}
             onAssignEffortValue={teamBuilder.assignEffortValue}
-            onAssignIndividualValue={teamBuilder.assignIndividualValue}
             onAssignAbilityToSlot={teamBuilder.assignAbilityToSlot}
             onAssignItemToSlot={teamBuilder.assignItemToSlot}
             onAssignNatureToSlot={teamBuilder.assignNatureToSlot}
@@ -85,18 +84,7 @@ export default function TeamBuilderPage() {
           />
 
           <div className={styles.metaGrid}>
-            <TeamValidator
-              competitiveFormats={teamBuilder.competitiveFormats}
-              isFormatsLoading={teamBuilder.isFormatsLoading}
-              isValidationDirty={teamBuilder.isValidationDirty}
-              isValidationLoading={teamBuilder.isValidationLoading}
-              onSetFormatKey={teamBuilder.setFormatKey}
-              onValidateTeam={teamBuilder.runValidation}
-              selectedFormatKey={teamBuilder.activeTeam.formatKey}
-              validationError={teamBuilder.validationError}
-              validationResult={teamBuilder.validationResult}
-            />
-
+            <MetaTeams activeTeam={teamBuilder.activeTeam} onImportTeamText={teamBuilder.importTeamFromText} />
             <TeamSuggestions
               isSuggestionsLoading={teamBuilder.isSuggestionsLoading}
               onAddPokemon={teamBuilder.addPokemonToTeam}

@@ -26,6 +26,7 @@ import {
   localizePokemonMoveLearn,
   translateType,
 } from '../lib/pokemon'
+import { buildUpdatedEffortValues } from '../lib/team-builder'
 
 function getBattleModeLabel(format, t) {
   return format?.gameType === 'doubles' ? t('damage.battleMode.doubles') : t('damage.battleMode.singles')
@@ -37,6 +38,14 @@ function getFormatHeadline(format, t) {
 
 function getPokemonOptionKeywords(entry) {
   return [entry.slug, entry.primaryAbility, entry.primaryType, entry.secondaryType].filter(Boolean)
+}
+
+function formatLocalizedResource(entry, locale) {
+  if (locale === 'es' && entry?.localizedLabel && entry.localizedLabel !== entry.label) {
+    return `${entry.localizedLabel} (${entry.label})`
+  }
+
+  return entry?.label
 }
 
 export function useDamageCalculator() {
@@ -335,11 +344,11 @@ export function useDamageCalculator() {
   const itemOptions = useMemo(() => {
     return itemCatalog.map((item) => ({
       value: item.slug,
-      label: item.label,
+      label: formatLocalizedResource(item, locale),
       meta: item.category ?? 'item',
-      keywords: [item.slug, item.category ?? 'item'],
+      keywords: [item.slug, item.label, item.localizedLabel, item.category ?? 'item'].filter(Boolean),
     }))
-  }, [itemCatalog])
+  }, [itemCatalog, locale])
 
   const attackerPokemon = useMemo(() => {
     if (!attackerPokemonSlug) {
@@ -504,7 +513,11 @@ export function useDamageCalculator() {
       ...previousSide,
       [bucket]: {
         ...previousSide[bucket],
-        [statKey]: value,
+        ...(bucket === 'evs'
+          ? buildUpdatedEffortValues(previousSide.evs, statKey, value)
+          : bucket === 'ivs'
+            ? previousSide.ivs
+            : { [statKey]: value }),
       },
     }))
   }

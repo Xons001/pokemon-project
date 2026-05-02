@@ -59,6 +59,7 @@ const pokemonCatalogFallbackSelect = {
       type: {
         select: {
           name: true,
+          rawPayload: true,
         },
       },
     },
@@ -73,6 +74,7 @@ const pokemonCatalogFallbackSelect = {
       ability: {
         select: {
           name: true,
+          rawPayload: true,
         },
       },
     },
@@ -140,6 +142,7 @@ const pokemonDetailSelect = {
       ability: {
         select: {
           name: true,
+          rawPayload: true,
         },
       },
     },
@@ -168,6 +171,7 @@ const pokemonDetailSelect = {
       move: {
         select: {
           name: true,
+          rawPayload: true,
           type: {
             select: {
               name: true,
@@ -209,6 +213,7 @@ const pokemonMoveLearnSelect = {
       move: {
         select: {
           name: true,
+          rawPayload: true,
           power: true,
           accuracy: true,
           pp: true,
@@ -241,6 +246,15 @@ function toNullableNumber(value: number | string | null): number | null {
 
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : null
+}
+
+function getRawLocalizedName(rawPayload: unknown, language: string): string | null {
+  const payload = (rawPayload ?? {}) as JsonObject
+  const names = Array.isArray(payload.names) ? payload.names : []
+  const match = names.find((entry) => entry?.language?.name === language)
+  const name = match?.name
+
+  return typeof name === 'string' && name.trim() ? name.trim() : null
 }
 
 function getRawPayloadStats(rawPayload: Prisma.JsonValue | null) {
@@ -646,6 +660,7 @@ function extractAbilities(record: PokemonDetailRecord): PokemonAbilityOption[] {
     return record.abilities.map((entry) => ({
       slug: entry.ability.name,
       label: formatName(entry.ability.name),
+      localizedLabel: getRawLocalizedName(entry.ability.rawPayload, 'es'),
       isHidden: entry.isHidden,
       slot: entry.slot,
     }))
@@ -969,6 +984,7 @@ export async function getPokemonMoveLearnsByName(nameOrId: string): Promise<Poke
     if (!existing) {
       moveMap.set(entry.move.name, {
         move: formatName(entry.move.name),
+        localizedMove: getRawLocalizedName(entry.move.rawPayload, 'es'),
         moveSlug: entry.move.name,
         type: translateType(entry.move.type.name),
         typeKey: entry.move.type.name,

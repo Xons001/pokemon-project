@@ -2,6 +2,7 @@
 
 import { useI18n } from '../i18n/LanguageProvider'
 import {
+  TEAM_EVS_STEP,
   TEAM_MAX_EVS,
   TEAM_MAX_EVS_PER_STAT,
   TEAM_MAX_IVS_PER_STAT,
@@ -43,7 +44,6 @@ export default function TeamStatEditor({
   pokemon,
   selectedSlot,
   onAssignEffortValue,
-  onAssignIndividualValue,
   onResetStatSpread,
 }) {
   const { locale, t } = useI18n()
@@ -52,7 +52,6 @@ export default function TeamStatEditor({
   }
 
   const evs = selectedSlot?.evs ?? {}
-  const ivs = selectedSlot?.ivs ?? {}
   const natureKey = selectedSlot?.natureKey ?? null
   const effortTotal = getEffortValueTotal(evs)
   const radarCenter = 130
@@ -61,7 +60,7 @@ export default function TeamStatEditor({
   const statRows = statConfig.map((stat) => {
     const base = formatStatValue(pokemon[stat.key])
     const ev = formatStatValue(evs[stat.key])
-    const iv = formatStatValue(ivs[stat.key])
+    const iv = TEAM_MAX_IVS_PER_STAT
     const baseTotal = calculateBattleStat({
       base,
       iv: 0,
@@ -89,7 +88,6 @@ export default function TeamStatEditor({
       ...stat,
       base,
       ev,
-      iv,
       baseTotal,
       total,
       maxTotal,
@@ -206,7 +204,6 @@ export default function TeamStatEditor({
             <span>{t('team.statEditor.stat')}</span>
             <span>{t('team.statEditor.base')}</span>
             <span>{t('team.statEditor.evs')}</span>
-            <span>{t('team.statEditor.ivs')}</span>
             <span>{t('team.statEditor.total')}</span>
           </div>
 
@@ -253,28 +250,9 @@ export default function TeamStatEditor({
                     type="range"
                     min="0"
                     max={TEAM_MAX_EVS_PER_STAT}
-                    step="4"
+                    step={TEAM_EVS_STEP}
                     value={stat.ev}
                     onChange={(event) => onAssignEffortValue(stat.key, Number(event.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.controlCell}>
-                <div className={styles.sliderMeta}>
-                  <span>0</span>
-                  <strong className={styles.valuePill}>{stat.iv}</strong>
-                  <span>{TEAM_MAX_IVS_PER_STAT}</span>
-                </div>
-                <div className={styles.sliderRow}>
-                  <input
-                    className={styles.range}
-                    type="range"
-                    min="0"
-                    max={TEAM_MAX_IVS_PER_STAT}
-                    step="1"
-                    value={stat.iv}
-                    onChange={(event) => onAssignIndividualValue(stat.key, Number(event.target.value))}
                   />
                 </div>
               </div>

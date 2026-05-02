@@ -25,7 +25,8 @@
     "prune:cloud-dev": "node scripts/run-local-bin.cjs tsx scripts/prune-competitive-data.ts --env-file=.env.development.vercel",
     "prune:active-meta:cloud-dev": "node scripts/run-local-bin.cjs tsx scripts/prune-active-meta-data.ts --env-file=.env.development.vercel",
     "report:meta-scope": "node scripts/run-local-bin.cjs tsx scripts/report-meta-scope.ts",
-    "sync:champions-meta": "node scripts/run-local-bin.cjs tsx scripts/sync-champions-meta.ts"
+    "sync:champions-meta": "node scripts/run-local-bin.cjs tsx scripts/sync-champions-meta.ts",
+    "sync:champions-usage": "node scripts/run-local-bin.cjs tsx scripts/sync-champions-usage.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

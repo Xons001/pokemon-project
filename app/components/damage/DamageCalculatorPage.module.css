@@ -491,7 +491,7 @@
 .statsHead,
 .statRow {
   display: grid;
-  grid-template-columns: minmax(52px, 0.75fr) 0.7fr 0.8fr 0.8fr 0.85fr 0.9fr;
+  grid-template-columns: minmax(52px, 0.75fr) 0.7fr 0.8fr 0.85fr 0.9fr;
   gap: 0.45rem;
   align-items: center;
 }

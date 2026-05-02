@@ -1,11 +1,10 @@
 'use client'
 
-import Image from 'next/image'
-
 import { useI18n } from '../i18n/LanguageProvider'
 import { useDamageCalculator } from '../../hooks/useDamageCalculator'
 import pageStyles from '../../page.module.css'
 import SiteHeader from '../home/SiteHeader'
+import PokemonImage from '../teams/PokemonImage'
 import DamageBattlefieldPanel from './DamageBattlefieldPanel'
 import DamageSidePanel from './DamageSidePanel'
 import styles from './DamageCalculatorPage.module.css'
@@ -29,7 +28,7 @@ function MoveListCard({ sideKey, title, pokemon, results, selectedMove, onSelect
 
         {pokemon ? (
           <div className={styles.moveResultsVisual}>
-            <Image src={pokemon.thumb} alt={pokemon.name} width={64} height={64} loading="lazy" />
+            <PokemonImage src={pokemon.thumb} alt={pokemon.name} width={64} height={64} loading="lazy" />
           </div>
         ) : null}
       </div>
@@ -130,7 +129,7 @@ export default function DamageCalculatorPage() {
               <div className={styles.summaryVersus}>
                 <div className={styles.summarySide}>
                   {calculator.attackerPokemon ? (
-                    <Image
+                    <PokemonImage
                       src={calculator.attackerPokemon.thumb}
                       alt={calculator.attackerPokemon.name}
                       width={74}
@@ -150,7 +149,7 @@ export default function DamageCalculatorPage() {
 
                 <div className={styles.summarySide}>
                   {calculator.defenderPokemon ? (
-                    <Image
+                    <PokemonImage
                       src={calculator.defenderPokemon.thumb}
                       alt={calculator.defenderPokemon.name}
                       width={74}

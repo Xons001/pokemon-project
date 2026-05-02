@@ -7,6 +7,7 @@ import { toShowdownId } from '@/src/modules/showdown/id'
 
 const DAMAGE_MOVE_SLOTS = 4
 const DAMAGE_LEVEL_DEFAULT = 50
+const CHAMPIONS_MAX_STAT_POINTS = 32
 
 const WEATHER_VALUES = [
   'Sun',
@@ -228,6 +229,34 @@ function buildStatsTable(
   }
 }
 
+function convertChampionsPointsToStandardEvs(value: number) {
+  if (value <= 0) {
+    return 0
+  }
+
+  return Math.min(252, 4 + (value - 1) * 8)
+}
+
+function buildChampionsEffortTable(value: DamageCalculatorStatMapDto | null | undefined) {
+  const statPoints = buildStatsTable(value, {
+    hp: 0,
+    atk: 0,
+    def: 0,
+    spa: 0,
+    spd: 0,
+    spe: 0,
+  })
+
+  return {
+    hp: convertChampionsPointsToStandardEvs(Math.min(statPoints.hp, CHAMPIONS_MAX_STAT_POINTS)),
+    atk: convertChampionsPointsToStandardEvs(Math.min(statPoints.atk, CHAMPIONS_MAX_STAT_POINTS)),
+    def: convertChampionsPointsToStandardEvs(Math.min(statPoints.def, CHAMPIONS_MAX_STAT_POINTS)),
+    spa: convertChampionsPointsToStandardEvs(Math.min(statPoints.spa, CHAMPIONS_MAX_STAT_POINTS)),
+    spd: convertChampionsPointsToStandardEvs(Math.min(statPoints.spd, CHAMPIONS_MAX_STAT_POINTS)),
+    spe: convertChampionsPointsToStandardEvs(Math.min(statPoints.spe, CHAMPIONS_MAX_STAT_POINTS)),
+  }
+}
+
 function buildBoostTable(value: Omit<DamageCalculatorStatMapDto, 'hp'> | null | undefined) {
   return {
     atk: clamp(value?.attack, -6, 6, 0),
@@ -291,15 +320,8 @@ function buildPokemon(side: DamageCalculatorSideDto | null | undefined) {
     nature: normalizeNature(side?.natureKey),
     teraType: normalizeTeraType(side?.teraType),
     status: normalizeStatus(side?.status),
-    evs: buildStatsTable(side?.evs, {
-      hp: 0,
-      atk: 0,
-      def: 0,
-      spa: 0,
-      spd: 0,
-      spe: 0,
-    }),
-    ivs: buildStatsTable(side?.ivs, {
+    evs: buildChampionsEffortTable(side?.evs),
+    ivs: buildStatsTable(null, {
       hp: 31,
       atk: 31,
       def: 31,

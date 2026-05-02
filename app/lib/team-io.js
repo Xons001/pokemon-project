@@ -1,5 +1,6 @@
 import {
   TEAM_MOVE_SLOTS,
+  TEAM_POKEMON_SLUG_ALIASES,
   TEAM_SIZE,
   TEAM_STAT_KEYS,
   createDefaultEffortValues,
@@ -57,14 +58,14 @@ function buildResourceLookup(entries, labelKey = 'label') {
   return lookup
 }
 
-function resolveLookupSlug(value, lookup) {
+function resolveLookupSlug(value, lookup, aliases = {}) {
   const normalized = normalizeTeamResourceId(value)
 
   if (!normalized) {
     return null
   }
 
-  return lookup?.get(normalized) ?? normalized
+  return lookup?.get(normalized) ?? aliases[normalized] ?? normalized
 }
 
 function formatSpreadLine(prefix, values, predicate, defaultValue) {
@@ -120,7 +121,7 @@ function extractSpeciesName(rawHeader) {
 
 function parseHeaderBlock(line, pokemonLookup, itemLookup) {
   const [leftSide, rawItem] = line.split(/\s+@\s+/)
-  const pokemonSlug = resolveLookupSlug(extractSpeciesName(leftSide ?? ''), pokemonLookup)
+  const pokemonSlug = resolveLookupSlug(extractSpeciesName(leftSide ?? ''), pokemonLookup, TEAM_POKEMON_SLUG_ALIASES)
   const itemSlug = resolveLookupSlug(rawItem ?? '', itemLookup)
 
   return {

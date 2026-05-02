@@ -30,6 +30,7 @@ export type PokemonHeldItem = {
 export type PokemonAbilityOption = {
   slug: string
   label: string
+  localizedLabel?: string | null
   isHidden: boolean
   slot: number
 }
@@ -63,6 +64,7 @@ export type PokemonDetailDto = {
 
 export type PokemonMoveLearnDto = {
   move: string
+  localizedMove?: string | null
   moveSlug: string
   type: string
   typeKey: string

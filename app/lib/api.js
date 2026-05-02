@@ -88,6 +88,29 @@ export function fetchTeamSuggestions(payload) {
   return sendJson('/api/team/suggestions', 'POST', payload)
 }
 
+export function fetchMetaTeams(options = {}) {
+  const searchParams = new URLSearchParams()
+
+  if (options.pokemon) {
+    searchParams.set('pokemon', options.pokemon)
+  }
+
+  if (options.fullPasteOnly === false) {
+    searchParams.set('fullPasteOnly', 'false')
+  }
+
+  if (Number.isFinite(Number(options.limit))) {
+    searchParams.set('limit', String(Math.max(1, Math.round(Number(options.limit)))))
+  }
+
+  const suffix = searchParams.toString() ? `?${searchParams.toString()}` : ''
+  return requestJson(`/api/team/meta-teams${suffix}`)
+}
+
+export function fetchMetaTeamDetail(id) {
+  return requestJson(`/api/team/meta-teams/${encodeURIComponent(id)}`)
+}
+
 export function calculateDamage(payload) {
   return sendJson('/api/damage/calculate', 'POST', payload)
 }

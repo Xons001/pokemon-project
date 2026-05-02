@@ -1,5 +1,14 @@
 import { DEFAULT_LOCALE, getMessages } from './i18n'
-import { ATTACKING_TYPES, createDefaultEffortValues, createDefaultIndividualValues } from './team-builder'
+import {
+  ATTACKING_TYPES,
+  TEAM_EVS_STEP,
+  TEAM_MAX_EVS,
+  TEAM_MAX_EVS_PER_STAT,
+  TEAM_MAX_IVS_PER_STAT,
+  TEAM_STAT_KEYS,
+  createDefaultEffortValues,
+  createDefaultIndividualValues,
+} from './team-builder'
 
 export const DAMAGE_CALCULATOR_STORAGE_KEY = 'pokemon-project-damage-calculator-v1'
 export const DAMAGE_SIDE_KEYS = ['attacker', 'defender']
@@ -237,9 +246,21 @@ function sanitizeEffortValues(value) {
   const nextEvs = createDefaultEffortValues()
 
   Object.keys(nextEvs).forEach((statKey) => {
-    nextEvs[statKey] = clamp(value?.[statKey], 0, 252, 0)
-    nextEvs[statKey] = Math.round(nextEvs[statKey] / 4) * 4
+    nextEvs[statKey] = clamp(value?.[statKey], 0, TEAM_MAX_EVS_PER_STAT, 0)
+    nextEvs[statKey] = Math.round(nextEvs[statKey] / TEAM_EVS_STEP) * TEAM_EVS_STEP
   })
+
+  let total = TEAM_STAT_KEYS.reduce((sum, statKey) => sum + nextEvs[statKey], 0)
+
+  for (const statKey of TEAM_STAT_KEYS) {
+    if (total <= TEAM_MAX_EVS) {
+      break
+    }
+
+    const deduction = Math.min(nextEvs[statKey], Math.ceil((total - TEAM_MAX_EVS) / TEAM_EVS_STEP) * TEAM_EVS_STEP)
+    nextEvs[statKey] -= deduction
+    total -= deduction
+  }
 
   return nextEvs
 }
@@ -248,7 +269,7 @@ function sanitizeIndividualValues(value) {
   const nextIvs = createDefaultIndividualValues()
 
   Object.keys(nextIvs).forEach((statKey) => {
-    nextIvs[statKey] = clamp(value?.[statKey], 0, 31, 31)
+    nextIvs[statKey] = TEAM_MAX_IVS_PER_STAT
   })
 
   return nextIvs
