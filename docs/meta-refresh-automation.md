@@ -123,7 +123,6 @@ La automatizacion no deberia pensar en "bases de datos" directamente, sino en "e
 Cada entorno de la app tiene su propio `DATABASE_URL` y, por tanto, su propia base:
 
 - `local`
-- `staging` o `preview`
 - `production`
 
 La forma limpia de operar esto es:
@@ -131,34 +130,23 @@ La forma limpia de operar esto es:
 1. Exponer `/api/ops/meta-refresh/status`
 2. Exponer `/api/ops/meta-refresh/apply`
 3. Proteger ambas rutas con un token compartido cuando el entorno sea publico
-4. Crear un DAG por entorno que apunte a la URL correcta de la app
+4. Crear un DAG por entorno permanente que apunte a la URL correcta de la app
 
 Ejemplo:
 
-- DAG `pokemon_meta_refresh__staging` -> `https://staging.tu-app.com`
 - DAG `pokemon_meta_refresh__production` -> `https://tu-app.com`
 
 Asi, cada DAG actualiza solo su propia base.
 
-En este proyecto, a fecha de `31 de marzo de 2026`, las URLs estables detectadas son:
+En este proyecto, a fecha de `9 de mayo de 2026`, el unico target cloud permanente es:
 
-- `production`: `https://pokemon-project.vercel.app`
-- `develop/preview`: `https://pokemon-project-git-develop-xons001s-projects.vercel.app`
+- `production`: `https://pokemon-project-six-gamma.vercel.app`
 
-Nota:
+Nota actual:
 
-- `production` respondia `200`
-- `preview` respondia `401`
-
-Ese `401` en preview no es un error de la app.
-Es la proteccion del deployment en Vercel.
-Para automatizar preview necesitas enviar el header:
-
-```text
-x-vercel-protection-bypass
-```
-
-ademas de tu propio token `OPS_META_REFRESH_TOKEN`.
+- `production` responde `200`
+- los previews de rama se ignoran con `vercel.json` para ahorrar recursos
+- Airflow no debe apuntar a `develop` ni a previews temporales
 
 ### Caso especial: base de desarrollo en la nube
 
@@ -166,13 +154,13 @@ Si usas una base de desarrollo en Neon pero solo la montas desde `next dev` o `v
 
 En ese caso tienes dos opciones validas:
 
-- Crear un `staging` permanente que use esa base de desarrollo
+- Crear temporalmente un `staging` si necesitas una prueba cloud puntual
 - Ejecutar el script de ingesta directamente con la `.env` de desarrollo en un runner programado
 
 En general:
 
 - `production` -> mejor con DAG contra una URL desplegada
-- `development` puro -> mejor con staging estable o job directo por `.env`
+- `development` puro -> mejor con local o job directo por `.env`
 
 ## Checklist corto de activacion en Vercel
 

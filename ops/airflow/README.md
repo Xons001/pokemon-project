@@ -110,7 +110,7 @@ ops/airflow/.env.vercel.example
 
 Tal como esta ahora, usa esta URL por defecto:
 
-- Production: `https://pokemon-project.vercel.app`
+- Production: `https://pokemon-project-six-gamma.vercel.app`
 
 ### Importante para la app
 
@@ -190,7 +190,7 @@ docker compose --env-file ops/airflow/.env.vercel -f ops/airflow/docker-compose.
 
 ### 5. Verificacion esperada
 
-- `https://pokemon-project.vercel.app/api/ops/meta-refresh/status`
+- `https://pokemon-project-six-gamma.vercel.app/api/ops/meta-refresh/status`
   Debe dejar de responder `404` una vez el codigo este en `main`
 - Airflow debe mostrar:
   - `pokemon_meta_refresh__production`

@@ -13,7 +13,7 @@ services:
         [
           {
             "name": "production",
-            "apiBaseUrl": "${POKEMON_PROJECT_PRODUCTION_API_BASE_URL:-https://pokemon-project.vercel.app}",
+            "apiBaseUrl": "${POKEMON_PROJECT_PRODUCTION_API_BASE_URL:-https://pokemon-project-six-gamma.vercel.app}",
             "schedule": "${POKEMON_PROJECT_PRODUCTION_DAG_SCHEDULE:-0 8 * * 5}",
             "token": "${POKEMON_PROJECT_PRODUCTION_OPS_TOKEN}"
           }
