@@ -46,6 +46,18 @@ function stringifyDate(date: Date | null): string {
   return date ? date.toISOString() : 'n/a'
 }
 
+function isUsageMonthNewer(targetMonth: string | null, latestMonthInDb: string | null) {
+  if (!targetMonth) {
+    return false
+  }
+
+  if (!latestMonthInDb) {
+    return true
+  }
+
+  return targetMonth > latestMonthInDb
+}
+
 async function inspectRemoteSources(targetStatsMonth: string | null) {
   const env = getAppEnv()
   const client = new ShowdownClient(env.showdownDataBaseUrl, env.smogonStatsBaseUrl)
@@ -133,6 +145,9 @@ export async function buildSmartIngestPlan(options: {
 } = {}): Promise<SmartIngestPlan> {
   const prisma = getPrismaClient()
   const env = getAppEnv()
+  const activeFormatKeys = getActiveMetaFormatKeys()
+  const championsOnlyMeta =
+    activeFormatKeys.length > 0 && activeFormatKeys.every((formatKey) => formatKey.includes('champions'))
   const usageSyncEnabled = env.metaRefreshProfile === 'full'
   const remoteInspection = await inspectRemoteSources(options.smogonStatsMonthOverride ?? env.smogonStatsMonth)
   const [
@@ -250,7 +265,7 @@ export async function buildSmartIngestPlan(options: {
     }
 
     if (source.key === 'smogon-usage-monthly') {
-      const shouldRun = Boolean(usageTargetMonth && usageTargetMonth !== latestUsageMonthInDb)
+      const shouldRun = isUsageMonthNewer(usageTargetMonth, latestUsageMonthInDb)
 
       return {
         source: {
@@ -266,6 +281,21 @@ export async function buildSmartIngestPlan(options: {
           ? `Hay un snapshot nuevo (${usageTargetMonth}) y la base sigue en ${latestUsageMonthInDb ?? 'sin datos'}${env.showdownUsageTargetFormats.length ? `. Se limitara a ${env.showdownUsageTargetFormats.join(', ')}.` : '.'}`
           : `La base ya esta alineada con el ultimo snapshot mensual disponible (${usageTargetMonth ?? 'sin dato remoto'}).`,
         steps: shouldRun ? ['showdown-usage'] : [],
+      }
+    }
+
+    if (
+      championsOnlyMeta &&
+      (source.key === 'showdown-format-bundle' ||
+        source.key === 'showdown-learnsets' ||
+        source.key === 'showdown-sample-sets')
+    ) {
+      return {
+        source,
+        shouldRun: false,
+        reason:
+          'El scope activo usa el mod Champions; se evita la ingesta generica de Showdown para no pisar roster, learnsets o sets especificos de Champions.',
+        steps: [],
       }
     }
 
