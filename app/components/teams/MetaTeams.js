@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { fetchMetaTeamDetail, fetchMetaTeams } from '../../lib/api'
 import { useI18n } from '../i18n/LanguageProvider'
@@ -26,7 +26,7 @@ function getSourceLabel(url) {
   return 'Fuente'
 }
 
-export default function MetaTeams({ activeTeam, onImportTeamText }) {
+export default function MetaTeams({ onImportTeamText }) {
   const { t } = useI18n()
   const [teamsResult, setTeamsResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -35,11 +35,6 @@ export default function MetaTeams({ activeTeam, onImportTeamText }) {
   const [expandedTeam, setExpandedTeam] = useState(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const [copyStatusId, setCopyStatusId] = useState('')
-
-  const selectedPokemon = useMemo(() => {
-    return activeTeam.slots.map((slot) => slot.pokemonSlug).filter(Boolean)
-  }, [activeTeam.slots])
-  const pokemonFilter = selectedPokemon[0] ?? ''
 
   useEffect(() => {
     let cancelled = false
@@ -52,7 +47,6 @@ export default function MetaTeams({ activeTeam, onImportTeamText }) {
 
       try {
         const result = await fetchMetaTeams({
-          pokemon: pokemonFilter,
           limit: 8,
         })
 
@@ -75,7 +69,7 @@ export default function MetaTeams({ activeTeam, onImportTeamText }) {
     return () => {
       cancelled = true
     }
-  }, [pokemonFilter, t])
+  }, [t])
 
   async function handleToggleTeam(teamId) {
     if (activeTeamId === teamId) {
@@ -134,9 +128,7 @@ export default function MetaTeams({ activeTeam, onImportTeamText }) {
       </div>
 
       <p className={styles.helper}>
-        {pokemonFilter
-          ? t('team.metaTeams.filteredHelper', { pokemon: pokemonFilter })
-          : t('team.metaTeams.helper')}
+        {t('team.metaTeams.helper')}
       </p>
 
       {teamsResult?.summary?.latestDate ? (

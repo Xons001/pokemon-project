@@ -84,7 +84,7 @@ export default function TeamBuilderPage() {
           />
 
           <div className={styles.metaGrid}>
-            <MetaTeams activeTeam={teamBuilder.activeTeam} onImportTeamText={teamBuilder.importTeamFromText} />
+            <MetaTeams onImportTeamText={teamBuilder.importTeamFromText} />
             <TeamSuggestions
               isSuggestionsLoading={teamBuilder.isSuggestionsLoading}
               onAddPokemon={teamBuilder.addPokemonToTeam}
