@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
 
 import { useI18n } from '../i18n/LanguageProvider'
 import { formatDexNumber, formatResourceName } from '../../lib/pokemon'
@@ -11,6 +10,7 @@ import {
 } from '../../lib/team-builder'
 import TeamSelectPicker from './TeamSelectPicker'
 import TeamStatEditor from './TeamStatEditor'
+import PokemonImage from './PokemonImage'
 import styles from './TeamWorkspace.module.css'
 
 const paletteAccents = {
@@ -78,7 +78,19 @@ function getNatureMetaLabel(nature) {
     return ''
   }
 
-  return nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '')
+  return nature.summary.replace(`${nature.displayLabel ?? nature.label} `, '').replace(/^\(|\)$/g, '')
+}
+
+function formatLocalizedResource(entry, isSpanish) {
+  if (!entry) {
+    return ''
+  }
+
+  if (isSpanish && entry.localizedLabel && entry.localizedLabel !== entry.label) {
+    return `${entry.localizedLabel} (${entry.label})`
+  }
+
+  return entry.label
 }
 
 export default function TeamWorkspace({
@@ -95,7 +107,6 @@ export default function TeamWorkspace({
   onAssignItemToSlot,
   onAssignNatureToSlot,
   onAssignEffortValue,
-  onAssignIndividualValue,
   onAssignMoveToSlot,
   onClearTeam,
   onClearMovesFromSlot,
@@ -117,7 +128,7 @@ export default function TeamWorkspace({
   setSearchQuery,
   teamMembers,
 }) {
-  const { locale, t } = useI18n()
+  const { locale, t, isSpanish } = useI18n()
   const workspaceCopy = t('team.workspace')
   const abilityPickerCopy = workspaceCopy.abilityPicker
   const itemPickerCopy = workspaceCopy.itemPicker
@@ -152,11 +163,11 @@ export default function TeamWorkspace({
   const abilityPickerOptions = useMemo(() => {
     return selectedAbilityOptions.map((ability) => ({
       value: ability.slug,
-      label: ability.label,
+      label: formatLocalizedResource(ability, isSpanish),
       meta: ability.isHidden ? workspaceCopy.hiddenAbilityLabel : workspaceCopy.baseAbilityLabel,
-      keywords: [ability.slug],
+      keywords: [ability.slug, ability.label, ability.localizedLabel].filter(Boolean),
     }))
-  }, [selectedAbilityOptions, workspaceCopy.baseAbilityLabel, workspaceCopy.hiddenAbilityLabel])
+  }, [isSpanish, selectedAbilityOptions, workspaceCopy.baseAbilityLabel, workspaceCopy.hiddenAbilityLabel])
   const itemLookup = useMemo(() => {
     const lookup = new Map()
 
@@ -178,17 +189,17 @@ export default function TeamWorkspace({
   const itemPickerOptions = useMemo(() => {
     return itemCatalog.map((item) => ({
       value: item.slug,
-      label: item.label,
+      label: formatLocalizedResource(item, isSpanish),
       meta: formatResourceName(item.category ?? 'item'),
-      keywords: [item.slug, item.category ?? 'item'],
+      keywords: [item.slug, item.label, item.localizedLabel, item.category ?? 'item'].filter(Boolean),
     }))
-  }, [itemCatalog])
+  }, [isSpanish, itemCatalog])
   const naturePickerOptions = useMemo(() => {
     return getTeamNatures(locale).map((nature) => ({
       value: nature.key,
-      label: nature.label,
+      label: nature.displayLabel,
       meta: getNatureMetaLabel(nature) || workspaceCopy.neutralNature,
-      keywords: [nature.summary],
+      keywords: [nature.summary, nature.label, nature.localizedLabel],
     }))
   }, [locale, workspaceCopy.neutralNature])
 
@@ -197,7 +208,9 @@ export default function TeamWorkspace({
       return ''
     }
 
-    return itemLookup.get(itemSlug)?.label ?? formatResourceName(itemSlug)
+    const item = itemLookup.get(itemSlug)
+
+    return item ? formatLocalizedResource(item, isSpanish) : formatResourceName(itemSlug)
   }
 
   useEffect(() => {
@@ -280,7 +293,7 @@ export default function TeamWorkspace({
   }, [])
 
   function formatMoveOptionLabel(move) {
-    return `${move.move} | ${move.type} | ${move.category}`
+    return `${formatLocalizedResource({ label: move.move, localizedLabel: move.localizedMove }, isSpanish)} | ${move.type} | ${move.category}`
   }
 
   function formatMoveMetrics(move) {
@@ -435,7 +448,7 @@ export default function TeamWorkspace({
 
                     <div className={styles.slotMain}>
                       <div className={styles.slotVisual}>
-                        <Image src={pokemon.thumb} alt={pokemon.name} width={72} height={72} loading="lazy" />
+                        <PokemonImage src={pokemon.thumb} alt={pokemon.name} width={72} height={72} />
                       </div>
 
                       <div className={styles.slotCopy}>
@@ -512,7 +525,7 @@ export default function TeamWorkspace({
                   onClick={() => onAddPokemon(pokemon.slug)}
                 >
                   <span className={styles.resultThumb}>
-                    <Image src={pokemon.thumb} alt={pokemon.name} width={64} height={64} loading="lazy" />
+                    <PokemonImage src={pokemon.thumb} alt={pokemon.name} width={64} height={64} />
                   </span>
 
                   <span className={styles.resultCopy}>
@@ -605,7 +618,7 @@ export default function TeamWorkspace({
           <>
             <div className={styles.buildSummary}>
               <div className={styles.buildSummaryVisual} style={getCardStyle(activePokemon)}>
-                <Image src={activePokemon.thumb} alt={activePokemon.name} width={88} height={88} loading="lazy" />
+                <PokemonImage src={activePokemon.thumb} alt={activePokemon.name} width={88} height={88} />
               </div>
 
               <div className={styles.buildSummaryCopy}>
@@ -693,6 +706,7 @@ export default function TeamWorkspace({
                   ? selectedPokemonMoves.filter((move) => {
                       const haystack = [
                         move.move,
+                        move.localizedMove,
                         move.type,
                         move.category,
                         move.moveSlug,
@@ -804,7 +818,7 @@ export default function TeamWorkspace({
                                     aria-selected={isSelected}
                                   >
                                     <span className={styles.moveOptionTop}>
-                                      <strong>{move.move}</strong>
+                                      <strong>{formatLocalizedResource({ label: move.move, localizedLabel: move.localizedMove }, isSpanish)}</strong>
                                       <span className={styles.moveOptionTags}>
                                         <span className={styles.moveTypeChip} style={getMoveTypeStyle(move.typeKey)}>
                                           {move.type}
@@ -841,7 +855,7 @@ export default function TeamWorkspace({
 
                     {selectedMove ? (
                       <>
-                        <strong className={styles.moveName}>{selectedMove.move}</strong>
+                        <strong className={styles.moveName}>{formatLocalizedResource({ label: selectedMove.move, localizedLabel: selectedMove.localizedMove }, isSpanish)}</strong>
                         <div className={styles.moveStats}>
                           {formatMoveStats(selectedMove).map((value) => (
                             <span key={`${selectedMove.moveSlug}-${value}`} className={styles.moveStatChip}>
@@ -911,7 +925,6 @@ export default function TeamWorkspace({
           pokemon={activePokemon}
           selectedSlot={selectedSlot}
           onAssignEffortValue={onAssignEffortValue}
-          onAssignIndividualValue={onAssignIndividualValue}
           onResetStatSpread={() => onResetStatSpread(selectedSlotIndex)}
         />
       </section>

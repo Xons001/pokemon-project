@@ -12,18 +12,9 @@ services:
       POKEMON_PROJECT_TARGETS_JSON: >-
         [
           {
-            "name": "preview",
-            "apiBaseUrl": "${POKEMON_PROJECT_PREVIEW_API_BASE_URL:-https://pokemon-project-git-develop-xons001s-projects.vercel.app}",
-            "schedule": "${POKEMON_PROJECT_PREVIEW_DAG_SCHEDULE:-0 */12 * * *}",
-            "token": "${POKEMON_PROJECT_PREVIEW_OPS_TOKEN}",
-            "headers": {
-              "x-vercel-protection-bypass": "${POKEMON_PROJECT_PREVIEW_VERCEL_BYPASS_SECRET}"
-            }
-          },
-          {
             "name": "production",
             "apiBaseUrl": "${POKEMON_PROJECT_PRODUCTION_API_BASE_URL:-https://pokemon-project.vercel.app}",
-            "schedule": "${POKEMON_PROJECT_PRODUCTION_DAG_SCHEDULE:-0 */12 * * *}",
+            "schedule": "${POKEMON_PROJECT_PRODUCTION_DAG_SCHEDULE:-0 8 * * 5}",
             "token": "${POKEMON_PROJECT_PRODUCTION_OPS_TOKEN}"
           }
         ]

@@ -10,6 +10,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
       POKEMON_PROJECT_API_BASE_URL: "http://host.docker.internal:3000"
+      POKEMON_PROJECT_DAG_SCHEDULE: "0 8 * * 5"
     volumes:
       - ./dags:/opt/airflow/dags
       - airflow_home:/opt/airflow

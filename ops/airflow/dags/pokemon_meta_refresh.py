@@ -11,7 +11,7 @@ OPS_TOKEN_HEADER = "x-ops-token"
 DEFAULT_DAG_FAMILY = "pokemon_meta_refresh"
 DEFAULT_API_BASE_URL = os.environ.get("POKEMON_PROJECT_API_BASE_URL", "http://host.docker.internal:3000")
 DEFAULT_TARGET_NAME = os.environ.get("POKEMON_PROJECT_ENV_NAME", "local")
-DEFAULT_DAG_SCHEDULE = os.environ.get("POKEMON_PROJECT_DAG_SCHEDULE", "0 */12 * * *")
+DEFAULT_DAG_SCHEDULE = os.environ.get("POKEMON_PROJECT_DAG_SCHEDULE", "0 8 * * 5")
 DEFAULT_OPS_TOKEN = os.environ.get("POKEMON_PROJECT_OPS_TOKEN", "")
 
 
@@ -114,7 +114,7 @@ default_args = {
 
 
 def build_dag(target):
-    dag_id = DEFAULT_DAG_FAMILY if len(TARGETS) == 1 else f"{DEFAULT_DAG_FAMILY}__{target['name']}"
+    dag_id = DEFAULT_DAG_FAMILY if target["name"] == "local" else f"{DEFAULT_DAG_FAMILY}__{target['name']}"
 
     with DAG(
         dag_id=dag_id,

@@ -994,7 +994,7 @@ export function useTeamBuilder() {
       }
     })
 
-    setNotice('EVs e IVs reiniciados para este Pokémon.')
+    setNotice('Puntos Champions reiniciados para este Pokémon.')
   }
 
   function clearTeam() {

@@ -7,6 +7,7 @@ export const INITIAL_SELECTED_ENTRY = {
   slug: INITIAL_SELECTED_SLUG,
   label: 'Charizard',
 }
+export const FALLBACK_POKEMON_IMAGE = '/placeholder-pokemon.svg'
 
 export function getPokemonNavItems(locale = DEFAULT_LOCALE) {
   const messages = getMessages(locale)
@@ -171,7 +172,7 @@ export function createCatalogEntry(entry) {
 
 export function createPlaceholderPokemon(entry, locale = DEFAULT_LOCALE) {
   const placeholderMessages = getMessages(locale).pokemon.placeholder ?? {}
-  const image = entry.image ?? '/placeholder-pokemon.png'
+  const image = entry.image ?? FALLBACK_POKEMON_IMAGE
   const thumb = entry.thumb ?? image
 
   return {
@@ -203,7 +204,7 @@ export function createPlaceholderPokemon(entry, locale = DEFAULT_LOCALE) {
 
 export function createCatalogPokemon(entry, locale = DEFAULT_LOCALE) {
   const placeholderMessages = getMessages(locale).pokemon.placeholder ?? {}
-  const image = entry.image ?? '/placeholder-pokemon.png'
+  const image = entry.image ?? FALLBACK_POKEMON_IMAGE
   const thumb = entry.thumb ?? image
   const typeKeys = [entry.primaryType, entry.secondaryType].filter(Boolean)
   const types = typeKeys.map((typeKey) => translateType(typeKey, locale))
@@ -317,7 +318,7 @@ export function createPokemonDetails(data, locale = DEFAULT_LOCALE) {
     data.sprites.other?.['official-artwork']?.front_default ??
     data.sprites.other?.home?.front_default ??
     data.sprites.front_default ??
-    '/placeholder-pokemon.png'
+    FALLBACK_POKEMON_IMAGE
 
   return {
     isPlaceholder: false,

@@ -95,7 +95,7 @@
 .metaGrid {
   --meta-panel-height: min(700px, calc(100vh - 140px));
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
   gap: 1.25rem;
   align-items: stretch;
 }

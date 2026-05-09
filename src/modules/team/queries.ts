@@ -12,7 +12,7 @@ const VALIDATOR_PRIORITY = {
   valid: 1,
   pending: 0,
 } as const
-const DEFAULT_COMPETITIVE_FORMAT = 'gen9ou'
+const DEFAULT_COMPETITIVE_FORMAT = 'gen9championsvgc2026regma'
 const TEAM_VALIDATION_SIZE = 6
 const DEFAULT_SUGGESTION_LIMIT = 8
 const MAX_SUGGESTION_LIMIT = 12
@@ -84,6 +84,11 @@ const UTILITY_REASON_LABELS: Record<SuggestionUtilityTag, string> = {
 
 type ValidationStatus = keyof typeof VALIDATOR_PRIORITY
 
+type LocalizedLabelDto = {
+  label: string
+  localizedLabel?: string | null
+}
+
 type TeamValidationSlotInput = {
   pokemonSlug?: string | null
   abilitySlug?: string | null
@@ -127,6 +132,7 @@ export type CompetitiveFormatOptionDto = {
 export type TeamItemOptionDto = {
   slug: string
   label: string
+  localizedLabel?: string | null
   category: string | null
 }
 
@@ -159,6 +165,7 @@ type SuggestionUtilityTag =
 
 type UsageDistributionEntryDto = {
   label: string
+  localizedLabel?: string | null
   showdownId: string
   value: number
   share: number
@@ -446,6 +453,10 @@ function formatUsagePercent(value: number | null | undefined): string | null {
 }
 
 function getFormatTierDimension(formatKey: string, gameType: string | null): string {
+  if (formatKey.includes('champions')) {
+    return 'championsTier'
+  }
+
   if (formatKey.includes('natdex')) {
     return 'natDexTier'
   }
@@ -526,26 +537,86 @@ function buildLabelMap(values: string[], formatter: (value: string) => string): 
   )
 }
 
+function getRawLocalizedName(rawPayload: unknown, language: string): string | null {
+  const payload = (rawPayload ?? {}) as JsonObject
+  const names = Array.isArray(payload.names) ? payload.names : []
+  const match = names.find((entry) => entry?.language?.name === language)
+  const name = match?.name
+
+  return typeof name === 'string' && name.trim() ? name.trim() : null
+}
+
+function buildLocalizedLabel(rawPayload: unknown, fallbackSlug: string): LocalizedLabelDto {
+  const fallbackLabel = formatName(fallbackSlug)
+  const englishLabel = getRawLocalizedName(rawPayload, 'en') ?? fallbackLabel
+  const spanishLabel = getRawLocalizedName(rawPayload, 'es')
+
+  return {
+    label: englishLabel,
+    localizedLabel: spanishLabel && spanishLabel !== englishLabel ? spanishLabel : null,
+  }
+}
+
+function buildLocalizedLabelMap(rows: Array<{ name: string; rawPayload?: unknown }>): Map<string, LocalizedLabelDto> {
+  return new Map(
+    rows
+      .map((entry) => [toShowdownId(entry.name), buildLocalizedLabel(entry.rawPayload, entry.name)])
+      .filter((entry): entry is [string, LocalizedLabelDto] => Boolean(entry[0]))
+  )
+}
+
+function resolveUsageLabel(labels: Map<string, LocalizedLabelDto>, showdownId: string): LocalizedLabelDto {
+  return labels.get(showdownId) ?? {
+    label: formatName(showdownId),
+    localizedLabel: null,
+  }
+}
+
+function withLocalizedLabel(entry: UsageDistributionEntryDto, labels: Map<string, LocalizedLabelDto>) {
+  const label = resolveUsageLabel(labels, entry.showdownId)
+
+  return {
+    ...entry,
+    label: label.label,
+    localizedLabel: label.localizedLabel,
+  }
+}
+
+function normalizeResolvedLabel(value: string | LocalizedLabelDto): LocalizedLabelDto {
+  return typeof value === 'string'
+    ? {
+        label: value,
+        localizedLabel: null,
+      }
+    : value
+}
+
 function getUsageEntries(
   distribution: unknown,
   limit: number,
-  labelResolver: (showdownId: string) => string,
+  labelResolver: (showdownId: string) => string | LocalizedLabelDto,
   normalizeKey: (value: string) => string = toShowdownId
 ): UsageDistributionEntryDto[] {
   const entries = coerceUsageDistribution(distribution, normalizeKey).slice(0, limit)
   const total = entries.reduce((sum, entry) => sum + entry.value, 0)
 
-  return entries.map((entry) => ({
-    label: labelResolver(entry.key),
-    showdownId: entry.key,
-    value: entry.value,
-    share: total > 0 ? entry.value / total : 0,
-  }))
+  return entries.map((entry) => {
+    const label = normalizeResolvedLabel(labelResolver(entry.key))
+
+    return {
+      label: label.label,
+      localizedLabel: label.localizedLabel,
+      showdownId: entry.key,
+      value: entry.value,
+      share: total > 0 ? entry.value / total : 0,
+    }
+  })
 }
 
-function createStaticUsageEntry(label: string, showdownId: string): UsageDistributionEntryDto {
+function createStaticUsageEntry(label: string, showdownId: string, localizedLabel?: string | null): UsageDistributionEntryDto {
   return {
     label,
+    localizedLabel: localizedLabel ?? null,
     showdownId,
     value: 1,
     share: 1,
@@ -785,6 +856,7 @@ async function resolveScopedFormats(
       select: {
         id: true,
         formatKey: true,
+        rawPayload: true,
       },
     })
 
@@ -804,6 +876,7 @@ async function resolveScopedFormats(
     select: {
       id: true,
       formatKey: true,
+      rawPayload: true,
     },
     orderBy: {
       name: 'asc',
@@ -819,12 +892,37 @@ function isReservedCompetitiveItemCategory(categoryName?: string | null) {
   return RESERVED_COMPETITIVE_ITEM_CATEGORIES.has(categoryName ?? '')
 }
 
+function getExplicitlyLegalItemIds(scopedFormats: Array<{ rawPayload?: unknown }>) {
+  const legalItemIds = new Set<string>()
+
+  scopedFormats.forEach((format) => {
+    const payload = (format.rawPayload ?? {}) as JsonObject
+    const rawItemIds = Array.isArray(payload.championsItemIds) ? payload.championsItemIds : []
+
+    rawItemIds.forEach((itemId) => {
+      if (typeof itemId !== 'string') {
+        return
+      }
+
+      const showdownId = toShowdownId(itemId)
+
+      if (showdownId && showdownId !== 'nothing') {
+        legalItemIds.add(showdownId)
+      }
+    })
+  })
+
+  return legalItemIds
+}
+
 export async function listItemOptions(requestedFormatKey?: string | null): Promise<TeamItemOptionDto[]> {
   const prisma = getPrismaClient()
 
   const scopedFormats = await resolveScopedFormats(prisma, requestedFormatKey)
   const scopedFormatIds = scopedFormats.map((format) => format.id)
-  const includeReservedCompetitiveItems = shouldIncludeReservedCompetitiveItems(scopedFormats)
+  const explicitlyLegalItemIds = getExplicitlyLegalItemIds(scopedFormats)
+  const includeReservedCompetitiveItems =
+    explicitlyLegalItemIds.size === 0 && shouldIncludeReservedCompetitiveItems(scopedFormats)
 
   if (!scopedFormatIds.length) {
     return []
@@ -858,6 +956,7 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
     prisma.item.findMany({
       select: {
         name: true,
+        rawPayload: true,
         categoryName: true,
       },
     }),
@@ -908,12 +1007,13 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
   const scopedItems = canonicalItems
     .map((item) => ({
       slug: item.name,
-      label: formatName(item.name),
+      ...buildLocalizedLabel(item.rawPayload, item.name),
       category: item.categoryName,
       score: itemScoreByShowdownId.get(toShowdownId(item.name)) ?? 0,
       isReserved: includeReservedCompetitiveItems && isReservedCompetitiveItemCategory(item.categoryName),
+      isExplicitlyLegal: explicitlyLegalItemIds.has(toShowdownId(item.name)),
     }))
-    .filter((item) => item.score > 0 || item.isReserved)
+    .filter((item) => item.score > 0 || item.isReserved || item.isExplicitlyLegal)
     .sort((left, right) => {
       const leftHasDirectMetaUsage = left.score > 0
       const rightHasDirectMetaUsage = right.score > 0
@@ -930,10 +1030,14 @@ export async function listItemOptions(requestedFormatKey?: string | null): Promi
         return left.isReserved ? 1 : -1
       }
 
+      if (left.isExplicitlyLegal !== right.isExplicitlyLegal) {
+        return left.isExplicitlyLegal ? -1 : 1
+      }
+
       return left.label.localeCompare(right.label, 'es')
     })
 
-  return scopedItems.map(({ score: _score, isReserved: _isReserved, ...item }) => item)
+  return scopedItems.map(({ score: _score, isReserved: _isReserved, isExplicitlyLegal: _isExplicitlyLegal, ...item }) => item)
 }
 
 export async function validateTeamBuild(input: TeamValidationInput): Promise<TeamValidationResultDto> {
@@ -1236,7 +1340,7 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
       )
     }
 
-    if (formatPresence?.isUsageTracked || formatPresence?.isSampleSetAvailable) {
+    if (formatPresence) {
       const usageText = formatUsagePercent(formatPresence.latestUsagePercent)
       checks.push(
         buildValidationCheck(
@@ -1245,7 +1349,9 @@ export async function validateTeamBuild(input: TeamValidationInput): Promise<Tea
           'valid',
           usageText
             ? `${pokemonName} tiene presencia registrada en ${format.name} con un uso reciente aproximado de ${usageText}.`
-            : `${pokemonName} tiene datos competitivos directos dentro de ${format.name}.`
+            : formatPresence.isSampleSetAvailable || formatPresence.isUsageTracked
+              ? `${pokemonName} tiene datos competitivos directos dentro de ${format.name}.`
+              : `${pokemonName} aparece como Pokemon legal dentro de ${format.name}.`
         )
       )
     } else {
@@ -1500,25 +1606,6 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     new Set(normalizedSlots.map((slot) => slot.pokemonSlug).filter((value): value is string => Boolean(value)))
   )
 
-  if (!selectedPokemonSlugs.length) {
-    return {
-      format: {
-        key: format.formatKey,
-        name: format.name,
-        section: format.section,
-        gameType: format.gameType,
-        latestMonth: null,
-      },
-      summary: {
-        selectedCount: 0,
-        evaluatedCount: 0,
-        suggestionCount: 0,
-        hasDirectMetaData: false,
-      },
-      items: [],
-    }
-  }
-
   const [selectedPokemonRows, typeChart, moveRows, abilityRows, itemRows] = await Promise.all([
     prisma.pokemon.findMany({
       where: {
@@ -1532,6 +1619,7 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     prisma.move.findMany({
       select: {
         name: true,
+        rawPayload: true,
         priority: true,
         damageClassName: true,
         type: {
@@ -1544,11 +1632,13 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     prisma.ability.findMany({
       select: {
         name: true,
+        rawPayload: true,
       },
     }),
     prisma.item.findMany({
       select: {
         name: true,
+        rawPayload: true,
       },
     }),
   ])
@@ -1557,7 +1647,7 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
     moveRows.map((move) => [
       toShowdownId(move.name),
       {
-        label: formatName(move.name),
+        ...buildLocalizedLabel(move.rawPayload, move.name),
         priority: move.priority ?? 0,
         categoryKey: move.damageClassName ?? null,
         categoryLabel: translateDamageClass(move.damageClassName),
@@ -1566,8 +1656,8 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
       },
     ])
   )
-  const abilityLookup = buildLabelMap(abilityRows.map((entry) => entry.name), formatName)
-  const itemLookup = buildLabelMap(itemRows.map((entry) => entry.name), formatName)
+  const abilityLookup = buildLocalizedLabelMap(abilityRows)
+  const itemLookup = buildLocalizedLabelMap(itemRows)
   const selectedPokemonBySlug = new Map(selectedPokemonRows.map((pokemon) => [pokemon.name, pokemon]))
   const selectedShowdownIds = Array.from(
     new Set(
@@ -1947,8 +2037,19 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
         ? sampleSet.moves.map((moveName) => toShowdownId(String(moveName))).filter(Boolean)
         : []
       const moveSuggestions = usageRow
-        ? getUsageEntries(usageRow.moves, 6, (moveId) => moveLookup.get(moveId)?.label ?? formatName(moveId))
-        : sampleSetMoveIds.slice(0, 6).map((moveId) => createStaticUsageEntry(moveLookup.get(moveId)?.label ?? formatName(moveId), moveId))
+        ? getUsageEntries(usageRow.moves, 6, (moveId) => {
+            const moveMeta = moveLookup.get(moveId)
+
+            return {
+              label: moveMeta?.label ?? formatName(moveId),
+              localizedLabel: moveMeta?.localizedLabel ?? null,
+            }
+          })
+        : sampleSetMoveIds.slice(0, 6).map((moveId) => {
+            const moveMeta = moveLookup.get(moveId)
+
+            return createStaticUsageEntry(moveMeta?.label ?? formatName(moveId), moveId, moveMeta?.localizedLabel)
+          })
       const candidateUtilities = new Set<SuggestionUtilityTag>()
 
       moveSuggestions.forEach((move) => {
@@ -1956,7 +2057,9 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
         getMoveUtilityTags(move.showdownId, moveMeta?.priority ?? 0).forEach((tag) => candidateUtilities.add(tag))
       })
 
-      const missingUtilityMatches = Array.from(candidateUtilities).filter((tag) => !currentUtilityTags.has(tag))
+      const missingUtilityMatches = selectedPokemonSlugs.length
+        ? Array.from(candidateUtilities).filter((tag) => !currentUtilityTags.has(tag))
+        : []
       let utilityScore = missingUtilityMatches.length * 5
       const candidateStats = pokemon ? extractStatMap(pokemon.stats) : {}
       const candidateBias = getAttackBias(candidateStats.attack, candidateStats['special-attack'])
@@ -1970,7 +2073,9 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
       }
 
       const usageScore = (usageRow?.usagePercent ?? 0) * 28
-      const totalScore = candidateScore.affinityScore * 110 + weaknessCoverage.coverageScore * 3 + utilityScore + usageScore
+      const totalScore = selectedPokemonSlugs.length
+        ? candidateScore.affinityScore * 110 + weaknessCoverage.coverageScore * 3 + utilityScore + usageScore
+        : (usageRow?.usagePercent ?? candidateScore.affinityScore) * 100
       const reasons: string[] = []
 
       if (candidateScore.contributors.size) {
@@ -2006,14 +2111,14 @@ export async function getTeamSuggestions(input: TeamSuggestionsInput): Promise<T
       }
 
       const abilityEntries = usageRow
-        ? getUsageEntries(usageRow.abilities, 2, (abilityId) => abilityLookup.get(abilityId) ?? formatName(abilityId))
+        ? getUsageEntries(usageRow.abilities, 2, (abilityId) => resolveUsageLabel(abilityLookup, abilityId))
         : sampleSet?.abilityName
-          ? [createStaticUsageEntry(formatName(sampleSet.abilityName), toShowdownId(sampleSet.abilityName))]
+          ? [withLocalizedLabel(createStaticUsageEntry(formatName(sampleSet.abilityName), toShowdownId(sampleSet.abilityName)), abilityLookup)]
           : []
       const itemEntries = usageRow
-        ? getUsageEntries(usageRow.items, 2, (itemId) => itemLookup.get(itemId) ?? formatName(itemId))
+        ? getUsageEntries(usageRow.items, 2, (itemId) => resolveUsageLabel(itemLookup, itemId))
         : sampleSet?.itemName
-          ? [createStaticUsageEntry(formatName(sampleSet.itemName), toShowdownId(sampleSet.itemName))]
+          ? [withLocalizedLabel(createStaticUsageEntry(formatName(sampleSet.itemName), toShowdownId(sampleSet.itemName)), itemLookup)]
           : []
       const teraEntry = usageRow
         ? getUsageEntries(usageRow.teraTypes, 1, (typeId) => translateType(typeId))[0] ?? null

@@ -1,8 +1,7 @@
 'use client'
 
-import Image from 'next/image'
-
 import { useI18n } from '../i18n/LanguageProvider'
+import PokemonImage from '../teams/PokemonImage'
 import TeamSelectPicker from '../teams/TeamSelectPicker'
 import {
   DAMAGE_BOOST_OPTIONS,
@@ -10,7 +9,7 @@ import {
   getDamageStatusOptions,
   DAMAGE_TERA_TYPE_KEYS,
 } from '../../lib/damage-calculator'
-import { calculateBattleStat, getTeamNatures } from '../../lib/team-builder'
+import { TEAM_EVS_STEP, TEAM_MAX_EVS_PER_STAT, calculateBattleStat, getTeamNatures } from '../../lib/team-builder'
 import { formatResourceName, translateType } from '../../lib/pokemon'
 import styles from './DamageCalculatorPage.module.css'
 
@@ -35,6 +34,17 @@ function buildTeraOptions(locale) {
   }))
 }
 
+function formatLocalizedResource(entry, isSpanish) {
+  const label = entry?.label ?? entry?.move ?? ''
+  const localizedLabel = entry?.localizedLabel ?? entry?.localizedMove
+
+  if (isSpanish && localizedLabel && localizedLabel !== label) {
+    return `${localizedLabel} (${label})`
+  }
+
+  return label
+}
+
 export default function DamageSidePanel({
   sideKey,
   sideState,
@@ -49,7 +59,7 @@ export default function DamageSidePanel({
   onSetStat,
   selectedMove,
 }) {
-  const { locale, t } = useI18n()
+  const { locale, t, isSpanish } = useI18n()
   const sidePanelCopy = t('damagePage.sidePanel')
   const workspaceCopy = t('team.workspace')
   const abilityPickerCopy = t('team.workspace.abilityPicker')
@@ -62,22 +72,22 @@ export default function DamageSidePanel({
   const teraOptions = buildTeraOptions(locale)
   const natureOptions = getTeamNatures(locale).map((nature) => ({
     value: nature.key,
-    label: nature.label,
-    meta: nature.summary.replace(`${nature.label} `, '').replace(/^\(|\)$/g, '') || workspaceCopy.neutralNature,
-    keywords: [nature.summary],
+    label: nature.displayLabel,
+    meta: nature.summary.replace(`${nature.displayLabel ?? nature.label} `, '').replace(/^\(|\)$/g, '') || workspaceCopy.neutralNature,
+    keywords: [nature.summary, nature.label, nature.localizedLabel],
   }))
   const statusOptions = getDamageStatusOptions(locale)
   const abilityOptions = (detail?.abilities ?? []).map((ability) => ({
     value: ability.slug,
-    label: ability.label,
+    label: formatLocalizedResource(ability, isSpanish),
     meta: ability.isHidden ? workspaceCopy.hiddenAbilityLabel : workspaceCopy.baseAbilityLabel,
-    keywords: [ability.slug],
+    keywords: [ability.slug, ability.label, ability.localizedLabel].filter(Boolean),
   }))
   const moveOptions = moveCatalog.map((move) => ({
     value: move.moveSlug,
-    label: move.move,
+    label: formatLocalizedResource({ label: move.move, localizedMove: move.localizedMove }, isSpanish),
     meta: [move.type, move.category, move.power ? `Pow ${move.power}` : null].filter(Boolean).join(' | '),
-    keywords: [move.moveSlug, move.type, move.category, ...(move.learnMethods ?? [])].filter(Boolean),
+    keywords: [move.moveSlug, move.move, move.localizedMove, move.type, move.category, ...(move.learnMethods ?? [])].filter(Boolean),
   }))
   const selectedMoveLookup = new Map(selectedMove.map((entry) => [entry.slot, entry]))
   const statRows = DAMAGE_STAT_CONFIG.map((stat) => {
@@ -112,7 +122,7 @@ export default function DamageSidePanel({
 
         {pokemon ? (
           <div className={styles.sideVisual}>
-            <Image src={pokemon.thumb} alt={pokemon.name} width={88} height={88} loading="lazy" />
+            <PokemonImage src={pokemon.thumb} alt={pokemon.name} width={88} height={88} />
           </div>
         ) : null}
       </div>
@@ -295,7 +305,6 @@ export default function DamageSidePanel({
           <span>{sidePanelCopy.stats.stat}</span>
           <span>{sidePanelCopy.stats.base}</span>
           <span>{sidePanelCopy.stats.ev}</span>
-          <span>{sidePanelCopy.stats.iv}</span>
           <span>{sidePanelCopy.stats.total}</span>
           <span>{sidePanelCopy.stats.boost}</span>
         </div>
@@ -308,19 +317,10 @@ export default function DamageSidePanel({
               className={styles.statInput}
               type="number"
               min="0"
-              max="252"
-              step="4"
+              max={TEAM_MAX_EVS_PER_STAT}
+              step={TEAM_EVS_STEP}
               value={stat.ev}
               onChange={(event) => onSetStat(sideKey, 'evs', stat.key, Number(event.target.value))}
-            />
-            <input
-              className={styles.statInput}
-              type="number"
-              min="0"
-              max="31"
-              step="1"
-              value={stat.iv}
-              onChange={(event) => onSetStat(sideKey, 'ivs', stat.key, Number(event.target.value))}
             />
             <strong>{stat.total}</strong>
             {stat.boost === null ? (

@@ -1,6 +1,7 @@
-import Image from 'next/image'
-
 import { useI18n } from '../i18n/LanguageProvider'
+import { FALLBACK_POKEMON_IMAGE } from '../../lib/pokemon'
+import { getNatureLabel, normalizeNatureKey } from '../../lib/team-builder'
+import PokemonImage from './PokemonImage'
 import styles from './TeamSuggestions.module.css'
 
 const typeAccents = {
@@ -42,6 +43,43 @@ function formatShare(value) {
   return `${Math.round(value * 100)}%`
 }
 
+function formatUsageEntryPercent(entry) {
+  if (typeof entry?.value === 'number' && entry.value >= 0 && entry.value <= 1) {
+    return formatUsagePercent(entry.value)
+  }
+
+  return formatShare(entry?.share)
+}
+
+function formatDisplayName(entry, isSpanish) {
+  if (!entry) {
+    return ''
+  }
+
+  if (isSpanish && entry.localizedLabel && entry.localizedLabel !== entry.label) {
+    return `${entry.localizedLabel} (${entry.label})`
+  }
+
+  return entry.label
+}
+
+function formatBuildEntryName(entry, isSpanish) {
+  if (!entry) {
+    return ''
+  }
+
+  if (isSpanish) {
+    const [firstToken, ...rest] = String(entry.label ?? '').split(' ')
+    const natureKey = normalizeNatureKey(firstToken)
+
+    if (natureKey && rest.some((token) => /[0-9/]/.test(token))) {
+      return [getNatureLabel(natureKey, 'es'), ...rest].join(' ')
+    }
+  }
+
+  return formatDisplayName(entry, isSpanish)
+}
+
 function getTypeChipStyle(typeKey) {
   const background = typeAccents[typeKey] ?? '#64748b'
 
@@ -52,15 +90,15 @@ function getTypeChipStyle(typeKey) {
   }
 }
 
-function renderBuildEntry(entry, className) {
+function renderBuildEntry(entry, className, isSpanish) {
   if (!entry) {
     return null
   }
 
   return (
     <span key={`${className}-${entry.showdownId}`} className={[styles.buildChip, className].filter(Boolean).join(' ')}>
-      <strong>{entry.label}</strong>
-      {formatShare(entry.share) ? <small>{formatShare(entry.share)}</small> : null}
+      <strong>{formatBuildEntryName(entry, isSpanish)}</strong>
+      {formatUsageEntryPercent(entry) ? <small>{formatUsageEntryPercent(entry)}</small> : null}
     </span>
   )
 }
@@ -72,7 +110,7 @@ export default function TeamSuggestions({
   suggestionsError,
   suggestionsResult,
 }) {
-  const { t } = useI18n()
+  const { t, isSpanish } = useI18n()
   const featuredSuggestion = suggestionsResult?.items?.[0] ?? null
   const otherSuggestions = suggestionsResult?.items?.slice(1) ?? []
   const helperMonth = suggestionsResult?.format?.latestMonth
@@ -103,12 +141,11 @@ export default function TeamSuggestions({
             <div className={styles.featuredTop}>
               <div className={styles.featuredIdentity}>
                 <span className={styles.featuredThumb}>
-                  <Image
-                    src={featuredSuggestion.thumb ?? featuredSuggestion.image ?? '/placeholder-pokemon.png'}
+                  <PokemonImage
+                    src={featuredSuggestion.thumb ?? featuredSuggestion.image ?? FALLBACK_POKEMON_IMAGE}
                     alt={featuredSuggestion.pokemonName}
                     width={72}
                     height={72}
-                    loading="lazy"
                   />
                 </span>
 
@@ -155,10 +192,10 @@ export default function TeamSuggestions({
               <div className={styles.buildSection}>
                 <span className={styles.blockLabel}>{t('team.suggestions.buildMeta')}</span>
                 <div className={styles.buildWrap}>
-                  {featuredSuggestion.recommendedBuild.abilities.map((entry) => renderBuildEntry(entry, styles.buildAbility))}
-                  {featuredSuggestion.recommendedBuild.items.map((entry) => renderBuildEntry(entry, styles.buildItem))}
-                  {featuredSuggestion.recommendedBuild.teraType ? renderBuildEntry(featuredSuggestion.recommendedBuild.teraType, styles.buildTera) : null}
-                  {featuredSuggestion.recommendedBuild.spread ? renderBuildEntry(featuredSuggestion.recommendedBuild.spread, styles.buildSpread) : null}
+                  {featuredSuggestion.recommendedBuild.abilities.map((entry) => renderBuildEntry(entry, styles.buildAbility, isSpanish))}
+                  {featuredSuggestion.recommendedBuild.items.map((entry) => renderBuildEntry(entry, styles.buildItem, isSpanish))}
+                  {featuredSuggestion.recommendedBuild.teraType ? renderBuildEntry(featuredSuggestion.recommendedBuild.teraType, styles.buildTera, isSpanish) : null}
+                  {featuredSuggestion.recommendedBuild.spread ? renderBuildEntry(featuredSuggestion.recommendedBuild.spread, styles.buildSpread, isSpanish) : null}
                 </div>
               </div>
 
@@ -167,7 +204,8 @@ export default function TeamSuggestions({
                 <div className={styles.moveWrap}>
                   {featuredSuggestion.recommendedBuild.moves.map((move) => (
                     <span key={`${featuredSuggestion.showdownPokemonId}-${move.showdownId}`} className={styles.moveChip}>
-                      <strong>{move.label}</strong>
+                      <strong>{formatDisplayName(move, isSpanish)}</strong>
+                      {formatUsageEntryPercent(move) ? <small>{formatUsageEntryPercent(move)}</small> : null}
                       {move.typeLabel ? (
                         <small className={styles.moveType} style={move.typeKey ? getTypeChipStyle(move.typeKey) : undefined}>
                           {move.typeLabel}
@@ -192,12 +230,11 @@ export default function TeamSuggestions({
                   <article key={suggestion.showdownPokemonId} className={styles.rankingCard}>
                     <div className={styles.rankingMain}>
                       <span className={styles.rankingThumb}>
-                        <Image
-                          src={suggestion.thumb ?? suggestion.image ?? '/placeholder-pokemon.png'}
+                        <PokemonImage
+                          src={suggestion.thumb ?? suggestion.image ?? FALLBACK_POKEMON_IMAGE}
                           alt={suggestion.pokemonName}
                           width={48}
                           height={48}
-                          loading="lazy"
                         />
                       </span>
 

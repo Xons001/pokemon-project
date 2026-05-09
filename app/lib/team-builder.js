@@ -14,8 +14,9 @@ export const TEAM_MOVE_SLOTS = 4
 export const TEAM_SEARCH_PAGE_SIZE = 18
 export const DEFAULT_TEAM_FORMAT = 'gen9ou'
 export const TEAM_STAT_LEVEL = 50
-export const TEAM_MAX_EVS = 510
-export const TEAM_MAX_EVS_PER_STAT = 252
+export const TEAM_MAX_EVS = 66
+export const TEAM_MAX_EVS_PER_STAT = 32
+export const TEAM_EVS_STEP = 1
 export const TEAM_MAX_IVS_PER_STAT = 31
 export const TEAM_STAT_KEYS = ['hp', 'attack', 'defense', 'specialAttack', 'specialDefense', 'speed']
 
@@ -112,31 +113,31 @@ const BOOSTING_MOVE_IDS = new Set([
 ])
 
 const NATURE_DEFINITIONS = [
-  { key: 'hardy', label: 'Hardy', increasedStat: null, decreasedStat: null },
-  { key: 'lonely', label: 'Lonely', increasedStat: 'attack', decreasedStat: 'defense' },
-  { key: 'brave', label: 'Brave', increasedStat: 'attack', decreasedStat: 'speed' },
-  { key: 'adamant', label: 'Adamant', increasedStat: 'attack', decreasedStat: 'specialAttack' },
-  { key: 'naughty', label: 'Naughty', increasedStat: 'attack', decreasedStat: 'specialDefense' },
-  { key: 'bold', label: 'Bold', increasedStat: 'defense', decreasedStat: 'attack' },
-  { key: 'docile', label: 'Docile', increasedStat: null, decreasedStat: null },
-  { key: 'relaxed', label: 'Relaxed', increasedStat: 'defense', decreasedStat: 'speed' },
-  { key: 'impish', label: 'Impish', increasedStat: 'defense', decreasedStat: 'specialAttack' },
-  { key: 'lax', label: 'Lax', increasedStat: 'defense', decreasedStat: 'specialDefense' },
-  { key: 'timid', label: 'Timid', increasedStat: 'speed', decreasedStat: 'attack' },
-  { key: 'hasty', label: 'Hasty', increasedStat: 'speed', decreasedStat: 'defense' },
-  { key: 'serious', label: 'Serious', increasedStat: null, decreasedStat: null },
-  { key: 'jolly', label: 'Jolly', increasedStat: 'speed', decreasedStat: 'specialAttack' },
-  { key: 'naive', label: 'Naive', increasedStat: 'speed', decreasedStat: 'specialDefense' },
-  { key: 'modest', label: 'Modest', increasedStat: 'specialAttack', decreasedStat: 'attack' },
-  { key: 'mild', label: 'Mild', increasedStat: 'specialAttack', decreasedStat: 'defense' },
-  { key: 'quiet', label: 'Quiet', increasedStat: 'specialAttack', decreasedStat: 'speed' },
-  { key: 'bashful', label: 'Bashful', increasedStat: null, decreasedStat: null },
-  { key: 'rash', label: 'Rash', increasedStat: 'specialAttack', decreasedStat: 'specialDefense' },
-  { key: 'calm', label: 'Calm', increasedStat: 'specialDefense', decreasedStat: 'attack' },
-  { key: 'gentle', label: 'Gentle', increasedStat: 'specialDefense', decreasedStat: 'defense' },
-  { key: 'sassy', label: 'Sassy', increasedStat: 'specialDefense', decreasedStat: 'speed' },
-  { key: 'careful', label: 'Careful', increasedStat: 'specialDefense', decreasedStat: 'specialAttack' },
-  { key: 'quirky', label: 'Quirky', increasedStat: null, decreasedStat: null },
+  { key: 'hardy', label: 'Hardy', localizedLabel: 'Fuerte', increasedStat: null, decreasedStat: null },
+  { key: 'lonely', label: 'Lonely', localizedLabel: 'Huraña', increasedStat: 'attack', decreasedStat: 'defense' },
+  { key: 'brave', label: 'Brave', localizedLabel: 'Audaz', increasedStat: 'attack', decreasedStat: 'speed' },
+  { key: 'adamant', label: 'Adamant', localizedLabel: 'Firme', increasedStat: 'attack', decreasedStat: 'specialAttack' },
+  { key: 'naughty', label: 'Naughty', localizedLabel: 'Picara', increasedStat: 'attack', decreasedStat: 'specialDefense' },
+  { key: 'bold', label: 'Bold', localizedLabel: 'Osada', increasedStat: 'defense', decreasedStat: 'attack' },
+  { key: 'docile', label: 'Docile', localizedLabel: 'Docil', increasedStat: null, decreasedStat: null },
+  { key: 'relaxed', label: 'Relaxed', localizedLabel: 'Placida', increasedStat: 'defense', decreasedStat: 'speed' },
+  { key: 'impish', label: 'Impish', localizedLabel: 'Agitada', increasedStat: 'defense', decreasedStat: 'specialAttack' },
+  { key: 'lax', label: 'Lax', localizedLabel: 'Floja', increasedStat: 'defense', decreasedStat: 'specialDefense' },
+  { key: 'timid', label: 'Timid', localizedLabel: 'Miedosa', increasedStat: 'speed', decreasedStat: 'attack' },
+  { key: 'hasty', label: 'Hasty', localizedLabel: 'Activa', increasedStat: 'speed', decreasedStat: 'defense' },
+  { key: 'serious', label: 'Serious', localizedLabel: 'Seria', increasedStat: null, decreasedStat: null },
+  { key: 'jolly', label: 'Jolly', localizedLabel: 'Alegre', increasedStat: 'speed', decreasedStat: 'specialAttack' },
+  { key: 'naive', label: 'Naive', localizedLabel: 'Ingenua', increasedStat: 'speed', decreasedStat: 'specialDefense' },
+  { key: 'modest', label: 'Modest', localizedLabel: 'Modesta', increasedStat: 'specialAttack', decreasedStat: 'attack' },
+  { key: 'mild', label: 'Mild', localizedLabel: 'Afable', increasedStat: 'specialAttack', decreasedStat: 'defense' },
+  { key: 'quiet', label: 'Quiet', localizedLabel: 'Mansa', increasedStat: 'specialAttack', decreasedStat: 'speed' },
+  { key: 'bashful', label: 'Bashful', localizedLabel: 'Timida', increasedStat: null, decreasedStat: null },
+  { key: 'rash', label: 'Rash', localizedLabel: 'Alocada', increasedStat: 'specialAttack', decreasedStat: 'specialDefense' },
+  { key: 'calm', label: 'Calm', localizedLabel: 'Serena', increasedStat: 'specialDefense', decreasedStat: 'attack' },
+  { key: 'gentle', label: 'Gentle', localizedLabel: 'Amable', increasedStat: 'specialDefense', decreasedStat: 'defense' },
+  { key: 'sassy', label: 'Sassy', localizedLabel: 'Grosera', increasedStat: 'specialDefense', decreasedStat: 'speed' },
+  { key: 'careful', label: 'Careful', localizedLabel: 'Cauta', increasedStat: 'specialDefense', decreasedStat: 'specialAttack' },
+  { key: 'quirky', label: 'Quirky', localizedLabel: 'Rara', increasedStat: null, decreasedStat: null },
 ]
 
 const NATURE_MAP = new Map(NATURE_DEFINITIONS.map((nature) => [nature.key, nature]))
@@ -165,6 +166,33 @@ export function normalizeTeamResourceId(value) {
   return normalized || null
 }
 
+export const TEAM_POKEMON_SLUG_ALIASES = {
+  aegislash: 'aegislash-shield',
+  basculegion: 'basculegion-male',
+  'basculegion-m': 'basculegion-male',
+  basculegionm: 'basculegion-male',
+  'basculegion-f': 'basculegion-female',
+  basculegionf: 'basculegion-female',
+  floetteeternal: 'floette-eternal',
+  'floette-eternal-flower': 'floette-eternal',
+  floetteeternalflower: 'floette-eternal',
+  'rotom-wash': 'wash-rotom',
+  rotomwash: 'wash-rotom',
+  'rotom-heat': 'heat-rotom',
+  rotomheat: 'heat-rotom',
+  'rotom-frost': 'frost-rotom',
+  rotomfrost: 'frost-rotom',
+  'rotom-fan': 'fan-rotom',
+  rotomfan: 'fan-rotom',
+  'rotom-mow': 'mow-rotom',
+  rotommow: 'mow-rotom',
+}
+
+export function normalizeTeamPokemonSlug(value) {
+  const normalized = normalizeTeamResourceId(value)
+  return normalized ? TEAM_POKEMON_SLUG_ALIASES[normalized] ?? normalized : null
+}
+
 export function toCompetitiveResourceId(value) {
   return normalizeTeamResourceId(value)?.replace(/-/g, '') ?? ''
 }
@@ -172,6 +200,7 @@ export function toCompetitiveResourceId(value) {
 export function getTeamNatures(locale = DEFAULT_LOCALE) {
   return NATURE_DEFINITIONS.map((nature) => ({
     ...nature,
+    displayLabel: getNatureLabel(nature.key, locale),
     summary: getNatureSummary(nature.key, locale),
   }))
 }
@@ -209,6 +238,16 @@ export function getNatureOption(natureKey) {
   return NATURE_MAP.get(normalizeNatureKey(natureKey) ?? '') ?? null
 }
 
+export function getNatureLabel(natureKey, locale = DEFAULT_LOCALE) {
+  const nature = getNatureOption(natureKey)
+
+  if (!nature) {
+    return ''
+  }
+
+  return locale === 'es' ? `${nature.localizedLabel} (${nature.label})` : nature.label
+}
+
 export function getNatureSummary(natureKey, locale = DEFAULT_LOCALE) {
   const nature = getNatureOption(natureKey)
 
@@ -216,11 +255,13 @@ export function getNatureSummary(natureKey, locale = DEFAULT_LOCALE) {
     return getTeamBuilderMessages(locale).noNature ?? 'Sin naturaleza'
   }
 
+  const label = getNatureLabel(nature.key, locale)
+
   if (!nature.increasedStat || !nature.decreasedStat) {
-    return `${nature.label} (neutral)`
+    return `${label} (neutral)`
   }
 
-  return `${nature.label} (+${STAT_LABELS[nature.increasedStat]}, -${STAT_LABELS[nature.decreasedStat]})`
+  return `${label} (+${STAT_LABELS[nature.increasedStat]}, -${STAT_LABELS[nature.decreasedStat]})`
 }
 
 export function getNatureModifier(natureKey, statKey) {
@@ -246,7 +287,7 @@ function normalizeEffortValue(value) {
     return 0
   }
 
-  const normalized = Math.round(Number(value) / 4) * 4
+  const normalized = Math.round(Number(value) / TEAM_EVS_STEP) * TEAM_EVS_STEP
   return Math.min(Math.max(normalized, 0), TEAM_MAX_EVS_PER_STAT)
 }
 
@@ -256,6 +297,16 @@ function normalizeIndividualValue(value) {
   }
 
   return Math.min(Math.max(Math.round(Number(value)), 0), TEAM_MAX_IVS_PER_STAT)
+}
+
+export function convertChampionsPointsToStandardEvs(value) {
+  const safeValue = normalizeEffortValue(value)
+
+  if (safeValue <= 0) {
+    return 0
+  }
+
+  return Math.min(252, 4 + (safeValue - 1) * 8)
 }
 
 function sanitizeEffortValues(value) {
@@ -279,7 +330,7 @@ function sanitizeEffortValues(value) {
     }
 
     const overflow = total - TEAM_MAX_EVS
-    const deduction = Math.min(next[statKey], Math.ceil(overflow / 4) * 4)
+    const deduction = Math.min(next[statKey], Math.ceil(overflow / TEAM_EVS_STEP) * TEAM_EVS_STEP)
     next[statKey] -= deduction
     total -= deduction
   }
@@ -327,7 +378,7 @@ export function createEmptyTeamSlot() {
 export function createTeamSlot(pokemonSlug, overrides = {}) {
   return {
     ...createEmptyTeamSlot(),
-    pokemonSlug: normalizeTeamResourceId(pokemonSlug),
+    pokemonSlug: normalizeTeamPokemonSlug(pokemonSlug),
     abilitySlug: normalizeTeamResourceId(overrides.abilitySlug),
     itemSlug: normalizeTeamResourceId(overrides.itemSlug),
     natureKey: normalizeNatureKey(overrides.natureKey),
@@ -356,7 +407,7 @@ function sanitizeTeamSlot(value) {
   }
 
   return {
-    pokemonSlug: normalizeTeamResourceId(value.pokemonSlug),
+    pokemonSlug: normalizeTeamPokemonSlug(value.pokemonSlug),
     abilitySlug: normalizeTeamResourceId(value.abilitySlug),
     itemSlug: normalizeTeamResourceId(value.itemSlug),
     natureKey: normalizeNatureKey(value.natureKey),
@@ -473,7 +524,7 @@ export function buildUpdatedIndividualValues(currentIvs, statKey, nextValue) {
 export function calculateBattleStat({ base, iv, ev, level = TEAM_STAT_LEVEL, statKey, natureKey = null }) {
   const safeBase = Number(base) || 0
   const safeIv = normalizeIndividualValue(iv)
-  const safeEv = normalizeEffortValue(ev)
+  const safeEv = convertChampionsPointsToStandardEvs(ev)
   const isHp = statKey === 'hp'
 
   if (isHp) {
