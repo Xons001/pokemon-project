@@ -685,3 +685,718 @@
     flex-direction: column;
   }
 }
+
+.calculatorShell {
+  gap: 0.9rem;
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 18px;
+}
+
+.heroCopy h2 {
+  max-width: none;
+  font-size: clamp(1.75rem, 2.4vw, 2.65rem);
+  letter-spacing: 0;
+}
+
+.heroCopy p:last-child {
+  max-width: 86ch;
+  margin-top: 0.45rem;
+  line-height: 1.45;
+}
+
+.heroStats {
+  min-width: 0;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.heroStatCard {
+  min-width: 116px;
+  padding: 0.72rem 0.8rem;
+  border-radius: 14px;
+}
+
+.heroStatCard strong {
+  font-size: 1rem;
+}
+
+.compactTeamsGrid,
+.workspaceGrid,
+.opponentPrepGrid,
+.strategyCompareGrid,
+.analysisGrid,
+.answersGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.compactTeamsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspaceGrid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, 0.55fr);
+}
+
+.opponentPrepGrid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+}
+
+.strategyCompareGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.analysisGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.answersGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.leftColumn,
+.rightColumn {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.teamStrip,
+.panel,
+.summaryCard,
+.answerCard {
+  color: var(--calc-panel-text);
+  background: var(--calc-panel-bg);
+  border: 1px solid var(--calc-border);
+  border-radius: 16px;
+  box-shadow: var(--calc-shadow);
+}
+
+.teamStrip,
+.panel,
+.summaryCard,
+.answerCard {
+  padding: 0.9rem;
+}
+
+.sectionHeader,
+.answerHeader,
+.metaTeamHeader,
+.buttonRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sectionHeader h3,
+.answerHeader h3,
+.summaryCard h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.teamMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.teamMiniSlot,
+.opponentSlot,
+.catalogButton,
+.bestAnswer,
+.metricRow,
+.metaTeamCard {
+  background: var(--calc-panel-bg-soft);
+  border: 1px solid var(--calc-border);
+  border-radius: 12px;
+}
+
+.teamMiniSlot {
+  display: grid;
+  min-height: 74px;
+  place-items: center;
+  gap: 0.25rem;
+  padding: 0.45rem;
+  text-align: center;
+}
+
+.teamMiniSlot span,
+.teamMiniEmpty {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamMiniEmpty {
+  color: var(--calc-panel-muted);
+}
+
+.searchField {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.searchField span {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--calc-muted-strong);
+}
+
+.searchField input,
+.importTextarea {
+  width: 100%;
+  color: var(--calc-input-text);
+  background: var(--calc-input-bg);
+  border: 1px solid var(--calc-input-border);
+  border-radius: 12px;
+}
+
+.searchField input {
+  min-height: 40px;
+  padding: 0.65rem 0.75rem;
+}
+
+.opponentSlots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.opponentSlot {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  color: var(--calc-panel-text);
+  cursor: pointer;
+}
+
+.opponentSlot span {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opponentSlotActive {
+  border-color: var(--calc-border-hover);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--calc-border-hover) 18%, transparent);
+}
+
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  max-height: 310px;
+  margin-top: 0.75rem;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.catalogButton {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.55rem;
+  color: var(--calc-panel-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalogButton span {
+  display: grid;
+  min-width: 0;
+}
+
+.catalogButton strong,
+.catalogButton small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogButton small,
+.panelHint,
+.inlineNotice,
+.playHint,
+.metaTeamHeader small,
+.bestAnswer small,
+.leadList small,
+.movePreview span,
+.controlPreview span {
+  color: var(--calc-panel-muted);
+}
+
+.importTextarea {
+  min-height: 146px;
+  margin-top: 0.75rem;
+  padding: 0.8rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.buttonRow {
+  flex-wrap: wrap;
+  margin-top: 0.7rem;
+  justify-content: flex-start;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 38px;
+  padding: 0.62rem 0.82rem;
+  font-weight: 800;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.primaryButton {
+  color: var(--calc-chip-primary-text);
+  background: var(--calc-chip-primary-bg);
+  border: 1px solid transparent;
+}
+
+.secondaryButton {
+  color: var(--calc-chip-text);
+  background: var(--calc-chip-bg);
+  border: 1px solid var(--calc-chip-border);
+}
+
+.inlineNotice,
+.panelHint,
+.playHint {
+  margin: 0.7rem 0 0;
+  line-height: 1.45;
+}
+
+.badge,
+.threatScore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--calc-chip-text);
+  background: var(--calc-chip-bg);
+  border: 1px solid var(--calc-chip-border);
+  border-radius: 999px;
+}
+
+.metaTeamList {
+  display: grid;
+  gap: 0.6rem;
+  max-height: 560px;
+  margin-top: 0.75rem;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.metaTeamCard {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.72rem;
+}
+
+.metaTeamHeader {
+  align-items: baseline;
+}
+
+.metaSprites,
+.typeStack,
+.summaryStats,
+.leadList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.leadList {
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+.metaSprites span,
+.typeStack span,
+.summaryStats span,
+.leadList span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--calc-chip-muted-text);
+  background: var(--calc-chip-muted-bg);
+  border: 1px solid var(--calc-chip-border);
+  border-radius: 999px;
+}
+
+.leadList .leadChip {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-height: 48px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 12px;
+}
+
+.leadChip small {
+  display: block;
+  line-height: 1.25;
+}
+
+.answerCard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.answerPokemon,
+.bestAnswer {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.answerPokemon h3 {
+  margin: 0;
+}
+
+.answerPokemon small {
+  color: var(--calc-panel-muted);
+}
+
+.threatScore {
+  min-width: 42px;
+  color: var(--calc-active-text);
+  background: var(--calc-active-bg);
+  border-color: transparent;
+}
+
+.bestAnswer {
+  justify-content: space-between;
+  padding: 0.7rem;
+}
+
+.bestAnswer span {
+  display: block;
+  margin-bottom: 0.16rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--calc-muted-strong);
+}
+
+.answerMetrics {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.55rem 0.62rem;
+}
+
+.metricRow strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricRow span,
+.metricRow small {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.metricRow small {
+  grid-column: 1 / -1;
+  color: var(--calc-panel-muted);
+}
+
+.bringFourList,
+.attackPlanList,
+.toolsList {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.bringFourList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.openingPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.bringFourCard,
+.attackPlanCard,
+.toolsCard,
+.predictionCard,
+.leadSlotCard {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.68rem;
+  background: var(--calc-panel-bg-soft);
+  border: 1px solid var(--calc-border);
+  border-radius: 12px;
+}
+
+.leadSlotCard {
+  background: color-mix(in srgb, var(--calc-panel-bg-soft) 90%, var(--calc-chip-primary-bg));
+}
+
+.leadSide {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--calc-kicker);
+}
+
+.leadReason,
+.speedNote,
+.compactCoverage {
+  margin: 0;
+  line-height: 1.38;
+  color: var(--calc-panel-muted);
+}
+
+.speedNote {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.72rem;
+  background: var(--calc-panel-bg-soft);
+  border: 1px solid var(--calc-border);
+  border-radius: 12px;
+}
+
+.bringFourHeader,
+.attackPlanHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.bringFourHeader div,
+.attackPlanHeader div {
+  display: grid;
+  min-width: 0;
+  gap: 0.16rem;
+}
+
+.bringFourHeader strong,
+.attackPlanHeader strong,
+.toolsCard strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bringFourHeader small,
+.attackPlanHeader small,
+.toolsCard small {
+  color: var(--calc-panel-muted);
+}
+
+.bringFourIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--calc-active-text);
+  background: var(--calc-active-bg);
+  border-radius: 999px;
+}
+
+.passiveRow,
+.coverageBlock {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.55rem 0.62rem;
+  background: var(--calc-panel-bg);
+  border: 1px solid var(--calc-border);
+  border-radius: 10px;
+}
+
+.passiveRow span,
+.coverageBlock span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--calc-muted-strong);
+}
+
+.coverageBlock p {
+  margin: 0;
+  line-height: 1.4;
+  color: var(--calc-panel-muted);
+}
+
+.compactCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.predictionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.predictionCard {
+  min-width: 0;
+}
+
+.noteStack {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.noteStack .speedNote {
+  margin-top: 0;
+}
+
+.compactCardMeta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.28rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--calc-chip-muted-text);
+  background: var(--calc-chip-muted-bg);
+  border: 1px solid var(--calc-chip-border);
+  border-radius: 999px;
+}
+
+.movePreview,
+.controlPreview {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  background: var(--calc-panel-bg-soft);
+  border: 1px solid var(--calc-border);
+  border-radius: 12px;
+}
+
+.movePreview span,
+.controlPreview span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.movePreview div,
+.controlPreview div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.movePreview strong,
+.controlPreview strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+  color: var(--calc-chip-text);
+  background: var(--calc-chip-bg);
+  border: 1px solid var(--calc-chip-border);
+  border-radius: 999px;
+}
+
+@media (max-width: 1320px) {
+  .hero,
+  .workspaceGrid,
+  .opponentPrepGrid,
+  .strategyCompareGrid,
+  .analysisGrid,
+  .answersGrid,
+  .compactTeamsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStats {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 920px) {
+  .teamMiniGrid,
+  .opponentSlots,
+  .catalogGrid,
+  .bringFourList,
+  .openingPair,
+  .predictionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metricRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 0.95rem;
+  }
+
+  .heroStats {
+    width: 100%;
+  }
+
+  .heroStatCard {
+    flex: 1 1 140px;
+  }
+
+  .teamMiniGrid,
+  .opponentSlots,
+  .predictionGrid,
+  .catalogGrid,
+  .bringFourList,
+  .openingPair {
+    grid-template-columns: 1fr;
+  }
+}

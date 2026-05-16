@@ -938,3 +938,76 @@
     position: static;
   }
 }
+
+.workspace {
+  gap: 0.9rem;
+}
+
+.topGrid {
+  gap: 0.9rem;
+}
+
+.teamPanel,
+.searchSection,
+.buildPanel {
+  padding: 0.95rem;
+  border-radius: 16px;
+}
+
+.notice {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+}
+
+.slotGrid {
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.slotCard {
+  gap: 0.55rem;
+  padding: 0.72rem;
+  border-radius: 14px;
+}
+
+.slotEmpty {
+  min-height: 132px;
+}
+
+.slotVisual {
+  width: 62px;
+  height: 62px;
+  border-radius: 14px;
+}
+
+.searchBar,
+.searchResults,
+.searchFooter,
+.buildSummary,
+.buildConfigGrid,
+.moveGrid,
+.transferPanel {
+  margin-top: 0.75rem;
+}
+
+.searchResults {
+  gap: 0.55rem;
+}
+
+.resultCard,
+.configField,
+.moveCard,
+.emptyBuildState {
+  border-radius: 14px;
+}
+
+.buildConfigGrid,
+.moveGrid {
+  gap: 0.65rem;
+}
+
+.transferTextarea {
+  min-height: 150px;
+  border-radius: 14px;
+}
