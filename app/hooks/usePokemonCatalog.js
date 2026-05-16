@@ -17,17 +17,19 @@ const catalogPageRequestCache = new Map()
 const pokemonDetailCache = new Map()
 const pokemonDetailRequestCache = new Map()
 
-function buildCatalogRequestKey(query, page, pageSize) {
-  return `${query.trim().toLowerCase()}::${page}::${pageSize}`
+const POKEDEX_CATALOG_SCOPE = 'competitive'
+
+function buildCatalogRequestKey(query, page, pageSize, scope = POKEDEX_CATALOG_SCOPE) {
+  return `${scope}::${query.trim().toLowerCase()}::${page}::${pageSize}`
 }
 
-function getCachedCatalogPage(query, page, pageSize) {
-  const requestKey = buildCatalogRequestKey(query, page, pageSize)
+function getCachedCatalogPage(query, page, pageSize, scope = POKEDEX_CATALOG_SCOPE) {
+  const requestKey = buildCatalogRequestKey(query, page, pageSize, scope)
   return catalogPageCache.get(requestKey) ?? null
 }
 
-async function loadCatalogPage(query, page, pageSize) {
-  const requestKey = buildCatalogRequestKey(query, page, pageSize)
+async function loadCatalogPage(query, page, pageSize, scope = POKEDEX_CATALOG_SCOPE) {
+  const requestKey = buildCatalogRequestKey(query, page, pageSize, scope)
   const cachedPayload = catalogPageCache.get(requestKey)
 
   if (cachedPayload) {
@@ -41,6 +43,7 @@ async function loadCatalogPage(query, page, pageSize) {
   }
 
   const request = fetchPokemonCatalog(query, {
+    scope,
     page,
     pageSize,
   })

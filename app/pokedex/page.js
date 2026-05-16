@@ -1,8 +1,8 @@
 import HomePage from '../components/home/HomePage'
 
 export const metadata = {
-  title: 'Pok\u00e9dex | Pok\u00e9mon Project',
-  description: 'Explora la Pok\u00e9dex interactiva y consulta stats, movimientos y detalles de cada Pok\u00e9mon.',
+  title: 'Pok\u00e9dex Champions | Pok\u00e9mon Project',
+  description: 'Explora los Pok\u00e9mon disponibles en Pok\u00e9mon Champions con stats, movimientos y detalles competitivos.',
 }
 
 export default function PokedexPage() {

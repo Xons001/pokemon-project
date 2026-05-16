@@ -180,11 +180,11 @@ const en = {
       startFailed: 'The microphone could not be started. Close other voice captures and try again.',
     },
     pokedex: {
-      title: 'Interactive Pokédex',
-      badge: '{count} Pokémon',
+      title: 'Champions Pokédex',
+      badge: '{count} available',
     },
     search: {
-      placeholder: 'Search Pokémon by name, number, or type',
+      placeholder: 'Search Champions Pokémon by name, number, or type',
       stopVoiceSearch: 'Stop voice search',
       startVoiceSearch: 'Search Pokémon by voice',
       voiceSearchTitle: 'Search by voice',

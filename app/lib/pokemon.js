@@ -22,7 +22,7 @@ export function getPokemonNavItems(locale = DEFAULT_LOCALE) {
 
 export const navItems = getPokemonNavItems()
 
-export const quickSuggestions = ['Charizard', 'Pikachu', 'Gengar', 'Eevee']
+export const quickSuggestions = ['Charizard', 'Farigiraf', 'Gardevoir', 'Dragapult']
 
 export function getPokemonCardStats(locale = DEFAULT_LOCALE) {
   const messages = getMessages(locale)

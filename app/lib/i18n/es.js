@@ -180,11 +180,11 @@ const es = {
       startFailed: 'No se pudo iniciar el micro. Cierra otras capturas de voz y prueba de nuevo.',
     },
     pokedex: {
-      title: 'Pokédex interactiva',
-      badge: '{count} Pokémon',
+      title: 'Pokédex Champions',
+      badge: '{count} disponibles',
     },
     search: {
-      placeholder: 'Buscar Pokémon por nombre, número o tipo',
+      placeholder: 'Buscar Pokémon Champions por nombre, número o tipo',
       stopVoiceSearch: 'Detener búsqueda por voz',
       startVoiceSearch: 'Buscar Pokémon por voz',
       voiceSearchTitle: 'Buscar por voz',
