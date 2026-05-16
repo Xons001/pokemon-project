@@ -614,92 +614,94 @@ export default function TeamWorkspace({
             ) : null}
           </div>
         </div>
-        {activePokemon ? (
-          <>
-            <div className={styles.buildSummary}>
-              <div className={styles.buildSummaryVisual} style={getCardStyle(activePokemon)}>
-                <PokemonImage src={activePokemon.thumb} alt={activePokemon.name} width={88} height={88} />
-              </div>
+        <div className={styles.buildEditorGrid}>
+          <div className={styles.buildPrimaryColumn}>
+            {activePokemon ? (
+              <>
+                <div className={styles.buildSummary}>
+                  <div className={styles.buildSummaryVisual} style={getCardStyle(activePokemon)}>
+                    <PokemonImage src={activePokemon.thumb} alt={activePokemon.name} width={88} height={88} />
+                  </div>
 
-              <div className={styles.buildSummaryCopy}>
-                <strong>{activePokemon.name}</strong>
-                <p>{activePokemon.types.length ? activePokemon.types.join(' / ') : t('team.workspace.loadingTypes')}</p>
-                <div className={styles.buildTags}>
-                  <span>{activePokemon.role}</span>
-                  <span>{t('team.workspace.moveOptions', { count: selectedPokemonMoves.length })}</span>
-                  <span>{selectedSlot?.itemSlug ? getItemLabel(selectedSlot.itemSlug) : t('team.workspace.noItem')}</span>
-                  <span>{getNatureSummary(selectedSlot?.natureKey, locale)}</span>
+                  <div className={styles.buildSummaryCopy}>
+                    <strong>{activePokemon.name}</strong>
+                    <p>{activePokemon.types.length ? activePokemon.types.join(' / ') : t('team.workspace.loadingTypes')}</p>
+                    <div className={styles.buildTags}>
+                      <span>{activePokemon.role}</span>
+                      <span>{t('team.workspace.moveOptions', { count: selectedPokemonMoves.length })}</span>
+                      <span>{selectedSlot?.itemSlug ? getItemLabel(selectedSlot.itemSlug) : t('team.workspace.noItem')}</span>
+                      <span>{getNatureSummary(selectedSlot?.natureKey, locale)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <p className={styles.buildHelperText}>
-              {isMovesLoading
-                ? t('team.workspace.loadingLearnset')
-                : t('team.workspace.buildHelper')}
-            </p>
+                <p className={styles.buildHelperText}>
+                  {isMovesLoading
+                    ? t('team.workspace.loadingLearnset')
+                    : t('team.workspace.buildHelper')}
+                </p>
 
-            <div className={styles.buildConfigGrid}>
-              <div className={styles.configField}>
-                <span>{workspaceCopy.ability}</span>
-                <TeamSelectPicker
-                  ariaLabel={abilityPickerCopy.ariaLabel}
-                  value={selectedAbilitySlug}
-                  onChange={onAssignAbilityToSlot}
-                  options={abilityPickerOptions}
-                  disabled={!selectedAbilityOptions.length && isPokemonLoading}
-                  placeholderTitle={isPokemonLoading ? abilityPickerCopy.loadingTitle : abilityPickerCopy.selectTitle}
-                  placeholderMeta={abilityPickerCopy.placeholderMeta}
-                  searchPlaceholder={abilityPickerCopy.searchPlaceholder}
-                  emptyMessage={abilityPickerCopy.emptyMessage}
-                />
-                <small>
-                  {selectedAbilityOptions.length
-                    ? abilityPickerCopy.selectedHelp
-                    : isPokemonLoading
-                      ? abilityPickerCopy.loadingHelp
-                      : abilityPickerCopy.emptyHelp}
-                </small>
-              </div>
+                <div className={styles.buildConfigGrid}>
+                  <div className={styles.configField}>
+                    <span>{workspaceCopy.ability}</span>
+                    <TeamSelectPicker
+                      ariaLabel={abilityPickerCopy.ariaLabel}
+                      value={selectedAbilitySlug}
+                      onChange={onAssignAbilityToSlot}
+                      options={abilityPickerOptions}
+                      disabled={!selectedAbilityOptions.length && isPokemonLoading}
+                      placeholderTitle={isPokemonLoading ? abilityPickerCopy.loadingTitle : abilityPickerCopy.selectTitle}
+                      placeholderMeta={abilityPickerCopy.placeholderMeta}
+                      searchPlaceholder={abilityPickerCopy.searchPlaceholder}
+                      emptyMessage={abilityPickerCopy.emptyMessage}
+                    />
+                    <small>
+                      {selectedAbilityOptions.length
+                        ? abilityPickerCopy.selectedHelp
+                        : isPokemonLoading
+                          ? abilityPickerCopy.loadingHelp
+                          : abilityPickerCopy.emptyHelp}
+                    </small>
+                  </div>
 
-              <div className={styles.configField}>
-                <span>{workspaceCopy.item}</span>
-                <TeamSelectPicker
-                  ariaLabel={itemPickerCopy.ariaLabel}
-                  value={selectedSlot?.itemSlug ?? ''}
-                  onChange={onAssignItemToSlot}
-                  options={itemPickerOptions}
-                  disabled={isItemsLoading}
-                  placeholderTitle={isItemsLoading ? itemPickerCopy.loadingTitle : itemPickerCopy.selectTitle}
-                  placeholderMeta={itemPickerCopy.placeholderMeta}
-                  searchPlaceholder={itemPickerCopy.searchPlaceholder}
-                  emptyMessage={itemPickerCopy.emptyMessage}
-                />
-                <small>
-                  {isItemsLoading
-                    ? itemPickerCopy.loadingHelp
-                    : itemPickerCopy.readyHelp}
-                </small>
-              </div>
+                  <div className={styles.configField}>
+                    <span>{workspaceCopy.item}</span>
+                    <TeamSelectPicker
+                      ariaLabel={itemPickerCopy.ariaLabel}
+                      value={selectedSlot?.itemSlug ?? ''}
+                      onChange={onAssignItemToSlot}
+                      options={itemPickerOptions}
+                      disabled={isItemsLoading}
+                      placeholderTitle={isItemsLoading ? itemPickerCopy.loadingTitle : itemPickerCopy.selectTitle}
+                      placeholderMeta={itemPickerCopy.placeholderMeta}
+                      searchPlaceholder={itemPickerCopy.searchPlaceholder}
+                      emptyMessage={itemPickerCopy.emptyMessage}
+                    />
+                    <small>
+                      {isItemsLoading
+                        ? itemPickerCopy.loadingHelp
+                        : itemPickerCopy.readyHelp}
+                    </small>
+                  </div>
 
-              <div className={styles.configField}>
-                <span>{workspaceCopy.nature}</span>
-                <TeamSelectPicker
-                  ariaLabel={naturePickerCopy.ariaLabel}
-                  value={selectedNatureKey}
-                  onChange={onAssignNatureToSlot}
-                  options={naturePickerOptions}
-                  placeholderTitle={naturePickerCopy.placeholderTitle}
-                  placeholderMeta={naturePickerCopy.placeholderMeta}
-                  searchPlaceholder={naturePickerCopy.searchPlaceholder}
-                  emptyMessage={naturePickerCopy.emptyMessage}
-                />
-                <small>{naturePickerCopy.help}</small>
-              </div>
-            </div>
+                  <div className={styles.configField}>
+                    <span>{workspaceCopy.nature}</span>
+                    <TeamSelectPicker
+                      ariaLabel={naturePickerCopy.ariaLabel}
+                      value={selectedNatureKey}
+                      onChange={onAssignNatureToSlot}
+                      options={naturePickerOptions}
+                      placeholderTitle={naturePickerCopy.placeholderTitle}
+                      placeholderMeta={naturePickerCopy.placeholderMeta}
+                      searchPlaceholder={naturePickerCopy.searchPlaceholder}
+                      emptyMessage={naturePickerCopy.emptyMessage}
+                    />
+                    <small>{naturePickerCopy.help}</small>
+                  </div>
+                </div>
 
-            <div className={styles.moveGrid}>
-              {activeMoveSlugs.map((moveSlug, index) => {
+                <div className={styles.moveGrid}>
+                  {activeMoveSlugs.map((moveSlug, index) => {
                 const selectedMove = selectedMoveEntries[index]
                 const normalizedMoveSearch = moveSearchQuery.trim().toLowerCase()
                 const filteredMoves = normalizedMoveSearch
@@ -721,15 +723,15 @@ export default function TeamWorkspace({
                   : selectedPokemonMoves
                 const isPickerOpen = openMovePickerIndex === index
 
-                return (
-                  <article
-                    key={`move-slot-${index}`}
-                    className={[styles.moveCard, selectedMove ? styles.moveCardSelected : null].filter(Boolean).join(' ')}
-                    style={getMoveCardStyle(selectedMove)}
-                  >
-                    <label className={styles.moveLabel} htmlFor={`team-move-${index}`}>
-                      {t('team.workspace.move.title', { index: index + 1 })}
-                    </label>
+                    return (
+                      <article
+                        key={`move-slot-${index}`}
+                        className={[styles.moveCard, selectedMove ? styles.moveCardSelected : null].filter(Boolean).join(' ')}
+                        style={getMoveCardStyle(selectedMove)}
+                      >
+                        <label className={styles.moveLabel} htmlFor={`team-move-${index}`}>
+                          {t('team.workspace.move.title', { index: index + 1 })}
+                        </label>
 
                     <div
                       className={styles.movePicker}
@@ -876,57 +878,61 @@ export default function TeamWorkspace({
                           : moveCopy.emptySlot}
                       </p>
                     )}
-                  </article>
-                )
-              })}
-            </div>
-          </>
-        ) : (
-          <div className={styles.emptyBuildState}>
-            <strong>{workspaceCopy.emptyBuildTitle}</strong>
-            <p>{workspaceCopy.emptyBuildDescription}</p>
-          </div>
-        )}
-
-        <section className={styles.transferPanel}>
-          <div className={styles.transferHeader}>
-            <div>
-              <p className={styles.kicker}>{transferCopy.kicker}</p>
-              <h3>{transferCopy.title}</h3>
-            </div>
-
-            <div className={styles.transferActions}>
-              <button type="button" className={styles.transferButton} onClick={handleGenerateExport}>
-                {transferCopy.generate}
-              </button>
-              <button type="button" className={styles.transferButton} onClick={handleCopyExport}>
-                {transferCopy.copy}
-              </button>
-              <button type="button" className={[styles.transferButton, styles.transferButtonPrimary].join(' ')} onClick={handleImport}>
-                {transferCopy.import}
-              </button>
-            </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className={styles.emptyBuildState}>
+                <strong>{workspaceCopy.emptyBuildTitle}</strong>
+                <p>{workspaceCopy.emptyBuildDescription}</p>
+              </div>
+            )}
           </div>
 
-          <p className={styles.transferHelper}>{transferCopy.description}</p>
+          <div className={styles.buildSideColumn}>
+            <TeamStatEditor
+              pokemon={activePokemon}
+              selectedSlot={selectedSlot}
+              onAssignEffortValue={onAssignEffortValue}
+              onResetStatSpread={() => onResetStatSpread(selectedSlotIndex)}
+            />
 
-          <textarea
-            className={styles.transferTextarea}
-            value={transferText}
-            onChange={(event) => setTransferText(event.target.value)}
-            placeholder="Dragapult @ Choice Specs&#10;Ability: Infiltrator&#10;Timid Nature&#10;EVs: 4 Def / 252 SpA / 252 Spe&#10;- Draco Meteor&#10;- Shadow Ball"
-            spellCheck="false"
-          />
+            <section className={styles.transferPanel}>
+              <div className={styles.transferHeader}>
+                <div>
+                  <p className={styles.kicker}>{transferCopy.kicker}</p>
+                  <h3>{transferCopy.title}</h3>
+                </div>
 
-          {transferMessage ? <p className={styles.transferMessage}>{transferMessage}</p> : null}
-        </section>
+                <div className={styles.transferActions}>
+                  <button type="button" className={styles.transferButton} onClick={handleGenerateExport}>
+                    {transferCopy.generate}
+                  </button>
+                  <button type="button" className={styles.transferButton} onClick={handleCopyExport}>
+                    {transferCopy.copy}
+                  </button>
+                  <button type="button" className={[styles.transferButton, styles.transferButtonPrimary].join(' ')} onClick={handleImport}>
+                    {transferCopy.import}
+                  </button>
+                </div>
+              </div>
 
-        <TeamStatEditor
-          pokemon={activePokemon}
-          selectedSlot={selectedSlot}
-          onAssignEffortValue={onAssignEffortValue}
-          onResetStatSpread={() => onResetStatSpread(selectedSlotIndex)}
-        />
+              <p className={styles.transferHelper}>{transferCopy.description}</p>
+
+              <textarea
+                className={styles.transferTextarea}
+                value={transferText}
+                onChange={(event) => setTransferText(event.target.value)}
+                placeholder="Dragapult @ Choice Specs&#10;Ability: Infiltrator&#10;Timid Nature&#10;EVs: 4 Def / 252 SpA / 252 Spe&#10;- Draco Meteor&#10;- Shadow Ball"
+                spellCheck="false"
+              />
+
+              {transferMessage ? <p className={styles.transferMessage}>{transferMessage}</p> : null}
+            </section>
+          </div>
+        </div>
       </section>
     </section>
   )
