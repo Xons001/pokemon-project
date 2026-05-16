@@ -8,7 +8,6 @@ import ThemeToggle from '../theme/ThemeToggle'
 import styles from './SiteHeader.module.css'
 
 const baseNavItems = [
-  { key: 'pokedex', href: '/pokedex' },
   { key: 'teams', href: '/equipos' },
   { key: 'damageCalculator', href: '/calculadora-dano' },
 ]
